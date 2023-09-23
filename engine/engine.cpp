@@ -12,8 +12,8 @@ engine &engine::GetInstance()
 
 engine::engine() : Window(window()), Renderer(renderer())
 {
-    Window.Init();
-//    Renderer.Init(Window);
+    Initialized = Window.Init();
+    Initialized = Initialized & Renderer.Init(Window.Window);
 }
 
 engine::~engine()
@@ -22,8 +22,12 @@ engine::~engine()
     Window.Clean();
 }
 
-int engine::Run()
+s32 engine::Run()
 {
+    if (Initialized != EXIT_SUCCESS)
+        return EXIT_FAILURE;
+
     Window.Loop();
-    return 0;
+
+    return EXIT_SUCCESS;
 }

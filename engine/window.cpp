@@ -4,14 +4,24 @@
 
 #include "window.h"
 
-void window::Init()
+s32 window::Init()
 {
-    glfwInit();
+    if(glfwInit() != GLFW_TRUE)
+    {
+        std::cout << "GLFW failed to initialize" << std::endl;
+        return EXIT_FAILURE;
+    }
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
-    Window = glfwCreateWindow(800, 600, "Radiant", nullptr, nullptr);
+    if(Window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE, nullptr, nullptr); Window == nullptr)
+    {
+        std::cout << "Failed to create GLFW window" << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    return EXIT_SUCCESS;
 }
 
 window::window() : Window(nullptr) {}

@@ -13,7 +13,7 @@ class engine
 {
 public:
     static engine& GetInstance();
-    i32 Run();
+    s32 Run();
 private:
     engine();
     ~engine();
@@ -21,6 +21,8 @@ private:
 private:
     class window Window;
     class renderer Renderer;
+
+    u8 Initialized : 1;
 };
 
 

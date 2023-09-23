@@ -14,11 +14,18 @@
 #include <vector>
 
 class renderer {
-public:
-    renderer() = default;
-    ~renderer() = default;
+private:
+    friend class engine;
 
-    u16 width = 0;
+    GLFWwindow* Window;
+
+    VkInstance Instance;
+
+private:
+    renderer();
+    ~renderer();
+    s32 Init(GLFWwindow* window);
+    void CreateInstance();
 };
 
 

@@ -12,6 +12,8 @@
 #include <vector>
 #include <iostream>
 
+#include "base/defines.h"
+
 class window
 {
 private:
@@ -23,7 +25,7 @@ private:
     window();
     ~window();
 
-    void Init();
+    s32 Init();
     void Loop();
     void Clean();
 };
