@@ -1,7 +1,11 @@
 #ifndef R_DEFINES_H
 #define R_DEFINES_H
 
-#include <stdint.h>
+#include <cstdint>
+
+#define WINDOW_WIDTH 800
+#define WINDOW_HEIGHT 600
+#define WINDOW_TITLE "x"
 
 typedef uint8_t u8;
 typedef uint16_t u16;
