@@ -10,7 +10,7 @@ set (SOURCES
     renderer.h renderer.cpp
     window.h window.cpp
     engine.h engine.cpp
-        renderutil.h renderutil.cpp
+    rutil.h
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})

@@ -14,7 +14,7 @@
 #include <vector>
 #include <set>
 
-#include "renderutil.h"
+#include "rutil.h"
 
 class xRenderer {
 private:
@@ -31,6 +31,11 @@ private:
     } MainDevice;
 
     VkSurfaceKHR Surface;
+
+    VkSwapchainKHR Swapchain;
+    std::vector<xRUtil::SwapChainImage> SwapchainImages;
+    VkFormat SwapchainImageFormat;
+    VkExtent2D SwapchainExtent;
 
     VkQueue GraphicsQueue;
     VkQueue PresentationQueue;
@@ -57,37 +62,44 @@ private:
 
 private:
     void CreateInstance();
+    void SetupDebugMessenger();
+    void CreateSurface();
     void GetPhysicalDevice();
     void CreateLogicalDevice();
-    void CreateSurface();
-    void SetupDebugMessenger();
+    void CreateSwapChain();
 
-    bool CheckInstanceExtensionSupport(std::vector<const char *> *extensions);
-    bool CheckDeviceExtensionSupport(VkPhysicalDevice Device);
+    static bool CheckInstanceExtensionSupport(std::vector<const char *> *extensions);
+    static bool CheckDeviceExtensionSupport(VkPhysicalDevice device);
     bool CheckValidationLayerSupport();
-    bool CheckSuitableDevice(VkPhysicalDevice Device);
+    bool CheckSuitableDevice(VkPhysicalDevice device);
 
     static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
             VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
             VkDebugUtilsMessageTypeFlagsEXT messageType,
             const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-            void* pUserData);
+            [[maybe_unused]] void* pUserData);
 
-    void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
+    static void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
 
-    VkResult CreateDebugUtilsMessengerEXT(
+    static VkResult CreateDebugUtilsMessengerEXT(
             VkInstance instance,
             const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
             const VkAllocationCallbacks* pAllocator,
             VkDebugUtilsMessengerEXT* pDebugMessenger);
 
-    void DestroyDebugUtilsMessengerEXT(
+    static void DestroyDebugUtilsMessengerEXT(
             VkInstance instance,
             VkDebugUtilsMessengerEXT debugMessenger,
             const VkAllocationCallbacks* pAllocator);
 
-    xRenderUtil::QueueFamilyIndices GetQueueFamilies(VkPhysicalDevice Device);
-    xRenderUtil::SwapChainDetails GetSwapChainDetails(VkPhysicalDevice Device);
+    xRUtil::QueueFamilyIndices GetQueueFamilies(VkPhysicalDevice device);
+    xRUtil::SwapChainDetails GetSwapChainDetails(VkPhysicalDevice device);
+
+    static VkSurfaceFormatKHR ChooseBestSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& formats);
+    static VkPresentModeKHR ChooseBestPresentationMode(const std::vector<VkPresentModeKHR>& presentationModes);
+    VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& surfaceCapabilities);
+
+    VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlagBits aspectFlags) const;
 };
 
 
