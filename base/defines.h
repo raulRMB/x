@@ -20,6 +20,6 @@ typedef int64_t i64;
 typedef float f32;
 typedef double f64;
 
-typedef u8 byte;
+typedef char byte;
 
 #endif // R_DEFINES_H

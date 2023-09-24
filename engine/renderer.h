@@ -40,6 +40,10 @@ private:
     VkQueue GraphicsQueue;
     VkQueue PresentationQueue;
 
+    VkPipelineLayout PipelineLayout;
+    VkRenderPass RenderPass;
+    VkPipeline GraphicsPipeline;
+
     const std::vector<const char*> ValidationLayers = {
             "VK_LAYER_KHRONOS_validation"
     };
@@ -67,6 +71,8 @@ private:
     void GetPhysicalDevice();
     void CreateLogicalDevice();
     void CreateSwapChain();
+    void CreateGraphicsPipeline();
+    void CreateRenderPass();
 
     static bool CheckInstanceExtensionSupport(std::vector<const char *> *extensions);
     static bool CheckDeviceExtensionSupport(VkPhysicalDevice device);
@@ -100,6 +106,8 @@ private:
     VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& surfaceCapabilities);
 
     VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlagBits aspectFlags) const;
+
+    VkShaderModule CreateShaderModule(const std::vector<byte>& bytes) const;
 };
 
 

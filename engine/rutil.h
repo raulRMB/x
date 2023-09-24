@@ -40,6 +40,7 @@ namespace xRUtil
         VkImage Image;
         VkImageView ImageView;
     };
+
 };
 
 
