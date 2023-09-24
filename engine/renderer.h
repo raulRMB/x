@@ -33,9 +33,11 @@ private:
     VkSurfaceKHR Surface;
 
     VkSwapchainKHR Swapchain;
-    std::vector<xRUtil::SwapChainImage> SwapchainImages;
     VkFormat SwapchainImageFormat;
     VkExtent2D SwapchainExtent;
+    std::vector<xRUtil::SwapChainImage> SwapchainImages;
+    std::vector<VkFramebuffer> SwapchainFramebuffers;
+    std::vector<VkCommandBuffer> CommandBuffers;
 
     VkQueue GraphicsQueue;
     VkQueue PresentationQueue;
@@ -43,6 +45,8 @@ private:
     VkPipelineLayout PipelineLayout;
     VkRenderPass RenderPass;
     VkPipeline GraphicsPipeline;
+
+    VkCommandPool GraphicsCommandPool;
 
     const std::vector<const char*> ValidationLayers = {
             "VK_LAYER_KHRONOS_validation"
@@ -73,6 +77,11 @@ private:
     void CreateSwapChain();
     void CreateGraphicsPipeline();
     void CreateRenderPass();
+    void CreateFramebuffers();
+    void CreateGraphicsCommandPool();
+    void CreateCommandBuffers();
+
+    void RecordCommands();
 
     static bool CheckInstanceExtensionSupport(std::vector<const char *> *extensions);
     static bool CheckDeviceExtensionSupport(VkPhysicalDevice device);
@@ -107,7 +116,7 @@ private:
 
     VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlagBits aspectFlags) const;
 
-    VkShaderModule CreateShaderModule(const std::vector<byte>& bytes) const;
+    [[nodiscard]] VkShaderModule CreateShaderModule(const std::vector<byte>& bytes) const;
 };
 
 
