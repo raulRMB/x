@@ -4,25 +4,25 @@
 
 #include "engine.h"
 
-engine &engine::GetInstance()
+xEngine &xEngine::GetInstance()
 {
-    static engine instance;
+    static xEngine instance;
     return instance;
 }
 
-engine::engine() : Window(window()), Renderer(renderer())
+xEngine::xEngine() : Window(xWindow()), Renderer(xRenderer())
 {
     Initialized = Window.Init();
     Initialized = Initialized & Renderer.Init(Window.Window);
 }
 
-engine::~engine()
+xEngine::~xEngine()
 {
-//    Renderer.Clean();
+    Renderer.Clean();
     Window.Clean();
 }
 
-s32 engine::Run()
+i32 xEngine::Run()
 {
     if (Initialized != EXIT_SUCCESS)
         return EXIT_FAILURE;

@@ -4,7 +4,7 @@
 
 #include "window.h"
 
-s32 window::Init()
+i32 xWindow::Init()
 {
     if(glfwInit() != GLFW_TRUE)
     {
@@ -24,11 +24,11 @@ s32 window::Init()
     return EXIT_SUCCESS;
 }
 
-window::window() : Window(nullptr) {}
+xWindow::xWindow() : Window(nullptr) {}
 
-window::~window() = default;
+xWindow::~xWindow() = default;
 
-void window::Loop()
+void xWindow::Loop()
 {
     while (!glfwWindowShouldClose(Window))
     {
@@ -36,7 +36,7 @@ void window::Loop()
     }
 }
 
-void window::Clean()
+void xWindow::Clean()
 {
     glfwDestroyWindow(Window);
     glfwTerminate();

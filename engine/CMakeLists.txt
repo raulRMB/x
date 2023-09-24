@@ -7,9 +7,10 @@ option(SDL_TEST OFF)
 
 set (SOURCES
     main.cpp
-    renderer.cpp renderer.h
-    window.cpp window.h
-    engine.cpp engine.h
+    renderer.h renderer.cpp
+    window.h window.cpp
+    engine.h engine.cpp
+        renderutil.h renderutil.cpp
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})

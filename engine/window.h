@@ -14,18 +14,18 @@
 
 #include "base/defines.h"
 
-class window
+class xWindow
 {
 private:
-    friend class engine;
+    friend class xEngine;
 
     GLFWwindow* Window;
 
 private:
-    window();
-    ~window();
+    xWindow();
+    ~xWindow();
 
-    s32 Init();
+    i32 Init();
     void Loop();
     void Clean();
 };

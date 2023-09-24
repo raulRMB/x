@@ -9,18 +9,18 @@
 #include "window.h"
 #include "renderer.h"
 
-class engine
+class xEngine
 {
 public:
-    static engine& GetInstance();
-    s32 Run();
+    static xEngine& GetInstance();
+    i32 Run();
 private:
-    engine();
-    ~engine();
+    xEngine();
+    ~xEngine();
 
 private:
-    class window Window;
-    class renderer Renderer;
+    class xWindow Window;
+    class xRenderer Renderer;
 
     u8 Initialized : 1;
 };
