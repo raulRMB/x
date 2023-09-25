@@ -19,6 +19,8 @@ xRenderer::xRenderer() :
         SwapchainExtent({0, 0}),
         SwapchainFramebuffers(std::vector<VkFramebuffer>()),
         CommandBuffers(std::vector<VkCommandBuffer>()),
+        RenderFinishedSemaphore(VK_NULL_HANDLE),
+        ImageAvailableSemaphore(VK_NULL_HANDLE),
         GraphicsCommandPool(VK_NULL_HANDLE),
         GraphicsQueue(VK_NULL_HANDLE),
         PresentationQueue(VK_NULL_HANDLE),
@@ -46,6 +48,7 @@ i32 xRenderer::Init(GLFWwindow *window)
         CreateGraphicsCommandPool();
         CreateCommandBuffers();
         RecordCommands();
+        CreateSynchronization();
     }
     catch (const std::runtime_error& e)
     {
@@ -587,6 +590,11 @@ VkImageView xRenderer::CreateImageView(VkImage image, VkFormat format, VkImageAs
 
 void xRenderer::Clean()
 {
+    vkDeviceWaitIdle(MainDevice.LogicalDevice);
+
+    vkDestroySemaphore(MainDevice.LogicalDevice, RenderFinishedSemaphore, nullptr);
+    vkDestroySemaphore(MainDevice.LogicalDevice, ImageAvailableSemaphore, nullptr);
+
     vkDestroyCommandPool(MainDevice.LogicalDevice, GraphicsCommandPool, nullptr);
 
     for(const VkFramebuffer& framebuffer : SwapchainFramebuffers)
@@ -920,5 +928,59 @@ void xRenderer::RecordCommands()
         {
             throw std::runtime_error("Failed to record command buffer");
         }
+    }
+}
+
+void xRenderer::DrawFrame()
+{
+    u32 imageIndex;
+    vkAcquireNextImageKHR(MainDevice.LogicalDevice, Swapchain, std::numeric_limits<u64>::max(), ImageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+
+    VkSubmitInfo submitInfo = {};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+    VkSemaphore waitSemaphores[] = {ImageAvailableSemaphore};
+    VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+    submitInfo.waitSemaphoreCount = (u32)std::size(waitSemaphores);
+    submitInfo.pWaitSemaphores = waitSemaphores;
+    submitInfo.pWaitDstStageMask = waitStages;
+
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &CommandBuffers[imageIndex];
+
+    VkSemaphore signalSemaphores[] = {RenderFinishedSemaphore};
+    submitInfo.signalSemaphoreCount = (u32)std::size(signalSemaphores);
+    submitInfo.pSignalSemaphores = signalSemaphores;
+
+    if(vkQueueSubmit(GraphicsQueue, 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS)
+    {
+        throw std::runtime_error("Failed to submit draw command buffer");
+    }
+
+    VkPresentInfoKHR presentInfo = {};
+    presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+    presentInfo.waitSemaphoreCount = (u32)std::size(signalSemaphores);
+    presentInfo.pWaitSemaphores = signalSemaphores;
+
+    VkSwapchainKHR swapchains[] = {Swapchain};
+    presentInfo.swapchainCount = (u32)std::size(swapchains);
+    presentInfo.pSwapchains = swapchains;
+    presentInfo.pImageIndices = &imageIndex;
+
+    if(vkQueuePresentKHR(PresentationQueue, &presentInfo) != VK_SUCCESS)
+    {
+        throw std::runtime_error("Failed to present image");
+    }
+}
+
+void xRenderer::CreateSynchronization()
+{
+    VkSemaphoreCreateInfo semaphoreCreateInfo = {};
+    semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+    if(vkCreateSemaphore(MainDevice.LogicalDevice, &semaphoreCreateInfo, nullptr, &ImageAvailableSemaphore) != VK_SUCCESS
+       || vkCreateSemaphore(MainDevice.LogicalDevice, &semaphoreCreateInfo, nullptr, &RenderFinishedSemaphore) != VK_SUCCESS)
+    {
+        throw std::runtime_error("Failed to create semaphores");
     }
 }

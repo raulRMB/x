@@ -48,6 +48,9 @@ private:
 
     VkCommandPool GraphicsCommandPool;
 
+    VkSemaphore ImageAvailableSemaphore;
+    VkSemaphore RenderFinishedSemaphore;
+
     const std::vector<const char*> ValidationLayers = {
             "VK_LAYER_KHRONOS_validation"
     };
@@ -66,6 +69,8 @@ private:
 
     i32 Init(GLFWwindow* window);
 
+    void DrawFrame();
+
     void Clean();
 
 private:
@@ -80,6 +85,7 @@ private:
     void CreateFramebuffers();
     void CreateGraphicsCommandPool();
     void CreateCommandBuffers();
+    void CreateSynchronization();
 
     void RecordCommands();
 

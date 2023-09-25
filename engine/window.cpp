@@ -28,12 +28,16 @@ xWindow::xWindow() : Window(nullptr) {}
 
 xWindow::~xWindow() = default;
 
-void xWindow::Loop()
+bool xWindow::bIsRunning() const
 {
-    while (!glfwWindowShouldClose(Window))
+    bool bIsRunning = !glfwWindowShouldClose(Window);
+
+    if(bIsRunning)
     {
         glfwPollEvents();
     }
+
+    return bIsRunning;
 }
 
 void xWindow::Clean()

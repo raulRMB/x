@@ -26,7 +26,7 @@ private:
     ~xWindow();
 
     i32 Init();
-    void Loop();
+    bool bIsRunning() const;
     void Clean();
 };
 

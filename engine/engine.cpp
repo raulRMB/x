@@ -27,7 +27,10 @@ i32 xEngine::Run()
     if (Initialized != EXIT_SUCCESS)
         return EXIT_FAILURE;
 
-    Window.Loop();
+    while(Window.bIsRunning())
+    {
+        Renderer.DrawFrame();
+    }
 
     return EXIT_SUCCESS;
 }
