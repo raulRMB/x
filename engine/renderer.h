@@ -16,11 +16,13 @@
 
 #include "rutil.h"
 
+class xWindow;
+
 class xRenderer {
 private:
     friend class xEngine;
 
-    GLFWwindow* Window;
+    xWindow* Window;
 
     VkInstance Instance;
 
@@ -71,7 +73,7 @@ private:
     xRenderer();
     ~xRenderer();
 
-    i32 Init(GLFWwindow* window);
+    i32 Init(xWindow* window);
 
     void DrawFrame();
 
@@ -127,6 +129,9 @@ private:
     VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlagBits aspectFlags) const;
 
     [[nodiscard]] VkShaderModule CreateShaderModule(const std::vector<byte>& bytes) const;
+
+    void CreateSurfaceGLFW();
+    void CreateSurfaceSDL();
 };
 
 

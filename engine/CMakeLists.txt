@@ -16,5 +16,5 @@ set (SOURCES
 add_executable(${PROJECT_NAME} ${SOURCES})
 
 find_package(Vulkan REQUIRED)
-target_include_directories(${PROJECT_NAME} PUBLIC base util #[[SDL3::SDL3]] glfw glm Vulkan::Vulkan)
-target_link_libraries(${PROJECT_NAME} PUBLIC base util #[[SDL3::SDL3]] glfw glm Vulkan::Vulkan)
+target_include_directories(${PROJECT_NAME} PUBLIC base util SDL2::SDL2 glfw glm Vulkan::Vulkan)
+target_link_libraries(${PROJECT_NAME} PUBLIC base util SDL2::SDL2 glfw glm Vulkan::Vulkan)

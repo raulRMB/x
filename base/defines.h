@@ -7,6 +7,9 @@
 #define WINDOW_HEIGHT 600
 #define WINDOW_TITLE "x"
 
+#define X_WINDOWING_API_SDL 1
+//#define X_WINDOWING_API_GLFW 1
+
 typedef uint8_t u8;
 typedef uint16_t u16;
 typedef uint32_t u32;

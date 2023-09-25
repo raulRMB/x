@@ -21,8 +21,6 @@ private:
 private:
     class xWindow Window;
     class xRenderer Renderer;
-
-    u8 Initialized : 1;
 };
 
 

@@ -10,27 +10,31 @@ xEngine &xEngine::GetInstance()
     return instance;
 }
 
-xEngine::xEngine() : Window(xWindow()), Renderer(xRenderer())
-{
-    Initialized = Window.Init();
-    Initialized = Initialized & Renderer.Init(Window.Window);
-}
+xEngine::xEngine() :
+    Window(xWindow()),
+    Renderer(xRenderer())
+    {}
 
-xEngine::~xEngine()
-{
-    Renderer.Clean();
-    Window.Clean();
-}
+xEngine::~xEngine() = default;
 
 i32 xEngine::Run()
 {
-    if (Initialized != EXIT_SUCCESS)
+    if(Window.Init() != EXIT_SUCCESS)
+    {
         return EXIT_FAILURE;
+    }
+    if(Renderer.Init(&Window) != EXIT_SUCCESS)
+    {
+        return EXIT_FAILURE;
+    }
 
-    while(Window.bIsRunning())
+    while(Window.bRunning())
     {
         Renderer.DrawFrame();
     }
+
+    Renderer.Clean();
+    Window.Clean();
 
     return EXIT_SUCCESS;
 }

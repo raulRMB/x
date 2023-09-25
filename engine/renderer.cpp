@@ -8,6 +8,8 @@
 #include <array>
 #include "renderer.h"
 #include "util/file.h"
+#include <SDL2/SDL_vulkan.h>
+#include "window.h"
 
 xRenderer::xRenderer() :
         Window(nullptr),
@@ -30,7 +32,7 @@ xRenderer::xRenderer() :
         GraphicsPipeline(VK_NULL_HANDLE)
 {}
 
-i32 xRenderer::Init(GLFWwindow *window)
+i32 xRenderer::Init(xWindow* window)
 {
     Window = window;
 
@@ -79,13 +81,20 @@ void xRenderer::CreateInstance()
     instanceCreateInfo.pApplicationInfo = &appInfo;
 
     std::vector<const char*> instanceExtensions = std::vector<const char*>();
-    u32 glfwExtensionCount = 0;
-    const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-
-    for (u32 i = 0; i < glfwExtensionCount; i++)
+    u32 extensionCount = 0;
+#ifdef X_WINDOWING_API_GLFW
+    const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&extensionCount);
+    for (u32 i = 0; i < extensionCount; i++)
     {
         instanceExtensions.push_back(glfwExtensions[i]);
     }
+#endif
+#ifdef X_WINDOWING_API_SDL
+    SDL_Vulkan_GetInstanceExtensions(Window->GetWindow(), &extensionCount, nullptr);
+    instanceExtensions.resize(extensionCount);
+    SDL_Vulkan_GetInstanceExtensions(Window->GetWindow(), &extensionCount, instanceExtensions.data());
+#endif
+
 
     if(!CheckInstanceExtensionSupport(&instanceExtensions))
     {
@@ -263,10 +272,12 @@ void xRenderer::CreateSwapChain()
 
 void xRenderer::CreateSurface()
 {
-    if(glfwCreateWindowSurface(Instance, Window, nullptr, &Surface) != VK_SUCCESS)
-    {
-        throw std::runtime_error("Failed to create surface");
-    }
+#ifdef X_WINDOWING_API_GLFW
+        CreateSurfaceGLFW();
+#endif
+#ifdef X_WINDOWING_API_SDL
+        CreateSurfaceSDL();
+#endif
 }
 
 bool xRenderer::CheckInstanceExtensionSupport(std::vector<const char*>* extensions)
@@ -553,7 +564,12 @@ VkExtent2D xRenderer::ChooseSwapExtent(const VkSurfaceCapabilitiesKHR &surfaceCa
     }
 
     i32 width, height;
-    glfwGetFramebufferSize(Window, &width, &height);
+#ifdef X_WINDOWING_API_GLFW
+    glfwGetFramebufferSize(Window->GetWindow(), &width, &height);
+#endif
+#ifdef X_WINDOWING_API_SDL
+    SDL_Vulkan_GetDrawableSize(Window->GetWindow(), &width, &height);
+#endif
 
     VkExtent2D newExtent = {};
     newExtent.width = static_cast<u32>(width);
@@ -1005,4 +1021,24 @@ void xRenderer::CreateSynchronization()
             throw std::runtime_error("Failed to create synchronization objects for a frame");
         }
     }
+}
+
+void xRenderer::CreateSurfaceGLFW()
+{
+#ifdef X_WINDOWING_API_GLFW
+    if(glfwCreateWindowSurface(Instance, Window->GetWindow(), nullptr, &Surface) != VK_SUCCESS)
+    {
+        throw std::runtime_error("Failed to create surface");
+    }
+#endif
+}
+
+void xRenderer::CreateSurfaceSDL()
+{
+#ifdef X_WINDOWING_API_SDL
+    if(SDL_Vulkan_CreateSurface(Window->GetWindow(), Instance, &Surface) != SDL_TRUE)
+    {
+        throw std::runtime_error("Failed to create surface");
+    }
+#endif
 }
