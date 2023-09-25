@@ -13,6 +13,8 @@
 
 namespace xRUtil
 {
+    const int MAX_FRAMES_IN_FLIGHT = 2;
+
     const std::vector<const char*> DeviceExtensions = {
             VK_KHR_SWAPCHAIN_EXTENSION_NAME
     };

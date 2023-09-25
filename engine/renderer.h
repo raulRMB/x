@@ -24,6 +24,8 @@ private:
 
     VkInstance Instance;
 
+    int CurrentFrame = 0;
+
     struct
     {
         VkPhysicalDevice PhysicalDevice;
@@ -48,8 +50,10 @@ private:
 
     VkCommandPool GraphicsCommandPool;
 
-    VkSemaphore ImageAvailableSemaphore;
-    VkSemaphore RenderFinishedSemaphore;
+    std::vector<VkSemaphore> ImageAvailableSemaphores;
+    std::vector<VkSemaphore> RenderFinishedSemaphores;
+
+    std::vector<VkFence> DrawFences;
 
     const std::vector<const char*> ValidationLayers = {
             "VK_LAYER_KHRONOS_validation"
