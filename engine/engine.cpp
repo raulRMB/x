@@ -11,6 +11,8 @@ xEngine &xEngine::GetInstance()
 }
 
 xEngine::xEngine() :
+    TotalTime(0.f),
+    DeltaTime(0.f),
     Window(xWindow()),
     Renderer(xRenderer())
     {}
@@ -28,8 +30,21 @@ i32 xEngine::Run()
         return EXIT_FAILURE;
     }
 
+    LastTime = std::chrono::high_resolution_clock::now();
     while(Window.bRunning())
     {
+        CurrentTime = std::chrono::high_resolution_clock::now();
+        DeltaTime = CurrentTime - LastTime;
+        LastTime = CurrentTime;
+
+        TotalTime += DeltaTime;
+        if(TotalTime.count() >= 0.5)
+        {
+            f64 FPS = 1.0 / static_cast<f64>(DeltaTime.count());
+            Window.SetFPS(static_cast<i32>(FPS));
+            TotalTime = std::chrono::duration<f32>(0.0);
+        }
+
         Renderer.DrawFrame();
     }
 

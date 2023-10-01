@@ -112,6 +112,7 @@ i32 xWindow::InitSDL()
     }
 
     SDLWindow = SDL_CreateWindow(WINDOW_TITLE, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_VULKAN | SDL_WINDOW_SHOWN);
+    SDLRenderer = SDL_CreateRenderer(SDLWindow, -1, SDL_RENDERER_ACCELERATED);
 #endif
     return EXIT_SUCCESS;
 }
@@ -135,6 +136,14 @@ void xWindow::CleanSDL()
 {
 #ifdef X_WINDOWING_API_SDL
     SDL_DestroyWindow(SDLWindow);
+    SDL_DestroyRenderer(SDLRenderer);
     SDL_Quit();
+#endif
+}
+
+void xWindow::SetFPS(int i)
+{
+#ifdef X_WINDOWING_API_SDL
+    SDL_SetWindowTitle(SDLWindow, (WINDOW_TITLE + std::string(" | FPS: ") + std::to_string(i)).c_str());
 #endif
 }

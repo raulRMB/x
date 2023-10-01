@@ -25,6 +25,7 @@ private:
 
 #ifdef X_WINDOWING_API_SDL
     class SDL_Window* SDLWindow;
+    class SDL_Renderer* SDLRenderer;
 #endif
 
 public:
@@ -51,6 +52,8 @@ private:
     i32 InitGLWF();
     bool bGLFWRunning();
     void CleanGLFW();
+
+    void SetFPS(int i);
 };
 
 
