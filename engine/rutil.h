@@ -11,9 +11,17 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
+#include <glm/glm.hpp>
+
 namespace xRUtil
 {
     const int MAX_FRAMES_IN_FLIGHT = 2;
+
+    struct Vertex
+    {
+        glm::vec3 Pos;
+        glm::vec4 Col;
+    };
 
     const std::vector<const char*> DeviceExtensions = {
             VK_KHR_SWAPCHAIN_EXTENSION_NAME
@@ -42,7 +50,6 @@ namespace xRUtil
         VkImage Image;
         VkImageView ImageView;
     };
-
 };
 
 

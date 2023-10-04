@@ -15,6 +15,7 @@ xRenderer::xRenderer() :
         Window(nullptr),
         Instance(VK_NULL_HANDLE),
         MainDevice({VK_NULL_HANDLE, VK_NULL_HANDLE}),
+        Mesh(xMesh()),
         Surface(VK_NULL_HANDLE),
         Swapchain(VK_NULL_HANDLE),
         SwapchainImageFormat(VK_FORMAT_UNDEFINED),
@@ -43,6 +44,15 @@ i32 xRenderer::Init(xWindow* window)
         CreateSurface();
         GetPhysicalDevice();
         CreateLogicalDevice();
+
+        std::vector<xRUtil::Vertex> MeshVertices =
+        {
+            {{-0.4f, -0.4f, 0.0f}, {1.0f, 0.0f, 0.0f, 1.0f}},
+            {{0.4f, -0.4f, 0.0f}, {0.0f, 1.0f, 0.0f, 1.0f}},
+            {{0.0f, 0.4f, 0.0f}, {0.0f, 0.0f, 1.0f, 1.0f}}
+        };
+        Mesh = xMesh(MeshVertices, MainDevice.PhysicalDevice, MainDevice.LogicalDevice);
+
         CreateSwapChain();
         CreateRenderPass();
         CreateGraphicsPipeline();
@@ -611,6 +621,8 @@ void xRenderer::Clean()
 {
     vkDeviceWaitIdle(MainDevice.LogicalDevice);
 
+    Mesh.DestroyVertexBuffer();
+
     for(size_t i = 0; i < xRUtil::MAX_FRAMES_IN_FLIGHT; i++)
     {
         vkDestroySemaphore(MainDevice.LogicalDevice, RenderFinishedSemaphores[i], nullptr);
@@ -674,12 +686,28 @@ void xRenderer::CreateGraphicsPipeline()
 
     VkPipelineShaderStageCreateInfo shaderStages[] = {vertexShaderCreateInfo, fragmentShaderCreateInfo};
 
+    VkVertexInputBindingDescription bindingDescription = {};
+    bindingDescription.binding = 0;
+    bindingDescription.stride = sizeof(xRUtil::Vertex);
+    bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+    std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions = {};
+    attributeDescriptions[0].binding = 0;
+    attributeDescriptions[0].location = 0;
+    attributeDescriptions[0].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+    attributeDescriptions[0].offset = offsetof(xRUtil::Vertex, Pos);
+
+    attributeDescriptions[1].binding = 0;
+    attributeDescriptions[1].location = 1;
+    attributeDescriptions[1].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+    attributeDescriptions[1].offset = offsetof(xRUtil::Vertex, Col);
+
     VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo = {};
     vertexInputCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-    vertexInputCreateInfo.vertexBindingDescriptionCount = 0;
-    vertexInputCreateInfo.pVertexBindingDescriptions = nullptr;
-    vertexInputCreateInfo.vertexAttributeDescriptionCount = 0;
-    vertexInputCreateInfo.pVertexAttributeDescriptions = nullptr;
+    vertexInputCreateInfo.vertexBindingDescriptionCount = 1;
+    vertexInputCreateInfo.pVertexBindingDescriptions = &bindingDescription;
+    vertexInputCreateInfo.vertexAttributeDescriptionCount = static_cast<u32>(attributeDescriptions.size());
+    vertexInputCreateInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
 
     VkPipelineInputAssemblyStateCreateInfo inputAssemblyCreateInfo = {};
     inputAssemblyCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
@@ -941,7 +969,11 @@ void xRenderer::RecordCommands()
 
                 vkCmdBindPipeline(CommandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, GraphicsPipeline);
 
-                vkCmdDraw(CommandBuffers[i], 3, 1, 0, 0);
+                VkBuffer vertexBuffers[] = {Mesh.GetVertexBuffer()};
+                VkDeviceSize offsets[] = {0};
+                vkCmdBindVertexBuffers(CommandBuffers[i], 0, 1, vertexBuffers, offsets);
+
+                vkCmdDraw(CommandBuffers[i], Mesh.GetVertexCount(), 1, 0, 0);
 
             vkCmdEndRenderPass(CommandBuffers[i]);
 

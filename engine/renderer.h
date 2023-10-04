@@ -15,10 +15,12 @@
 #include <set>
 
 #include "rutil.h"
+#include "core/mesh.h"
 
 class xWindow;
 
-class xRenderer {
+class xRenderer
+{
 private:
     friend class xEngine;
 
@@ -27,6 +29,8 @@ private:
     VkInstance Instance;
 
     int CurrentFrame = 0;
+
+    xMesh Mesh;
 
     struct
     {
