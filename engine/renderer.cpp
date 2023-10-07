@@ -26,9 +26,16 @@ xRenderer::xRenderer() :
         CommandBuffers(std::vector<VkCommandBuffer>()),
         RenderFinishedSemaphores(std::vector<VkSemaphore>()),
         ImageAvailableSemaphores(std::vector<VkSemaphore>()),
+        TextureSampler(VK_NULL_HANDLE),
+        SamplerSetLayout(VK_NULL_HANDLE),
+        SamplerDescriptorPool(VK_NULL_HANDLE),
 //        ModelUniformAlignment(0),
 //        ModelTransferSpace(VK_NULL_HANDLE),
 //        MinUniformBufferOffset(0),
+        DepthBufferImageFormat(VK_FORMAT_UNDEFINED),
+        DepthBufferImage(VK_NULL_HANDLE),
+        DepthBufferImageMemory(VK_NULL_HANDLE),
+        DepthBufferImageView(VK_NULL_HANDLE),
         UboViewProjection({}),
         PushConstantRange({}),
         GraphicsCommandPool(VK_NULL_HANDLE),
@@ -61,6 +68,13 @@ i32 xRenderer::Init(xWindow* window)
         CreateDepthBufferImage();
         CreateFramebuffers();
         CreateGraphicsCommandPool();
+        CreateCommandBuffers();
+        CreateTextureSampler();
+//        AllocateDynamicBufferTransferSpace();
+        CreateUniformBuffers();
+        CreateDescriptorPool();
+        CreateDescriptorSets();
+        CreateSynchronization();
 
         UboViewProjection.Projection = glm::perspective(glm::radians(45.f), (f32)SwapchainExtent.width / (f32)SwapchainExtent.height, 0.1f, 100.f);
         UboViewProjection.Projection[1][1] *= -1;
@@ -68,38 +82,32 @@ i32 xRenderer::Init(xWindow* window)
 
         std::vector<xRUtil::Vertex> SquareRVerts =
         {
-                {.Pos={-1.0f, -1.0f, 0.f}, .Col={1.0f, 0.0f, 0.0f, 1.f}},
-                {.Pos={ 1.0f, -1.0f, .0f}, .Col={1.0f, 0.0f, 0.0f, 1.f}},
-                {.Pos={ 1.0f,  1.0f, 0.f}, .Col={1.0f, 0.0f, 0.0f, 1.f}},
-                {.Pos={-1.0f,  1.0f, 0.f}, .Col={1.0f, 0.0f, 0.0f, 1.f}}
+            {.Pos={-1.0f, -1.0f, 0.f}, .Col={1.0f, 0.0f, 0.0f, 1.f}, .Tex={1.f, 1.f}},
+            {.Pos={ 1.0f, -1.0f, .0f}, .Col={1.0f, 0.0f, 0.0f, 1.f}, .Tex={1.f, 0.f}},
+            {.Pos={ 1.0f,  1.0f, 0.f}, .Col={1.0f, 0.0f, 0.0f, 1.f}, .Tex={0.f, 0.f}},
+            {.Pos={-1.0f,  1.0f, 0.f}, .Col={1.0f, 0.0f, 0.0f, 1.f}, .Tex={0.f, 1.f}}
         };
 
         std::vector<xRUtil::Vertex> SquareGVerts =
         {
-                { .Pos={-1.0f, -1.0f, -0.0f }, .Col={0.0f, 1.0f, 0.0f, 1.f}},
-                { .Pos={ 1.0f, -1.0f,  0.0f }, .Col={0.0f, 1.0f, 0.0f, 1.f}},
-                { .Pos={ 1.0f,  1.0f,  0.0f }, .Col={0.0f, 1.0f, 0.0f, 1.f}},
-                { .Pos={-1.0f,  1.0f,  0.0f }, .Col={0.0f, 1.0f, 0.0f, 1.f}}
+            { .Pos={-1.0f, -1.0f, -0.0f }, .Col={0.0f, 1.0f, 0.0f, 1.f}, .Tex={1.f, 1.f}},
+            { .Pos={ 1.0f, -1.0f,  0.0f }, .Col={0.0f, 1.0f, 0.0f, 1.f}, .Tex={1.f, 0.f}},
+            { .Pos={ 1.0f,  1.0f,  0.0f }, .Col={0.0f, 1.0f, 0.0f, 1.f}, .Tex={0.f, 0.f}},
+            { .Pos={-1.0f,  1.0f,  0.0f }, .Col={0.0f, 1.0f, 0.0f, 1.f}, .Tex={0.f, 1.f}}
         };
 
         std::vector<u32> SquareIndices = {
                 0, 1, 2, 2, 3, 0
         };
 
-        MeshList.emplace_back(SquareRVerts, SquareIndices,
+        MeshList.emplace_back(SquareRVerts, SquareIndices, CreateTexture("g.jpg"),
                               GraphicsQueue, GraphicsCommandPool, MainDevice.PhysicalDevice, MainDevice.LogicalDevice);
-        MeshList.emplace_back(SquareGVerts, SquareIndices,
+        MeshList.emplace_back(SquareGVerts, SquareIndices, CreateTexture("p.jpeg"),
                               GraphicsQueue, GraphicsCommandPool, MainDevice.PhysicalDevice, MainDevice.LogicalDevice);
 
         UpdateModel(0, glm::scale(glm::mat4(1.f), glm::vec3(0.2f)) * glm::translate(glm::mat4(1.f), glm::vec3(0.0f, 0.f, -1.f)));
-        UpdateModel(1, glm::scale(glm::mat4(1.f), glm::vec3(0.1f)) * glm::translate(glm::mat4(1.f), glm::vec3(0.0f, 0.f, -3.f)));
+        UpdateModel(1, glm::scale(glm::mat4(1.f), glm::vec3(.8f, .1f, .1f)) * glm::translate(glm::mat4(1.f), glm::vec3(0.0f, 0.f, -3.f)));
 
-        CreateCommandBuffers();
-//        AllocateDynamicBufferTransferSpace();
-        CreateUniformBuffers();
-        CreateDescriptorPool();
-        CreateDescriptorSets();
-        CreateSynchronization();
     }
     catch (const std::runtime_error& e)
     {
@@ -243,6 +251,8 @@ void xRenderer::CreateLogicalDevice()
     deviceCreateInfo.ppEnabledExtensionNames = xRUtil::DeviceExtensions.data();
 
     VkPhysicalDeviceFeatures deviceFeatures = {};
+    deviceFeatures.samplerAnisotropy = VK_TRUE;
+
     deviceCreateInfo.pEnabledFeatures = &deviceFeatures;
 
     if(vkCreateDevice(MainDevice.PhysicalDevice, &deviceCreateInfo, nullptr, &MainDevice.LogicalDevice) != VK_SUCCESS)
@@ -365,11 +375,11 @@ bool xRenderer::CheckSuitableDevice(VkPhysicalDevice device)
 {
 /*
     VkPhysicalDeviceProperties DeviceProperties;
-    vkGetPhysicalDeviceProperties(MainDevice.PhysicalDevice, &DeviceProperties);
-
-    VkPhysicalDeviceFeatures DeviceFeatures;
-    vkGetPhysicalDeviceFeatures(Device, &DeviceFeatures);
+    vkGetPhysicalDeviceProperties(device, &DeviceProperties);
 */
+    VkPhysicalDeviceFeatures deviceFeatures;
+    vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
+
     xRUtil::QueueFamilyIndices indices = GetQueueFamilies(device);
 
     bool bExtensionsSupported = CheckDeviceExtensionSupport(device);
@@ -378,7 +388,7 @@ bool xRenderer::CheckSuitableDevice(VkPhysicalDevice device)
     if(bExtensionsSupported)
     {
         xRUtil::SwapChainDetails SwapChainDetails = GetSwapChainDetails(device);
-        bSwapChainValid = !SwapChainDetails.Formats.empty() && !SwapChainDetails.PresentationModes.empty();
+        bSwapChainValid = !SwapChainDetails.Formats.empty() && !SwapChainDetails.PresentationModes.empty() && deviceFeatures.samplerAnisotropy;
     }
 
     return indices.IsValid() && bExtensionsSupported && bSwapChainValid;
@@ -641,6 +651,18 @@ void xRenderer::Clean()
 
 //    _aligned_free(ModelTransferSpace);
 
+    vkDestroyDescriptorPool(MainDevice.LogicalDevice, SamplerDescriptorPool, nullptr);
+    vkDestroyDescriptorSetLayout(MainDevice.LogicalDevice, SamplerSetLayout, nullptr);
+
+    vkDestroySampler(MainDevice.LogicalDevice, TextureSampler, nullptr);
+
+    for(size_t i = 0; i < TextureImages.size(); i++)
+    {
+        vkDestroyImageView(MainDevice.LogicalDevice, TextureImageViews[i], nullptr);
+        vkDestroyImage(MainDevice.LogicalDevice, TextureImages[i], nullptr);
+        vkFreeMemory(MainDevice.LogicalDevice, TextureImageMemory[i], nullptr);
+    }
+
     vkDestroyImageView(MainDevice.LogicalDevice, DepthBufferImageView, nullptr);
     vkDestroyImage(MainDevice.LogicalDevice, DepthBufferImage, nullptr);
     vkFreeMemory(MainDevice.LogicalDevice, DepthBufferImageMemory, nullptr);
@@ -729,7 +751,7 @@ void xRenderer::CreateGraphicsPipeline()
     bindingDescription.stride = sizeof(xRUtil::Vertex);
     bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
-    std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions = {};
+    std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions = {};
     attributeDescriptions[0].binding = 0;
     attributeDescriptions[0].location = 0;
     attributeDescriptions[0].format = VK_FORMAT_R32G32B32A32_SFLOAT;
@@ -739,6 +761,11 @@ void xRenderer::CreateGraphicsPipeline()
     attributeDescriptions[1].location = 1;
     attributeDescriptions[1].format = VK_FORMAT_R32G32B32A32_SFLOAT;
     attributeDescriptions[1].offset = offsetof(xRUtil::Vertex, Col);
+
+    attributeDescriptions[2].binding = 0;
+    attributeDescriptions[2].location = 2;
+    attributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
+    attributeDescriptions[2].offset = offsetof(xRUtil::Vertex, Tex);
 
     VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo = {};
     vertexInputCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -814,10 +841,16 @@ void xRenderer::CreateGraphicsPipeline()
     colorBlendCreateInfo.blendConstants[1] = 0.0f;
     colorBlendCreateInfo.blendConstants[2] = 0.0f;
 
+    std::array<VkDescriptorSetLayout, 2> setLayouts =
+    {
+        DescriptorSetLayout,
+        SamplerSetLayout
+    };
+
     VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = {};
     pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-    pipelineLayoutCreateInfo.setLayoutCount = 1;
-    pipelineLayoutCreateInfo.pSetLayouts = &DescriptorSetLayout;
+    pipelineLayoutCreateInfo.setLayoutCount = (u32)setLayouts.size();
+    pipelineLayoutCreateInfo.pSetLayouts = setLayouts.data();
     pipelineLayoutCreateInfo.pushConstantRangeCount = 1;
     pipelineLayoutCreateInfo.pPushConstantRanges = &PushConstantRange;
 
@@ -1053,8 +1086,14 @@ void xRenderer::RecordCommands(u32 currentImage)
                                    VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(xModel),
                                    &MeshList[j].GetModel());
 
+                std::array<VkDescriptorSet, 2> descriptorSets =
+                {
+                    DescriptorSets[currentImage],
+                    SamplerDescriptorSets[MeshList[j].GetTextureId()]
+                };
+
                 vkCmdBindDescriptorSets(CommandBuffers[currentImage], VK_PIPELINE_BIND_POINT_GRAPHICS,
-                                        PipelineLayout, 0, 1, &DescriptorSets[currentImage],
+                                        PipelineLayout, 0, (u32)descriptorSets.size(), descriptorSets.data(),
                                         0, nullptr);
 
                 vkCmdDrawIndexed(CommandBuffers[currentImage], MeshList[j].GetIndexCount(), 1, 0, 0, 0);
@@ -1189,6 +1228,23 @@ void xRenderer::CreateDescriptorSetLayout()
     {
         throw std::runtime_error("Failed to create descriptor set layout");
     }
+
+    VkDescriptorSetLayoutBinding samplerLayoutBinding{};
+    samplerLayoutBinding.binding = 0;
+    samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    samplerLayoutBinding.descriptorCount = 1;
+    samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+    samplerLayoutBinding.pImmutableSamplers = nullptr;
+
+    VkDescriptorSetLayoutCreateInfo samplerLayoutCreateInfo{};
+    samplerLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    samplerLayoutCreateInfo.bindingCount = 1;
+    samplerLayoutCreateInfo.pBindings = &samplerLayoutBinding;
+
+    if(vkCreateDescriptorSetLayout(MainDevice.LogicalDevice, &samplerLayoutCreateInfo, nullptr, &SamplerSetLayout) != VK_SUCCESS)
+    {
+        throw std::runtime_error("Failed to create sampler descriptor set layout");
+    }
 }
 
 void xRenderer::CreateUniformBuffers()
@@ -1234,6 +1290,21 @@ void xRenderer::CreateDescriptorPool()
     if(vkCreateDescriptorPool(MainDevice.LogicalDevice, &poolCreateInfo, nullptr, &DescriptorPool) != VK_SUCCESS)
     {
         throw std::runtime_error("Failed to create descriptor pool");
+    }
+
+    VkDescriptorPoolSize samplerPoolSize{};
+    samplerPoolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    samplerPoolSize.descriptorCount = xRUtil::MAX_OBJECTS;
+
+    VkDescriptorPoolCreateInfo samplerPoolCreateInfo{};
+    samplerPoolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    samplerPoolCreateInfo.maxSets = xRUtil::MAX_OBJECTS;
+    samplerPoolCreateInfo.poolSizeCount = 1;
+    samplerPoolCreateInfo.pPoolSizes = &samplerPoolSize;
+
+    if(vkCreateDescriptorPool(MainDevice.LogicalDevice, &samplerPoolCreateInfo, nullptr, &SamplerDescriptorPool) != VK_SUCCESS)
+    {
+        throw std::runtime_error("Failed to create sampler descriptor pool");
     }
 }
 
@@ -1340,17 +1411,132 @@ VkFormat xRenderer::ChooseSupportedFormat(const std::vector<VkFormat> &formats, 
         VkFormatProperties properties;
         vkGetPhysicalDeviceFormatProperties(MainDevice.PhysicalDevice, format, &properties);
 
-        if(tiling == VK_IMAGE_TILING_LINEAR && (properties.linearTilingFeatures & featureFlags) == featureFlags)
-        {
-            return format;
-        }
-        else if(tiling == VK_IMAGE_TILING_OPTIMAL && (properties.optimalTilingFeatures & featureFlags) == featureFlags)
+        if((tiling == VK_IMAGE_TILING_LINEAR && (properties.linearTilingFeatures & featureFlags) == featureFlags) ||
+            (tiling == VK_IMAGE_TILING_OPTIMAL && (properties.optimalTilingFeatures & featureFlags) == featureFlags))
         {
             return format;
         }
     }
 
     throw std::runtime_error("Failed to find supported format");
+}
+
+i32 xRenderer::CreateTextureImage(const std::string& fileName)
+{
+    i32 width, height;
+    VkDeviceSize imageSize;
+    stbi_uc* imageData = xRUtil::LoadTextureFile(fileName, &width, &height, &imageSize);
+
+    VkBuffer imageStagingBuffer;
+    VkDeviceMemory imageStagingBufferMemory;
+    xRUtil::CreateBuffer(MainDevice.PhysicalDevice, MainDevice.LogicalDevice, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                 imageStagingBuffer, imageStagingBufferMemory);
+
+    void* data;
+    vkMapMemory(MainDevice.LogicalDevice, imageStagingBufferMemory, 0, imageSize, 0, &data);
+    memcpy(data, imageData, static_cast<size_t>(imageSize));
+    vkUnmapMemory(MainDevice.LogicalDevice, imageStagingBufferMemory);
+    stbi_image_free(imageData);
+
+    VkImage texImage;
+    VkDeviceMemory texImageMemory;
+    texImage = xRUtil::CreateImage(width, height, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL,
+                           VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+                           VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, texImageMemory, MainDevice.LogicalDevice, MainDevice.PhysicalDevice);
+
+    xRUtil::TransitionImageLayout(MainDevice.LogicalDevice, GraphicsQueue, GraphicsCommandPool, texImage, VK_IMAGE_LAYOUT_UNDEFINED,
+                          VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
+    xRUtil::CopyImageBuffer(MainDevice.LogicalDevice, GraphicsQueue, GraphicsCommandPool,
+                    imageStagingBuffer, texImage, width, height);
+
+    xRUtil::TransitionImageLayout(MainDevice.LogicalDevice, GraphicsQueue, GraphicsCommandPool, texImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                          VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+    TextureImages.push_back(texImage);
+    TextureImageMemory.push_back(texImageMemory);
+
+    vkDestroyBuffer(MainDevice.LogicalDevice, imageStagingBuffer, nullptr);
+    vkFreeMemory(MainDevice.LogicalDevice, imageStagingBufferMemory, nullptr);
+
+    return (i32)TextureImages.size() - 1;
+}
+
+i32 xRenderer::CreateTexture(const std::string &fileName)
+{
+    i32 textureImageLoc = CreateTextureImage(fileName);
+
+    VkImageView imageView = xRUtil::CreateImageView(TextureImages[textureImageLoc],
+                                                    VK_FORMAT_R8G8B8A8_UNORM,
+                                                    VK_IMAGE_ASPECT_COLOR_BIT,
+                                                    MainDevice.LogicalDevice);
+
+    TextureImageViews.push_back(imageView);
+
+    i32 descriptorLoc = CreateTextureDescriptor(imageView);
+
+    return descriptorLoc;
+}
+
+void xRenderer::CreateTextureSampler()
+{
+    VkSamplerCreateInfo samplerCreateInfo = {};
+    samplerCreateInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+    samplerCreateInfo.magFilter = VK_FILTER_LINEAR; // How to render when image is magnified on screen
+    samplerCreateInfo.minFilter = VK_FILTER_LINEAR; // How to render when image is minified on screen
+    samplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT; // How to handle texture wrap in U (x) direction
+    samplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT; // How to handle texture wrap in V (y) direction
+    samplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT; // How to handle texture wrap in W (z) direction
+    samplerCreateInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK; // Border beyond texture (only works for border clamp)
+    samplerCreateInfo.unnormalizedCoordinates = VK_FALSE; // Whether coords should be normalized between 0 and 1
+    samplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR; // Mipmap interpolation mode
+    samplerCreateInfo.mipLodBias = 0.0f; // Level of detail bias for mip level
+    samplerCreateInfo.minLod = 0.0f; // Minimum level of detail to pick mip level
+    samplerCreateInfo.maxLod = 0.0f; // Maximum level of detail to pick mip level
+    samplerCreateInfo.anisotropyEnable = VK_TRUE; // Enable anisotropy
+    samplerCreateInfo.maxAnisotropy = 16; // Anisotropy sample level
+
+    if(vkCreateSampler(MainDevice.LogicalDevice, &samplerCreateInfo, nullptr, &TextureSampler) != VK_SUCCESS)
+    {
+        throw std::runtime_error("Failed to create texture sampler");
+    }
+}
+
+i32 xRenderer::CreateTextureDescriptor(VkImageView textureImage)
+{
+    VkDescriptorSet descriptorSet;
+
+    VkDescriptorSetAllocateInfo setAllocateInfo{};
+    setAllocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    setAllocateInfo.descriptorPool = SamplerDescriptorPool;
+    setAllocateInfo.descriptorSetCount = 1;
+    setAllocateInfo.pSetLayouts = &SamplerSetLayout;
+
+    if(vkAllocateDescriptorSets(MainDevice.LogicalDevice, &setAllocateInfo, &descriptorSet) != VK_SUCCESS)
+    {
+        throw std::runtime_error("Failed to allocate texture descriptor set");
+    }
+
+    VkDescriptorImageInfo imageInfo{};
+    imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    imageInfo.imageView = textureImage;
+    imageInfo.sampler = TextureSampler;
+
+    VkWriteDescriptorSet descriptorWrite{};
+    descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    descriptorWrite.dstSet = descriptorSet;
+    descriptorWrite.dstBinding = 0;
+    descriptorWrite.dstArrayElement = 0;
+    descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    descriptorWrite.descriptorCount = 1;
+    descriptorWrite.pImageInfo = &imageInfo;
+
+    vkUpdateDescriptorSets(MainDevice.LogicalDevice, 1, &descriptorWrite, 0, nullptr);
+
+    SamplerDescriptorSets.push_back(descriptorSet);
+
+    return (i32)SamplerDescriptorSets.size() - 1;
 }
 
 //void xRenderer::AllocateDynamicBufferTransferSpace()

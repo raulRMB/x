@@ -60,14 +60,22 @@ private:
     VkDeviceMemory DepthBufferImageMemory;
     VkImageView DepthBufferImageView;
 
+    std::vector<VkImage> TextureImages;
+    std::vector<VkDeviceMemory> TextureImageMemory;
+    std::vector<VkImageView> TextureImageViews;
+    VkSampler TextureSampler;
+
     VkQueue GraphicsQueue;
     VkQueue PresentationQueue;
 
     VkDescriptorSetLayout DescriptorSetLayout;
+    VkDescriptorSetLayout SamplerSetLayout;
     VkPushConstantRange PushConstantRange;
 
     VkDescriptorPool DescriptorPool;
+    VkDescriptorPool SamplerDescriptorPool;
     std::vector<VkDescriptorSet> DescriptorSets;
+    std::vector<VkDescriptorSet> SamplerDescriptorSets;
 
 //    VkDeviceSize MinUniformBufferOffset;
 //    size_t ModelUniformAlignment;
@@ -131,6 +139,7 @@ private:
     void CreateGraphicsCommandPool();
     void CreateCommandBuffers();
     void CreateSynchronization();
+    void CreateTextureSampler();
 
     void CreateUniformBuffers();
 
@@ -180,6 +189,10 @@ private:
 
     void CreateSurfaceGLFW();
     void CreateSurfaceSDL();
+
+    i32 CreateTextureImage(const std::string& fileName);
+    i32 CreateTexture(const std::string& fileName);
+    i32 CreateTextureDescriptor(VkImageView textureImage);
 };
 
 

@@ -7,11 +7,10 @@
 
 #include <base/defines.h>
 #include <vector>
-
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
-
 #include <glm/glm.hpp>
+#include <vendor/stb_image.h>
 
 namespace xRUtil
 {
@@ -22,6 +21,7 @@ namespace xRUtil
     {
         glm::vec3 Pos;
         glm::vec4 Col;
+        glm::vec2 Tex;
     };
 
     const std::vector<const char*> DeviceExtensions = {
@@ -52,7 +52,7 @@ namespace xRUtil
         VkImageView ImageView;
     };
 
-    static u32 FindMemoryTypeIndex(VkPhysicalDevice physicalDevice, u32 bits, VkMemoryPropertyFlags propertyFlagBits)
+    inline static u32 FindMemoryTypeIndex(VkPhysicalDevice physicalDevice, u32 bits, VkMemoryPropertyFlags propertyFlagBits)
     {
         VkPhysicalDeviceMemoryProperties memProperties;
         vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
@@ -98,10 +98,9 @@ namespace xRUtil
         vkBindBufferMemory(device, buffer, bufferMemory, 0);
     }
 
-    static void CopyBuffer(VkDevice device, VkQueue TransferQueue, VkCommandPool commandPool, VkBuffer srcBuffer,
-                           VkBuffer dstBuffer, VkDeviceSize size)
+    inline static VkCommandBuffer BeginCommandBuffer(VkDevice device, VkCommandPool commandPool)
     {
-        VkCommandBuffer transferCommandBuffer;
+        VkCommandBuffer commandBuffer;
 
         VkCommandBufferAllocateInfo allocInfoP{};
         allocInfoP.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -109,13 +108,36 @@ namespace xRUtil
         allocInfoP.commandPool = commandPool;
         allocInfoP.commandBufferCount = 1;
 
-        vkAllocateCommandBuffers(device, &allocInfoP, &transferCommandBuffer);
+        vkAllocateCommandBuffers(device, &allocInfoP, &commandBuffer);
 
         VkCommandBufferBeginInfo beginInfoP{};
         beginInfoP.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
         beginInfoP.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
-        vkBeginCommandBuffer(transferCommandBuffer, &beginInfoP);
+        vkBeginCommandBuffer(commandBuffer, &beginInfoP);
+
+        return commandBuffer;
+    }
+
+    inline static void EndAndSubmtCommandBuffer(VkDevice device, VkCommandPool commandPool, VkQueue queue, VkCommandBuffer commandBuffer)
+    {
+        vkEndCommandBuffer(commandBuffer);
+
+        VkSubmitInfo submitInfoP{};
+        submitInfoP.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+        submitInfoP.commandBufferCount = 1;
+        submitInfoP.pCommandBuffers = &commandBuffer;
+
+        vkQueueSubmit(queue, 1, &submitInfoP, VK_NULL_HANDLE);
+        vkQueueWaitIdle(queue);
+
+        vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
+    }
+
+    inline static void CopyBuffer(VkDevice device, VkQueue transferQueue, VkCommandPool commandPool, VkBuffer srcBuffer,
+                           VkBuffer dstBuffer, VkDeviceSize size)
+    {
+        VkCommandBuffer transferCommandBuffer = BeginCommandBuffer(device, commandPool);
 
         VkBufferCopy copyRegion{};
         copyRegion.srcOffset = 0;
@@ -123,17 +145,75 @@ namespace xRUtil
         copyRegion.size = size;
         vkCmdCopyBuffer(transferCommandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
 
-        vkEndCommandBuffer(transferCommandBuffer);
+        EndAndSubmtCommandBuffer(device, commandPool, transferQueue, transferCommandBuffer);
+    }
 
-        VkSubmitInfo submitInfoP{};
-        submitInfoP.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-        submitInfoP.commandBufferCount = 1;
-        submitInfoP.pCommandBuffers = &transferCommandBuffer;
+    inline static void CopyImageBuffer(VkDevice device, VkQueue transferQueue, VkCommandPool transferCommandPool,
+                                VkBuffer srcBuffer, VkImage dstImage, u32 width, u32 height)
+    {
+        VkCommandBuffer transferCommandBuffer = BeginCommandBuffer(device, transferCommandPool);
 
-        vkQueueSubmit(TransferQueue, 1, &submitInfoP, VK_NULL_HANDLE);
-        vkQueueWaitIdle(TransferQueue);
+        VkBufferImageCopy imageRegion{};
+        imageRegion.bufferOffset = 0;
+        imageRegion.bufferRowLength = 0;
+        imageRegion.bufferImageHeight = 0;
+        imageRegion.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        imageRegion.imageSubresource.mipLevel = 0;
+        imageRegion.imageSubresource.baseArrayLayer = 0;
+        imageRegion.imageSubresource.layerCount = 1;
+        imageRegion.imageOffset = {0, 0, 0};
+        imageRegion.imageExtent = {width, height, 1};
 
-        vkFreeCommandBuffers(device, commandPool, 1, &transferCommandBuffer);
+        vkCmdCopyBufferToImage(transferCommandBuffer, srcBuffer, dstImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1,
+                               &imageRegion);
+
+        EndAndSubmtCommandBuffer(device, transferCommandPool, transferQueue, transferCommandBuffer);
+    }
+
+    inline static void TransitionImageLayout(VkDevice device, VkQueue queue, VkCommandPool commandPool, VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout)
+    {
+        VkCommandBuffer commandBuffer = BeginCommandBuffer(device, commandPool);
+
+        VkImageMemoryBarrier imageMemoryBarrier{};
+        imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+        imageMemoryBarrier.oldLayout = oldLayout;
+        imageMemoryBarrier.newLayout = newLayout;
+        imageMemoryBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        imageMemoryBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        imageMemoryBarrier.image = image;
+        imageMemoryBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        imageMemoryBarrier.subresourceRange.baseMipLevel = 0;
+        imageMemoryBarrier.subresourceRange.levelCount = 1;
+        imageMemoryBarrier.subresourceRange.baseArrayLayer = 0;
+        imageMemoryBarrier.subresourceRange.layerCount = 1;
+
+        VkPipelineStageFlags srcStage;
+        VkPipelineStageFlags dstStage;
+
+        if(oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+        {
+            imageMemoryBarrier.srcAccessMask = 0;
+            imageMemoryBarrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+
+            srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+            dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+        } else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+        {
+            imageMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+            imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+            srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            dstStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+        }
+
+        vkCmdPipelineBarrier(commandBuffer,
+                             srcStage, dstStage,
+                             0,
+                             0, nullptr,
+                             0, nullptr,
+                             1, &imageMemoryBarrier);
+
+        EndAndSubmtCommandBuffer(device, commandPool, queue, commandBuffer);
     }
 
     inline VkImage CreateImage(u32 width, u32 height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags useFlags,
@@ -203,6 +283,22 @@ namespace xRUtil
         }
 
         return imageView;
+    }
+
+    inline stbi_uc* LoadTextureFile(const std::string& fileName, i32* width, i32* height, VkDeviceSize* imageSize)
+    {
+        i32 channels;
+
+        std::string fileLoc = "../textures/" + fileName;
+        stbi_uc* image;
+        if(image = stbi_load(fileLoc.c_str(), width, height, &channels, STBI_rgb_alpha); !image)
+        {
+            throw std::runtime_error("Failed to load a texture file! (" + fileName + ")");
+        }
+
+        *imageSize = *width * *height * 4;
+
+        return image;
     }
 };
 

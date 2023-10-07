@@ -26,6 +26,7 @@ class xMesh
 {
 private:
     xModel Model;
+    i32 TextureId = -1;
 
     u32 VertexCount;
     VkBuffer VertexBuffer;
@@ -47,9 +48,11 @@ private:
 public:
     xMesh() = default;
 
-    xMesh(const std::vector<xRUtil::Vertex>& vertices, const std::vector<u32>& indices, VkQueue transferQueue,
+    xMesh(const std::vector<xRUtil::Vertex>& vertices, const std::vector<u32>& indices, i32 textureId, VkQueue transferQueue,
           VkCommandPool transferComandPool, VkPhysicalDevice physicalDevice, VkDevice device);
     ~xMesh();
+
+    [[nodiscard]] i32 inline GetTextureId() const { return TextureId; }
 
     inline void SetModel(const glm::mat4& model) { Model.Model = model; }
     [[nodiscard]] inline const xModel& GetModel() const { return Model; }

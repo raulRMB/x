@@ -6,7 +6,7 @@
 #include "mesh.h"
 
 
-xMesh::xMesh(const std::vector<xRUtil::Vertex>& vertices, const std::vector<u32>& indices, VkQueue transferQueue,
+xMesh::xMesh(const std::vector<xRUtil::Vertex>& vertices, const std::vector<u32>& indices, i32 textureId, VkQueue transferQueue,
              VkCommandPool transferComandPool, VkPhysicalDevice physicalDevice, VkDevice device)
 :
     VertexCount(static_cast<u32>(vertices.size())),
@@ -15,7 +15,8 @@ xMesh::xMesh(const std::vector<xRUtil::Vertex>& vertices, const std::vector<u32>
     IndexBufferMemory(VK_NULL_HANDLE),
     PhysicalDevice(physicalDevice),
     Model({glm::mat4(1.0f)}),
-    Device(device)
+    Device(device),
+    TextureId(textureId)
 {
     VertexBuffer = CreateVertexBuffer(transferQueue, transferComandPool, vertices);
     IndexBuffer = CreateIndexBuffer(transferQueue, transferComandPool, indices);

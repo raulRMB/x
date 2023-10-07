@@ -11,6 +11,7 @@ set (SOURCES
     window.h window.cpp
     engine.h engine.cpp
     rutil.h
+    ../vendor/stb_image.h
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})
