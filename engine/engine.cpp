@@ -47,8 +47,8 @@ i32 xEngine::Run()
             TotalTime = std::chrono::duration<f32>(0.0);
         }
 
-        Angle += 0.4f * DeltaTime.count();
-        Renderer.UpdateModel(0, glm::rotate(glm::mat4(1.f), Angle, glm::vec3(0.f, 0.f, 1.f)));
+//        Angle += 0.4f * DeltaTime.count();
+//        Renderer.UpdateModel(0, glm::rotate(glm::mat4(1.f), Angle, glm::vec3(0.f, 0.f, 1.f)));
         Renderer.DrawFrame();
     }
 

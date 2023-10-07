@@ -5,6 +5,8 @@
 #ifndef X_RENDERER_H
 #define X_RENDERER_H
 
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
@@ -52,6 +54,11 @@ private:
     std::vector<xRUtil::SwapChainImage> SwapchainImages;
     std::vector<VkFramebuffer> SwapchainFramebuffers;
     std::vector<VkCommandBuffer> CommandBuffers;
+
+    VkFormat DepthBufferImageFormat;
+    VkImage DepthBufferImage;
+    VkDeviceMemory DepthBufferImageMemory;
+    VkImageView DepthBufferImageView;
 
     VkQueue GraphicsQueue;
     VkQueue PresentationQueue;
@@ -119,6 +126,7 @@ private:
     void CreatePushConstantRange();
     void CreateGraphicsPipeline();
     void CreateRenderPass();
+    void CreateDepthBufferImage();
     void CreateFramebuffers();
     void CreateGraphicsCommandPool();
     void CreateCommandBuffers();
@@ -165,8 +173,8 @@ private:
     static VkSurfaceFormatKHR ChooseBestSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& formats);
     static VkPresentModeKHR ChooseBestPresentationMode(const std::vector<VkPresentModeKHR>& presentationModes);
     VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& surfaceCapabilities);
-
-    VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlagBits aspectFlags) const;
+    VkFormat ChooseSupportedFormat(const std::vector<VkFormat>& formats, VkImageTiling tiling,
+                                   VkFormatFeatureFlags featureFlags);
 
     [[nodiscard]] VkShaderModule CreateShaderModule(const std::vector<byte>& bytes) const;
 

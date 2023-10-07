@@ -13,7 +13,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-
 xRenderer::xRenderer() :
         Window(nullptr),
         Instance(VK_NULL_HANDLE),
@@ -59,6 +58,7 @@ i32 xRenderer::Init(xWindow* window)
         CreateDescriptorSetLayout();
         CreatePushConstantRange();
         CreateGraphicsPipeline();
+        CreateDepthBufferImage();
         CreateFramebuffers();
         CreateGraphicsCommandPool();
 
@@ -66,31 +66,33 @@ i32 xRenderer::Init(xWindow* window)
         UboViewProjection.Projection[1][1] *= -1;
         UboViewProjection.View = glm::lookAt(glm::vec3(0.f, 0.f, 2.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
 
-        std::vector<xRUtil::Vertex> MeshVertices1 =
+        std::vector<xRUtil::Vertex> SquareRVerts =
         {
-                {.Pos={-0.1f, -0.4f, 0.f}, .Col={1.0f, 0.0f, 0.0f, 1.f}},
-                {.Pos={-0.1f,  0.4f, .0f}, .Col={1.0f, 0.0f, 0.0f, 1.f}},
-                {.Pos={-0.9f,  0.4f, 0.f}, .Col={1.0f, 0.0f, 0.0f, 1.f}},
-                {.Pos={-0.9f, -0.4f, 0.f}, .Col={1.0f, 0.0f, 0.0f, 1.f}}
+                {.Pos={-1.0f, -1.0f, 0.f}, .Col={1.0f, 0.0f, 0.0f, 1.f}},
+                {.Pos={ 1.0f, -1.0f, .0f}, .Col={1.0f, 0.0f, 0.0f, 1.f}},
+                {.Pos={ 1.0f,  1.0f, 0.f}, .Col={1.0f, 0.0f, 0.0f, 1.f}},
+                {.Pos={-1.0f,  1.0f, 0.f}, .Col={1.0f, 0.0f, 0.0f, 1.f}}
         };
 
-        std::vector<xRUtil::Vertex> MeshVertices2 =
+        std::vector<xRUtil::Vertex> SquareGVerts =
         {
-                {.Pos={0.9f, -0.4f, 0.f}, .Col={0.0f, 1.0f, 0.0f, 1.f}},
-                {.Pos={0.9f,  0.4f, .0f}, .Col={0.0f, 1.0f, 0.0f, 1.f}},
-                {.Pos={0.1f,  0.4f, 0.f}, .Col={0.0f, 1.0f, 0.0f, 1.f}},
-                {.Pos={0.1f, -0.4f, 0.f}, .Col={0.0f, 1.0f, 0.0f, 1.f}}
+                { .Pos={-1.0f, -1.0f, -0.0f }, .Col={0.0f, 1.0f, 0.0f, 1.f}},
+                { .Pos={ 1.0f, -1.0f,  0.0f }, .Col={0.0f, 1.0f, 0.0f, 1.f}},
+                { .Pos={ 1.0f,  1.0f,  0.0f }, .Col={0.0f, 1.0f, 0.0f, 1.f}},
+                { .Pos={-1.0f,  1.0f,  0.0f }, .Col={0.0f, 1.0f, 0.0f, 1.f}}
         };
 
-        std::vector<u32> MeshIndices = {
+        std::vector<u32> SquareIndices = {
                 0, 1, 2, 2, 3, 0
         };
 
-        MeshList.emplace_back(MeshVertices1, MeshIndices,
-                                    GraphicsQueue, GraphicsCommandPool, MainDevice.PhysicalDevice, MainDevice.LogicalDevice);
+        MeshList.emplace_back(SquareRVerts, SquareIndices,
+                              GraphicsQueue, GraphicsCommandPool, MainDevice.PhysicalDevice, MainDevice.LogicalDevice);
+        MeshList.emplace_back(SquareGVerts, SquareIndices,
+                              GraphicsQueue, GraphicsCommandPool, MainDevice.PhysicalDevice, MainDevice.LogicalDevice);
 
-        MeshList.emplace_back(MeshVertices2, MeshIndices,
-                                    GraphicsQueue, GraphicsCommandPool, MainDevice.PhysicalDevice, MainDevice.LogicalDevice);
+        UpdateModel(0, glm::scale(glm::mat4(1.f), glm::vec3(0.2f)) * glm::translate(glm::mat4(1.f), glm::vec3(0.0f, 0.f, -1.f)));
+        UpdateModel(1, glm::scale(glm::mat4(1.f), glm::vec3(0.1f)) * glm::translate(glm::mat4(1.f), glm::vec3(0.0f, 0.f, -3.f)));
 
         CreateCommandBuffers();
 //        AllocateDynamicBufferTransferSpace();
@@ -316,7 +318,7 @@ void xRenderer::CreateSwapChain()
     {
         xRUtil::SwapChainImage swapChainImage = {};
         swapChainImage.Image = image;
-        swapChainImage.ImageView = CreateImageView(image, SwapchainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT);
+        swapChainImage.ImageView = xRUtil::CreateImageView(image, SwapchainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT, MainDevice.LogicalDevice);
 
         SwapchainImages.push_back(swapChainImage);
     }
@@ -633,37 +635,15 @@ VkExtent2D xRenderer::ChooseSwapExtent(const VkSurfaceCapabilitiesKHR &surfaceCa
     return newExtent;
 }
 
-VkImageView xRenderer::CreateImageView(VkImage image, VkFormat format, VkImageAspectFlagBits aspectFlags) const
-{
-    VkImageViewCreateInfo imageViewCreateInfo = {};
-    imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-    imageViewCreateInfo.image = image;
-    imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-    imageViewCreateInfo.format = format;
-    imageViewCreateInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
-    imageViewCreateInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-    imageViewCreateInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-    imageViewCreateInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-    imageViewCreateInfo.subresourceRange.aspectMask = aspectFlags;
-    imageViewCreateInfo.subresourceRange.baseMipLevel = 0;
-    imageViewCreateInfo.subresourceRange.levelCount = 1;
-    imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
-    imageViewCreateInfo.subresourceRange.layerCount = 1;
-
-    VkImageView imageView;
-    if(vkCreateImageView(MainDevice.LogicalDevice, &imageViewCreateInfo, nullptr, &imageView) != VK_SUCCESS)
-    {
-        throw std::runtime_error("Failed to create image view");
-    }
-
-    return imageView;
-}
-
 void xRenderer::Clean()
 {
     vkDeviceWaitIdle(MainDevice.LogicalDevice);
 
 //    _aligned_free(ModelTransferSpace);
+
+    vkDestroyImageView(MainDevice.LogicalDevice, DepthBufferImageView, nullptr);
+    vkDestroyImage(MainDevice.LogicalDevice, DepthBufferImage, nullptr);
+    vkFreeMemory(MainDevice.LogicalDevice, DepthBufferImageMemory, nullptr);
 
     vkDestroyDescriptorPool(MainDevice.LogicalDevice, DescriptorPool, nullptr);
     vkDestroyDescriptorSetLayout(MainDevice.LogicalDevice, DescriptorSetLayout, nullptr);
@@ -769,7 +749,7 @@ void xRenderer::CreateGraphicsPipeline()
 
     VkPipelineInputAssemblyStateCreateInfo inputAssemblyCreateInfo = {};
     inputAssemblyCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-    inputAssemblyCreateInfo.topology = VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
+    inputAssemblyCreateInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     inputAssemblyCreateInfo.primitiveRestartEnable = VK_FALSE;
 
 //    std::vector<VkDynamicState> dynamicStateEnables;
@@ -846,6 +826,14 @@ void xRenderer::CreateGraphicsPipeline()
         throw std::runtime_error("Failed to create pipeline layout");
     }
 
+    VkPipelineDepthStencilStateCreateInfo depthStencilCreateInfo = {};
+    depthStencilCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+    depthStencilCreateInfo.depthTestEnable = VK_TRUE;
+    depthStencilCreateInfo.depthWriteEnable = VK_TRUE;
+    depthStencilCreateInfo.depthCompareOp = VK_COMPARE_OP_LESS;
+    depthStencilCreateInfo.depthBoundsTestEnable = VK_FALSE;
+    depthStencilCreateInfo.stencilTestEnable = VK_FALSE;
+
     VkGraphicsPipelineCreateInfo pipelineCreateInfo = {};
     pipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
     pipelineCreateInfo.stageCount = (u32)std::size(shaderStages);
@@ -855,7 +843,7 @@ void xRenderer::CreateGraphicsPipeline()
     pipelineCreateInfo.pViewportState = &viewportStateCreateInfo;
     pipelineCreateInfo.pRasterizationState = &rasterizationCreateInfo;
     pipelineCreateInfo.pMultisampleState = &multisampleCreateInfo;
-    pipelineCreateInfo.pDepthStencilState = nullptr;
+    pipelineCreateInfo.pDepthStencilState = &depthStencilCreateInfo;
     pipelineCreateInfo.pColorBlendState = &colorBlendCreateInfo;
     pipelineCreateInfo.pDynamicState = nullptr;
     pipelineCreateInfo.layout = PipelineLayout;
@@ -901,14 +889,33 @@ void xRenderer::CreateRenderPass()
     colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
+    DepthBufferImageFormat = ChooseSupportedFormat(
+            {VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D32_SFLOAT, VK_FORMAT_D24_UNORM_S8_UINT},
+            VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
+
+    VkAttachmentDescription depthAttachment = {};
+    depthAttachment.format = DepthBufferImageFormat;
+    depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+    depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    depthAttachment.storeOp= VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    depthAttachment.stencilStoreOp= VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
     VkAttachmentReference colorAttachmentReference = {};
     colorAttachmentReference.attachment = 0;
     colorAttachmentReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+    VkAttachmentReference depthAttachmentReference = {};
+    depthAttachmentReference.attachment = 1;
+    depthAttachmentReference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
     VkSubpassDescription subpassDescription = {};
     subpassDescription.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
     subpassDescription.colorAttachmentCount = 1;
     subpassDescription.pColorAttachments = &colorAttachmentReference;
+    subpassDescription.pDepthStencilAttachment = &depthAttachmentReference;
 
     std::array<VkSubpassDependency, 2> subpassDependencies = std::array<VkSubpassDependency, 2>();
 
@@ -930,10 +937,12 @@ void xRenderer::CreateRenderPass()
     subpassDependencies[1].dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
     subpassDependencies[1].dependencyFlags = 0;
 
+    std::array<VkAttachmentDescription, 2> attachments = {colorAttachment, depthAttachment};
+
     VkRenderPassCreateInfo renderPassCreateInfo = {};
     renderPassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-    renderPassCreateInfo.attachmentCount = 1;
-    renderPassCreateInfo.pAttachments = &colorAttachment;
+    renderPassCreateInfo.attachmentCount = (u32)attachments.size();
+    renderPassCreateInfo.pAttachments = attachments.data();
     renderPassCreateInfo.subpassCount = 1;
     renderPassCreateInfo.pSubpasses = &subpassDescription;
     renderPassCreateInfo.dependencyCount = (u32)subpassDependencies.size();
@@ -951,7 +960,10 @@ void xRenderer::CreateFramebuffers()
 
     for(size_t i = 0; i < SwapchainFramebuffers.size(); i++)
     {
-        std::array<VkImageView, 1> attachments = {SwapchainImages[i].ImageView};
+        std::array<VkImageView, 2> attachments = {
+                SwapchainImages[i].ImageView,
+                DepthBufferImageView
+        };
 
         VkFramebufferCreateInfo framebufferCreateInfo = {};
         framebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
@@ -1011,9 +1023,12 @@ void xRenderer::RecordCommands(u32 currentImage)
     renderPassBeginInfo.renderArea.offset = {0, 0};
     renderPassBeginInfo.renderArea.extent = SwapchainExtent;
 
-    VkClearValue clearValue = {0.0f, 0.0f, 0.0f, 1.0f};
-    renderPassBeginInfo.clearValueCount = 1;
-    renderPassBeginInfo.pClearValues = &clearValue;
+    std::array<VkClearValue, 2> clearValues = {};
+    clearValues[0].color = {0.1f, 0.1f, 0.1f, 1.0f};
+    clearValues[1].depthStencil.depth = 1.0f;
+
+    renderPassBeginInfo.clearValueCount = (u32)clearValues.size();
+    renderPassBeginInfo.pClearValues = clearValues.data();
 
     renderPassBeginInfo.framebuffer = SwapchainFramebuffers[currentImage];
 
@@ -1306,6 +1321,36 @@ void xRenderer::CreatePushConstantRange()
     PushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
     PushConstantRange.offset = 0;
     PushConstantRange.size = sizeof(xModel);
+}
+
+void xRenderer::CreateDepthBufferImage()
+{
+    DepthBufferImage = xRUtil::CreateImage(SwapchainExtent.width, SwapchainExtent.height,
+                                           DepthBufferImageFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+                                           VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, DepthBufferImageMemory, MainDevice.LogicalDevice, MainDevice.PhysicalDevice);
+
+    DepthBufferImageView = xRUtil::CreateImageView(DepthBufferImage, DepthBufferImageFormat, VK_IMAGE_ASPECT_DEPTH_BIT, MainDevice.LogicalDevice);
+}
+
+VkFormat xRenderer::ChooseSupportedFormat(const std::vector<VkFormat> &formats, VkImageTiling tiling,
+                                          VkFormatFeatureFlags featureFlags)
+{
+    for(VkFormat format : formats)
+    {
+        VkFormatProperties properties;
+        vkGetPhysicalDeviceFormatProperties(MainDevice.PhysicalDevice, format, &properties);
+
+        if(tiling == VK_IMAGE_TILING_LINEAR && (properties.linearTilingFeatures & featureFlags) == featureFlags)
+        {
+            return format;
+        }
+        else if(tiling == VK_IMAGE_TILING_OPTIMAL && (properties.optimalTilingFeatures & featureFlags) == featureFlags)
+        {
+            return format;
+        }
+    }
+
+    throw std::runtime_error("Failed to find supported format");
 }
 
 //void xRenderer::AllocateDynamicBufferTransferSpace()
