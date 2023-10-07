@@ -4,6 +4,8 @@
 
 #include "engine.h"
 
+#include <glm/gtc/matrix_transform.hpp>
+
 xEngine &xEngine::GetInstance()
 {
     static xEngine instance;
@@ -38,13 +40,15 @@ i32 xEngine::Run()
         LastTime = CurrentTime;
 
         TotalTime += DeltaTime;
-        if(TotalTime.count() >= 0.5)
+        if(TotalTime.count() >= 0.2)
         {
             f64 FPS = 1.0 / static_cast<f64>(DeltaTime.count());
             Window.SetFPS(static_cast<i32>(FPS));
             TotalTime = std::chrono::duration<f32>(0.0);
         }
 
+        Angle += 0.4f * DeltaTime.count();
+        Renderer.UpdateModel(0, glm::rotate(glm::mat4(1.f), Angle, glm::vec3(0.f, 0.f, 1.f)));
         Renderer.DrawFrame();
     }
 

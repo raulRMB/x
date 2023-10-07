@@ -17,6 +17,9 @@ class xEngine
     std::chrono::duration<f32> TotalTime;
     std::chrono::duration<f32> DeltaTime;
 
+    f32 Angle = 0.f;
+
+
 public:
     static xEngine& GetInstance();
     i32 Run();

@@ -30,7 +30,7 @@ private:
 
     int CurrentFrame = 0;
 
-    xMesh Mesh;
+    std::vector<xMesh> MeshList;
 
     struct
     {
@@ -39,6 +39,12 @@ private:
     } MainDevice;
 
     VkSurfaceKHR Surface;
+
+    struct UBOViewProjection
+    {
+        glm::mat4 Projection;
+        glm::mat4 View;
+    } UboViewProjection;
 
     VkSwapchainKHR Swapchain;
     VkFormat SwapchainImageFormat;
@@ -49,6 +55,23 @@ private:
 
     VkQueue GraphicsQueue;
     VkQueue PresentationQueue;
+
+    VkDescriptorSetLayout DescriptorSetLayout;
+    VkPushConstantRange PushConstantRange;
+
+    VkDescriptorPool DescriptorPool;
+    std::vector<VkDescriptorSet> DescriptorSets;
+
+//    VkDeviceSize MinUniformBufferOffset;
+//    size_t ModelUniformAlignment;
+//    class xModel* ModelTransferSpace;
+
+    std::vector<VkBuffer> VPUniformBuffers;
+    std::vector<VkDeviceMemory> VPUniformBuffersMemory;
+
+//    std::vector<VkBuffer> ModelDUniformBuffers;
+//    std::vector<VkDeviceMemory> ModelDUniformBuffersMemory;
+
 
     VkPipelineLayout PipelineLayout;
     VkRenderPass RenderPass;
@@ -79,6 +102,8 @@ private:
 
     i32 Init(xWindow* window);
 
+    void UpdateModel(u32 modelId, glm::mat4 newModel);
+
     void DrawFrame();
 
     void Clean();
@@ -90,6 +115,8 @@ private:
     void GetPhysicalDevice();
     void CreateLogicalDevice();
     void CreateSwapChain();
+    void CreateDescriptorSetLayout();
+    void CreatePushConstantRange();
     void CreateGraphicsPipeline();
     void CreateRenderPass();
     void CreateFramebuffers();
@@ -97,7 +124,16 @@ private:
     void CreateCommandBuffers();
     void CreateSynchronization();
 
-    void RecordCommands();
+    void CreateUniformBuffers();
+
+    void CreateDescriptorPool();
+    void CreateDescriptorSets();
+
+    void UpdateUniformBuffers(u32 imageIndex);
+
+    void RecordCommands(u32 currentImage);
+
+//    void AllocateDynamicBufferTransferSpace();
 
     static bool CheckInstanceExtensionSupport(std::vector<const char *> *extensions);
     static bool CheckDeviceExtensionSupport(VkPhysicalDevice device);
