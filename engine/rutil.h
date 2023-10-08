@@ -15,7 +15,7 @@
 namespace xRUtil
 {
     const int MAX_FRAMES_IN_FLIGHT = 2;
-    const int MAX_OBJECTS = 20;
+    const int MAX_OBJECTS = 100;
 
     struct Vertex
     {

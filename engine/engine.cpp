@@ -3,57 +3,75 @@
 //
 
 #include "engine.h"
+#include "SDL_events.h"
 
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/random.hpp>
 
-xEngine &xEngine::GetInstance()
+#include "ecs/ECSManager.h"
+
+namespace x
 {
-    static xEngine instance;
-    return instance;
-}
-
-xEngine::xEngine() :
-    TotalTime(0.f),
-    DeltaTime(0.f),
-    Window(xWindow()),
-    Renderer(xRenderer())
-    {}
-
-xEngine::~xEngine() = default;
-
-i32 xEngine::Run()
-{
-    if(Window.Init() != EXIT_SUCCESS)
+    Engine &Engine::GetInstance()
     {
-        return EXIT_FAILURE;
-    }
-    if(Renderer.Init(&Window) != EXIT_SUCCESS)
-    {
-        return EXIT_FAILURE;
+        static Engine instance;
+        return instance;
     }
 
-    LastTime = std::chrono::high_resolution_clock::now();
-    while(Window.bRunning())
-    {
-        CurrentTime = std::chrono::high_resolution_clock::now();
-        DeltaTime = CurrentTime - LastTime;
-        LastTime = CurrentTime;
+    Engine::Engine() :
+        TotalTime(0.f),
+        DeltaTime(0.f),
+        Window(x::Window()),
+        Renderer(x::Renderer())
+        {}
 
-        TotalTime += DeltaTime;
-        if(TotalTime.count() >= 0.2)
+    Engine::~Engine() = default;
+
+    i32 Engine::Run()
+    {
+        if(Window.Init() != EXIT_SUCCESS || Renderer.Init(&Window) != EXIT_SUCCESS)
         {
-            f64 FPS = 1.0 / static_cast<f64>(DeltaTime.count());
-            Window.SetFPS(static_cast<i32>(FPS));
-            TotalTime = std::chrono::duration<f32>(0.0);
+            return EXIT_FAILURE;
         }
 
-//        Angle += 0.4f * DeltaTime.count();
-//        Renderer.UpdateModel(0, glm::rotate(glm::mat4(1.f), Angle, glm::vec3(0.f, 0.f, 1.f)));
-        Renderer.DrawFrame();
+        Init();
+
+        LastTime = std::chrono::high_resolution_clock::now();
+        SDL_Event event;
+        while(Window.bRunning(event))
+        {
+            CurrentTime = std::chrono::high_resolution_clock::now();
+            DeltaTime = CurrentTime - LastTime;
+            LastTime = CurrentTime;
+            TotalTime += DeltaTime;
+
+            Update(DeltaTime.count());
+
+            Renderer.DrawFrame();
+        }
+
+        Renderer.Clean();
+        Window.Clean();
+
+        return EXIT_SUCCESS;
     }
 
-    Renderer.Clean();
-    Window.Clean();
+    void Engine::Update(f32 deltaTime)
+    {
+    //    auto view = Registry.view<pos, dir>();
+    //    for(auto entity : view)
+    //    {
+    //        auto& position = view.get<pos>(entity);
+    //        auto& direction = view.get<dir>(entity);
+    //        direction.x *= .99999f;
+    //        direction.y *= .99999f;
+    //        position.x += direction.x * 1.0f * DeltaTime.count();
+    //        position.y += direction.y * 1.0f * DeltaTime.count() + 1.0f * DeltaTime.count();
+    //    }
+    }
 
-    return EXIT_SUCCESS;
+    void Engine::Init()
+    {
+
+    }
 }

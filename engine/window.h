@@ -10,51 +10,61 @@
 #include <iostream>
 
 #include "base/defines.h"
+#include "SDL_events.h"
 
-
-
-
-class xWindow
+namespace x
 {
-private:
-    friend class xEngine;
+    class Window
+    {
+    private:
+        friend class Engine;
 
 #ifdef X_WINDOWING_API_GLFW
-    class GLFWwindow* GLFWWindow;
+        class GLFWwindow* GLFWWindow;
 #endif
 
 #ifdef X_WINDOWING_API_SDL
-    class SDL_Window* SDLWindow;
-    class SDL_Renderer* SDLRenderer;
+        class SDL_Window *SDLWindow;
+        class SDL_Renderer *SDLRenderer;
 #endif
 
-public:
+    public:
 #ifdef X_WINDOWING_API_GLFW
-    [[nodiscard]] GLFWwindow* GetWindow() const { return GLFWWindow; }
+        [[nodiscard]] GLFWwindow* GetWindow() const { return GLFWWindow; }
 #endif
 
 #ifdef X_WINDOWING_API_SDL
-    [[nodiscard]] SDL_Window* GetWindow() const { return SDLWindow; }
+
+        [[nodiscard]] SDL_Window *GetWindow() const
+        { return SDLWindow; }
+
 #endif
 
-private:
-    xWindow();
-    ~xWindow();
+    private:
+        Window();
 
-    i32 Init();
-    bool bRunning();
-    void Clean();
+        ~Window();
 
-    i32 InitSDL();
-    bool bSDLRunning();
-    void CleanSDL();
+        i32 Init();
 
-    i32 InitGLWF();
-    bool bGLFWRunning();
-    void CleanGLFW();
+        bool bRunning(SDL_Event &event);
 
-    void SetFPS(int i);
-};
+        void Clean();
 
+        i32 InitSDL();
+
+        bool bSDLRunning(SDL_Event &event);
+
+        void CleanSDL();
+
+        i32 InitGLWF();
+
+        bool bGLFWRunning();
+
+        void CleanGLFW();
+
+        void SetFPS(int i);
+    };
+}
 
 #endif //R_WINDOW_H

@@ -10,27 +10,36 @@
 #include "renderer.h"
 #include <chrono>
 
-class xEngine
+namespace x
 {
-    std::chrono::high_resolution_clock::time_point LastTime;
-    std::chrono::high_resolution_clock::time_point CurrentTime;
-    std::chrono::duration<f32> TotalTime;
-    std::chrono::duration<f32> DeltaTime;
+    class Engine
+    {
+        std::chrono::high_resolution_clock::time_point LastTime;
+        std::chrono::high_resolution_clock::time_point CurrentTime;
+        std::chrono::duration<f32> TotalTime;
+        std::chrono::duration<f32> DeltaTime;
+    public:
+        Engine(const Engine &) = delete;
+        Engine &operator=(const Engine &) = delete;
+        static Engine &GetInstance();
 
-    f32 Angle = 0.f;
+        i32 Run();
 
+    private:
+        Engine();
 
-public:
-    static xEngine& GetInstance();
-    i32 Run();
-private:
-    xEngine();
-    ~xEngine();
+        ~Engine();
 
-private:
-    class xWindow Window;
-    class xRenderer Renderer;
-};
+        void Init();
+
+        void Update(f32 deltaTime);
+
+    private:
+        class Window Window;
+
+        class Renderer Renderer;
+    };
+}
 
 
 #endif //R_ENGINE_H

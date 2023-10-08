@@ -5,6 +5,8 @@ project(util)
 set(CMAKE_CXX_STANDARD 17)
 set(SOURCE
     file.cpp file.h
+    primitives.h
+    color.h
 )
 
 add_library(${PROJECT_NAME} ${SOURCE})
