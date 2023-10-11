@@ -7,4 +7,5 @@ set (SOURCES defines.h base.c)
 
 add_library(${PROJECT_NAME} ${SOURCES})
 
-target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/)
+target_include_directories(${PROJECT_NAME} PUBLIC glm ${CMAKE_SOURCE_DIR}/)
+target_link_libraries(${PROJECT_NAME} PUBLIC glm)

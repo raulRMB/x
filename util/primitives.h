@@ -18,7 +18,7 @@ namespace X::Primitives2D
         static glm::vec2 BottomLeft() { return {-1.0f, 1.0f}; }
     };
 
-    std::vector<xRUtil::Vertex> MakeSquare(const glm::vec4& color)
+    inline std::vector<xRUtil::Vertex> MakeSquare(const glm::vec4& color)
     {
         std::vector<xRUtil::Vertex> vertices =
         {
@@ -38,7 +38,7 @@ namespace X::Primitives2D
         static glm::vec2 Left() { return {-1.0f, 1.0f}; }
     };
 
-    std::vector<xRUtil::Vertex> MakeTriangle(const glm::vec4& color)
+    inline std::vector<xRUtil::Vertex> MakeTriangle(const glm::vec4& color)
     {
         std::vector<xRUtil::Vertex> vertices =
         {
@@ -56,7 +56,7 @@ namespace X::Primitives2D
         static float Radius() { return 1.0f; }
     };
 
-    std::vector<xRUtil::Vertex> MakeCircle(const glm::vec4& color, u32 segments)
+    inline std::vector<xRUtil::Vertex> MakeFilledCircle(const glm::vec4& color, u32 segments)
     {
         std::vector<xRUtil::Vertex> vertices;
         vertices.reserve(segments + 1);
@@ -74,6 +74,30 @@ namespace X::Primitives2D
 
         return vertices;
     }
+
+    inline std::vector<xRUtil::Vertex> MakeCircle(const glm::vec4& color, u32 segments)
+    {
+        std::vector<xRUtil::Vertex> vertices;
+        vertices.reserve(segments + 1);
+        float angle = 0.0f;
+        float angleIncrement = 360.0f / (f32)segments;
+        for (u32 i = 0; i < segments; ++i)
+        {
+            glm::vec2 vertex = {Circle::Center().x + cos(glm::radians(angle)) * Circle::Radius(),
+                                Circle::Center().y + sin(glm::radians(angle)) * Circle::Radius()};
+            vertices.push_back({glm::vec3(vertex, 0.f), color, {0.5f, 0.5f}});
+            angle += angleIncrement;
+        }
+
+        return vertices;
+    }
+
+    enum class Shape
+    {
+        Square,
+        Triangle,
+        Circle
+    };
 }
 
 #endif //X_PRIMITIVES_H

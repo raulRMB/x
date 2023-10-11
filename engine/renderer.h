@@ -19,6 +19,8 @@
 #include "rutil.h"
 #include "core/mesh.h"
 
+#include "util/primitives.h"
+
 namespace x
 {
     struct Camera
@@ -48,7 +50,7 @@ namespace x
 
         int CurrentFrame = 0;
 
-        std::vector<xMesh> MeshList;
+        std::vector<class xMesh> MeshList;
 
         Camera Camera;
 
@@ -180,6 +182,8 @@ namespace x
 
         void CreateDescriptorSets();
 
+        void CreateMeshes();
+
         void UpdateUniformBuffers(u32 imageIndex);
 
         void RecordCommands(u32 currentImage);
@@ -237,6 +241,15 @@ namespace x
         i32 CreateTexture(const std::string &fileName);
 
         i32 CreateTextureDescriptor(VkImageView textureImage);
+
+    public:
+        void CreateMesh(const std::string& texture, X::Primitives2D::Shape shape = X::Primitives2D::Shape::Circle,
+                        const v4& color = {1.f, 1.f, 1.f, 1.f});
+
+        void UpdateCamera(const v3& pos);
+
+        const struct Camera& GetCamera() { return Camera; }
+        const UBOViewProjection& GetUBOViewProjection() { return UboViewProjection; }
     };
 }
 

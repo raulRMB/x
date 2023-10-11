@@ -10,6 +10,8 @@
 #define X_WINDOWING_API_SDL 1
 //#define X_WINDOWING_API_GLFW 1
 
+#include <glm/glm.hpp>
+
 typedef uint8_t u8;
 typedef uint16_t u16;
 typedef uint32_t u32;
@@ -24,5 +26,13 @@ typedef float f32;
 typedef double f64;
 
 typedef char byte;
+
+typedef glm::vec2 v2;
+typedef glm::vec3 v3;
+typedef glm::vec4 v4;
+
+typedef glm::mat2 m2;
+typedef glm::mat3 m3;
+typedef glm::mat4 m4;
 
 #endif // R_DEFINES_H

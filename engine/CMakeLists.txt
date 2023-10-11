@@ -6,12 +6,20 @@ set(CMAKE_CXX_STANDARD 17)
 option(SDL_TEST OFF)
 
 set (SOURCES
-    main.cpp
-    renderer.h renderer.cpp
-    window.h window.cpp
-    engine.h engine.cpp
-    rutil.h
-    ../vendor/stb_image.h
+        main.cpp
+        renderer.h renderer.cpp
+        window.h window.cpp
+        engine.h engine.cpp
+        rutil.h
+        ../vendor/stb_image.h
+        ../Enums/SceneId.h
+        ../Scenes/TestScene.h
+        ../Scenes/TestScene.cpp
+        ../Components/TransformComponent.h
+        ../Components/PhysicsComponent.h
+        ../Scenes/MainScene.cpp
+        ../Scenes/MainScene.h
+        ../vendor/entt.hpp
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})

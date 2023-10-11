@@ -8,6 +8,7 @@
 #include <base/defines.h>
 #include "window.h"
 #include "renderer.h"
+#include "../core/Game.h"
 #include <chrono>
 
 namespace x
@@ -33,11 +34,16 @@ namespace x
         void Init();
 
         void Update(f32 deltaTime);
+        void Draw();
+        void Clean();
 
     private:
-        class Window Window;
+        Window Window;
+        Renderer Renderer;
 
-        class Renderer Renderer;
+    public:
+        void CreateMesh(const std::string& path, X::Primitives2D::Shape shape, const v4& color);
+        void UpdateCamera(const v3& pos);
     };
 }
 

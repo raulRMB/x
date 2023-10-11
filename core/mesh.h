@@ -2,7 +2,7 @@
 // Created by Raul Romero on 2023-09-30.
 //
 
-#ifndef X_MESH_H
+#ifndef X_MESHCOMPONENT_H
 #define X_MESH_H
 
 #define GLFW_INCLUDE_VULKAN
@@ -67,4 +67,4 @@ public:
 };
 
 
-#endif //X_MESH_H
+#endif //X_MESHCOMPONENT_H

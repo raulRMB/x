@@ -10,10 +10,12 @@
 #include "util/file.h"
 #include <SDL2/SDL_vulkan.h>
 #include "window.h"
-#include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include "util/primitives.h"
 #include "util/color.h"
+#include "core/Game.h"
+#include "core/Scene.h"
+#include "Components/MeshComponent.h"
+#include "Components/TransformComponent.h"
 
 namespace x
 {
@@ -80,38 +82,12 @@ namespace x
             CreateDescriptorPool();
             CreateDescriptorSets();
             CreateSynchronization();
+            CreateMeshes();
 
-            Camera = x::Camera(glm::vec3(0.f, 0.f, 2.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 45.f);
-
-            UboViewProjection.Projection = glm::perspective(Camera.FOV, (f32)SwapchainExtent.width / (f32)SwapchainExtent.height, 0.1f, 100.f);
-
-            UboViewProjection.View = glm::lookAt(Camera.Position, glm::vec3(0.f, 0.f, 0.f), Camera.Up);
-
-            std::vector<xRUtil::Vertex> SquareRVerts = X::Primitives2D::MakeCircle(X::Color::Red, 20);
-
-            std::vector<u32> SquareIndices = {
-                    0, 1, 2, 2, 3, 0
-            };
-
-            std::vector<u32> CircleIndices = std::vector<u32>();
-            for(u32 i = 0; i < 20; i++)
-            {
-                CircleIndices.push_back(0);
-                CircleIndices.push_back(i + 1);
-                CircleIndices.push_back(i + 2);
+                Camera = x::Camera(glm::vec3(0.f, 0.f, 2.0f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 45.f);
+                UboViewProjection.Projection = glm::perspective(glm::radians(Camera.FOV), (f32)SwapchainExtent.width / (f32)SwapchainExtent.height, 0.1f, 100.f);
+                UboViewProjection.View = glm::lookAt(Camera.Position, glm::vec3(0.f, 0.f, 0.f), Camera.Up);
             }
-            CircleIndices.push_back(0);
-            CircleIndices.push_back(20);
-            CircleIndices.push_back(1);
-
-            auto Texture = CreateTexture("g.jpg");
-
-            for(i32 i = 0; i < 100; i++)
-            {
-                MeshList.emplace_back(SquareRVerts, CircleIndices, Texture,
-                                      GraphicsQueue, GraphicsCommandPool, MainDevice.PhysicalDevice, MainDevice.LogicalDevice);
-            }
-        }
         catch (const std::runtime_error& e)
         {
             printf("Error: %s\n", e.what());
@@ -778,7 +754,7 @@ namespace x
 
         VkPipelineInputAssemblyStateCreateInfo inputAssemblyCreateInfo = {};
         inputAssemblyCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-        inputAssemblyCreateInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+        inputAssemblyCreateInfo.topology = VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
         inputAssemblyCreateInfo.primitiveRestartEnable = VK_FALSE;
 
     //    std::vector<VkDynamicState> dynamicStateEnables;
@@ -1117,8 +1093,20 @@ namespace x
         u32 imageIndex;
         vkAcquireNextImageKHR(MainDevice.LogicalDevice, Swapchain, std::numeric_limits<u64>::max(), ImageAvailableSemaphores[CurrentFrame], VK_NULL_HANDLE, &imageIndex);
 
+        Scene* scene = Game::GetInstance().GetScene();
+
+        scene->GetRegistry().view<CTransform, CMesh>().each([&](CTransform& t, CMesh& m)
+        {
+            glm::mat4 transform = glm::mat4(1.0f);
+            transform = glm::scale(glm::mat4(1.0f), glm::vec3(t.Scale)) * transform;
+            transform = glm::translate(glm::mat4(1.0f), {t.Position.x, t.Position.y, 0.f}) * transform;
+            UpdateModel(m.Id, transform);
+        });
+
         RecordCommands(imageIndex);
         UpdateUniformBuffers(imageIndex);
+
+        UboViewProjection.View = glm::lookAt(Camera.Position, glm::vec3(0.f, 0.f, 0.f), Camera.Up);
 
         VkSubmitInfo submitInfo = {};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -1539,6 +1527,49 @@ namespace x
         SamplerDescriptorSets.push_back(descriptorSet);
 
         return (i32)SamplerDescriptorSets.size() - 1;
+    }
+
+    void Renderer::CreateMesh(const std::string& texture, X::Primitives2D::Shape shape, const glm::vec4& color)
+    {
+        std::vector<xRUtil::Vertex> Verts;
+        std::vector<u32> Indices;
+        switch(shape)
+        {
+            case X::Primitives2D::Shape::Square:
+                Verts = X::Primitives2D::MakeSquare(color);
+                Indices = { 0, 1, 2, 3, 0 };
+                break;
+            case X::Primitives2D::Shape::Triangle:
+                break;
+            case X::Primitives2D::Shape::Circle:
+                Verts = X::Primitives2D::MakeCircle(color, 20);
+                Indices = std::vector<u32>();
+                Indices.reserve(21);
+                for (u32 i = 0; i < 20; i++)
+                {
+                    Indices.push_back(i);
+                }
+                Indices.push_back(0);
+                break;
+            default:
+                break;
+        }
+
+        auto TextureId = CreateTexture(texture);
+
+        MeshList.emplace_back(Verts, Indices, TextureId,
+                              GraphicsQueue, GraphicsCommandPool,
+                              MainDevice.PhysicalDevice, MainDevice.LogicalDevice);
+    }
+
+    void Renderer::CreateMeshes()
+    {
+
+    }
+
+    void Renderer::UpdateCamera(const v3 &pos)
+    {
+        Camera.Position = pos;
     }
 
     //void xRenderer::AllocateDynamicBufferTransferSpace()
