@@ -19,6 +19,8 @@ namespace x
         std::chrono::high_resolution_clock::time_point CurrentTime;
         std::chrono::duration<f32> TotalTime;
         std::chrono::duration<f32> DeltaTime;
+
+        u32 mask = 0u;
     public:
         Engine(const Engine &) = delete;
         Engine &operator=(const Engine &) = delete;
@@ -44,6 +46,7 @@ namespace x
     public:
         void CreateMesh(const std::string& path, X::Primitives2D::Shape shape, const v4& color);
         void UpdateCamera(const v3& pos);
+        void MoveCamera(const SDL_Event& event);
     };
 }
 

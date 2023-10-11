@@ -23,18 +23,18 @@ void MainScene::Start()
     AddComponent(e, physics);
     x::Engine::GetInstance().CreateMesh("1x1.png", X::Primitives2D::Shape::Square, X::Color::Red);
     Entities.push_back(e);
+
     transform.Position = {0.0f, 0.3f};
     transform.Scale = 0.3f;
     e = CreateEntity();
     AddComponent(e, transform);
     AddComponent(e, CMesh{Models++});
-    physics.Velocity = {0.1f, 0.0f};
+    physics.Velocity = {0.0f, 0.0f};
     AddComponent(e, physics);
-    x::Engine::GetInstance().CreateMesh("1x1.png", X::Primitives2D::Shape::Circle, X::Color::Red);
+    x::Engine::GetInstance().CreateMesh("1x1.png", X::Primitives2D::Shape::Circle, X::Color::Green);
     Entities.push_back(e);
 }
 
-f32 t = 0.0f;
 void MainScene::Update(f32 deltaTime)
 {
     auto view = Registry.view<CTransform, CPhysics>();
@@ -45,10 +45,6 @@ void MainScene::Update(f32 deltaTime)
 
         transform.Position += physics.Velocity * deltaTime;
     }
-
-    t += 1.0f * deltaTime;
-    pos.x = sin(t) * 2.0f;
-    x::Engine::GetInstance().UpdateCamera(pos);
 }
 
 void MainScene::Clean()

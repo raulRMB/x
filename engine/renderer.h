@@ -29,11 +29,12 @@ namespace x
         glm::vec3 Forward;
         glm::vec3 Up;
         float FOV;
+        glm::mat4 View;
 
         Camera() = default;
 
         Camera(const glm::vec3 &position, const glm::vec3 &forward, const glm::vec3 &up, float fov)
-                : Position(position), Forward(forward), Up(up), FOV(fov)
+                : Position(position), Forward(forward), Up(up), FOV(fov), View(glm::mat4(1.f))
         {}
     };
 

@@ -84,9 +84,9 @@ namespace x
             CreateSynchronization();
             CreateMeshes();
 
-                Camera = x::Camera(glm::vec3(0.f, 0.f, 2.0f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 45.f);
+                Camera = x::Camera(glm::vec3(0.f, 0.f, 2.0f), glm::vec3(0.f, 0.f, -1.f), glm::vec3(0.f, 1.f, 0.f), 45.f);
                 UboViewProjection.Projection = glm::perspective(glm::radians(Camera.FOV), (f32)SwapchainExtent.width / (f32)SwapchainExtent.height, 0.1f, 100.f);
-                UboViewProjection.View = glm::lookAt(Camera.Position, glm::vec3(0.f, 0.f, 0.f), Camera.Up);
+                UboViewProjection.View = Camera.View;
             }
         catch (const std::runtime_error& e)
         {
@@ -1106,7 +1106,7 @@ namespace x
         RecordCommands(imageIndex);
         UpdateUniformBuffers(imageIndex);
 
-        UboViewProjection.View = glm::lookAt(Camera.Position, glm::vec3(0.f, 0.f, 0.f), Camera.Up);
+        UboViewProjection.View = Camera.View;
 
         VkSubmitInfo submitInfo = {};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -1570,6 +1570,7 @@ namespace x
     void Renderer::UpdateCamera(const v3 &pos)
     {
         Camera.Position = pos;
+        Camera.View = glm::lookAt(Camera.Position, Camera.Forward + Camera.Position, Camera.Up);
     }
 
     //void xRenderer::AllocateDynamicBufferTransferSpace()
