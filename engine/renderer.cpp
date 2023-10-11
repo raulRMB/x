@@ -1573,6 +1573,11 @@ namespace x
         Camera.View = glm::lookAt(Camera.Position, Camera.Forward + Camera.Position, Camera.Up);
     }
 
+    glm::mat4 Renderer::GetViewProjectionInverse()
+    {
+        return glm::inverse(UboViewProjection.View * UboViewProjection.Projection);
+    }
+
     //void xRenderer::AllocateDynamicBufferTransferSpace()
     //{
     //    ModelUniformAlignment = ((u32)sizeof(xModel) + MinUniformBufferOffset - 1) & ~(MinUniformBufferOffset - 1);

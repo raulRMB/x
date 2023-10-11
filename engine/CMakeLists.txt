@@ -20,6 +20,7 @@ set (SOURCES
         ../Scenes/MainScene.cpp
         ../Scenes/MainScene.h
         ../vendor/entt.hpp
+        ../Components/TargetComponent.h
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})

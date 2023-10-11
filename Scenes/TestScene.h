@@ -11,6 +11,7 @@ class TestScene final : public x::Scene
 {
 public:
     void Start() override;
+    void HandleInput(const SDL_Event& event) override;
     void Update(f32 deltaTime) override;
     void Clean() override;
 };

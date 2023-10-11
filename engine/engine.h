@@ -28,6 +28,9 @@ namespace x
 
         i32 Run();
 
+        inline static Window& GetWindow() { return Window; }
+        inline static Renderer& GetRenderer() { return Renderer; }
+
     private:
         Engine();
 
@@ -40,8 +43,8 @@ namespace x
         void Clean();
 
     private:
-        Window Window;
-        Renderer Renderer;
+        static Window Window;
+        static Renderer Renderer;
 
     public:
         void CreateMesh(const std::string& path, X::Primitives2D::Shape shape, const v4& color);

@@ -7,6 +7,7 @@
 
 #include <base/defines.h>
 #include <vendor/entt.hpp>
+#include <SDL2/SDL_events.h>
 
 namespace x
 {
@@ -19,6 +20,7 @@ namespace x
 
         friend class Game;
         virtual void Start() = 0;
+        virtual void HandleInput(const SDL_Event& event) = 0;
         virtual void Update(f32 deltaTime) = 0;
         virtual void Clean() = 0;
 

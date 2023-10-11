@@ -18,9 +18,7 @@ namespace x
 
     Engine::Engine() :
         TotalTime(0.f),
-        DeltaTime(0.f),
-        Window(x::Window()),
-        Renderer(x::Renderer())
+        DeltaTime(0.f)
         {}
 
     Engine::~Engine() = default;
@@ -44,38 +42,6 @@ namespace x
             TotalTime += DeltaTime;
 
             MoveCamera(event);
-
-//            if(event.type == SDL_MOUSEBUTTONDOWN)
-//            {
-//                if (event.button.button == SDL_BUTTON_LEFT)
-//                {
-//                    auto& registry = ECSManager::GetInstance().GetRegistry();
-//                    const auto& view = registry.view<trgt>();
-//                    f32 x = (f32)event.button.x;
-//                    f32 y = (f32)event.button.y;
-//
-//                    double x_ndc = (2.0f * x / (f32)WINDOW_WIDTH) - 1.f;
-//                    double y_ndc = (2.0f * y / (f32)WINDOW_HEIGHT) - 1.f;
-//                    glm::mat4 viewProjectionInverse = glm::inverse(Renderer.GetUBOViewProjection().Projection * Renderer.GetUBOViewProjection().View);
-//                    glm::vec4 worldSpacePosition(x_ndc, y_ndc, 0.0f, 1.0f);
-//                    auto world = viewProjectionInverse * worldSpacePosition;
-//
-//                    x = world.x * abs(Renderer.Camera.Position.z);
-//                    y = world.y * abs(Renderer.Camera.Position.z);
-//
-//                    for(auto entity : view)
-//                    {
-//                        registry.get<trgt>(entity).XY = glm::vec2(x, y);
-//                    }
-//                    auto e = registry.create();
-//                    registry.emplace<pos>(e, glm::vec2(x, y));
-//                    registry.emplace<modelId>(e, ECSManager::GetInstance().models);
-//                    registry.emplace<trgt>(e, glm::vec2(x, y));
-//                    registry.emplace<vel>(e, glm::vec2(0.f, 0.f));
-//                    ECSManager::GetInstance().models++;
-//                    Renderer.CreateMesh();
-//                }
-//            }
 
             Update(DeltaTime.count());
             Draw();

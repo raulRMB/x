@@ -251,6 +251,8 @@ namespace x
 
         const struct Camera& GetCamera() { return Camera; }
         const UBOViewProjection& GetUBOViewProjection() { return UboViewProjection; }
+
+        glm::mat4 GetViewProjectionInverse();
     };
 }
 
