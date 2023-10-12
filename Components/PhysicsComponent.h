@@ -7,10 +7,17 @@
 
 #include "../base/defines.h"
 
-struct CPhysics
+struct CPhysics2d
 {
     v2 Velocity;
     v2 Acceleration;
+    f32 Mass;
+};
+
+struct CPhysics3d
+{
+    v3 Velocity;
+    v3 Acceleration;
     f32 Mass;
 };
 

@@ -23,6 +23,7 @@ namespace x
         static Game &GetInstance();
         void Init();
         void Start();
+        void HandleInput(const SDL_Event& event);
         void Update(f32 deltaTime);
         void Clean();
 

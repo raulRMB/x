@@ -2,12 +2,12 @@
 // Created by Raul Romero on 2023-10-11.
 //
 
-#ifndef X_TRANSFORMCOMPONENT_H
-#define X_TRANSFORMCOMPONENT_H
+#ifndef X_TRANSFORM_COMPONENT_H
+#define X_TRANSFORM_COMPONENT_H
 
 #include <base/defines.h>
 
-struct CTransform
+struct CTransform2d
 {
     v2 Position;
     f32 Scale;
@@ -15,4 +15,11 @@ struct CTransform
     f32 Elevation;
 };
 
-#endif //X_TRANSFORMCOMPONENT_H
+struct CTransform3d
+{
+    v3 Position;
+    v3 Scale;
+    v3 Rotation;
+};
+
+#endif //X_TRANSFORM_COMPONENT_H

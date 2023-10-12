@@ -23,21 +23,6 @@
 
 namespace x
 {
-    struct Camera
-    {
-        glm::vec3 Position;
-        glm::vec3 Forward;
-        glm::vec3 Up;
-        float FOV;
-        glm::mat4 View;
-
-        Camera() = default;
-
-        Camera(const glm::vec3 &position, const glm::vec3 &forward, const glm::vec3 &up, float fov)
-                : Position(position), Forward(forward), Up(up), FOV(fov), View(glm::mat4(1.f))
-        {}
-    };
-
     class Window;
 
     class Renderer
@@ -52,8 +37,6 @@ namespace x
         int CurrentFrame = 0;
 
         std::vector<class xMesh> MeshList;
-
-        Camera Camera;
 
         struct
         {
@@ -247,9 +230,6 @@ namespace x
         void CreateMesh(const std::string& texture, X::Primitives2D::Shape shape = X::Primitives2D::Shape::Circle,
                         const v4& color = {1.f, 1.f, 1.f, 1.f});
 
-        void UpdateCamera(const v3& pos);
-
-        const struct Camera& GetCamera() { return Camera; }
         const UBOViewProjection& GetUBOViewProjection() { return UboViewProjection; }
 
         glm::mat4 GetViewProjectionInverse();

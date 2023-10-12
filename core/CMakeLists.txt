@@ -9,6 +9,7 @@ add_library(${PROJECT_NAME}
         mesh.h mesh.cpp
         Game.h Game.cpp
         Scene.h Scene.cpp
+        Camera.h Camera.cpp
 )
 target_include_directories(${PROJECT_NAME} PRIVATE base glfw glm Vulkan::Vulkan)
 target_link_libraries(${PROJECT_NAME} PRIVATE base glfw glm Vulkan::Vulkan)

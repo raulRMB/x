@@ -28,8 +28,8 @@ namespace x
 
         i32 Run();
 
-        inline static Window& GetWindow() { return Window; }
-        inline static Renderer& GetRenderer() { return Renderer; }
+        inline Window& GetWindow() { return Window; }
+        inline Renderer& GetRenderer() { return Renderer; }
 
     private:
         Engine();
@@ -43,13 +43,11 @@ namespace x
         void Clean();
 
     private:
-        static Window Window;
-        static Renderer Renderer;
+        Window Window;
+        Renderer Renderer;
 
     public:
         void CreateMesh(const std::string& path, X::Primitives2D::Shape shape, const v4& color);
-        void UpdateCamera(const v3& pos);
-        void MoveCamera(const SDL_Event& event);
     };
 }
 

@@ -31,6 +31,11 @@ namespace x
         CurrentScene->Update(deltaTime);
     }
 
+    void Game::HandleInput(const SDL_Event &event)
+    {
+        CurrentScene->HandleInput(event);
+    }
+
     void Game::Clean()
     {
         if(CurrentScene != nullptr)
@@ -58,7 +63,6 @@ namespace x
                 default:
                     break;
             }
-            CurrentScene->Start();
         }
     }
 }

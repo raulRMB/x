@@ -8,29 +8,28 @@
 #include "Components/PhysicsComponent.h"
 #include "Components/TargetComponent.h"
 #include "engine/engine.h"
+#include "core/Camera.h"
 
 void MainScene::Start()
 {
     entt::entity e = CreateEntity();
-    CTransform transform{};
-    transform.Position = {0.0f, 0.0f};
-    transform.Scale = 0.1f;
-    transform.Rotation = 0.0f;
-    transform.Elevation = 0.0f;
+    CTransform3d transform{};
+    transform.Position = {0.0f, 0.0f, 0.0f};
+    transform.Rotation = {0.0f, 0.0f, 0.0f};
+    transform.Scale = {.1f, .1f, .1f};
     AddComponent(e, transform);
     AddComponent(e, CMesh{Models++});
-    CPhysics physics{};
-    physics.Velocity = {0.0f, 0.0f};
+    CPhysics3d physics{};
+    physics.Velocity = {0.0f, 1.0f, 0.0f};
     AddComponent(e, physics);
     x::Engine::GetInstance().CreateMesh("1x1.png", X::Primitives2D::Shape::Square, X::Color::Red);
     Entities.push_back(e);
 
-    transform.Position = {0.0f, 0.3f};
-    transform.Scale = 0.3f;
+    transform.Scale = {.03f, .03f, .03f};
     e = CreateEntity();
     AddComponent(e, transform);
     AddComponent(e, CMesh{Models++});
-    physics.Velocity = {0.0f, 0.0f};
+    physics.Velocity = {0.0f, 0.0f, 0.0f};
     AddComponent(e, physics);
     x::Engine::GetInstance().CreateMesh("1x1.png", X::Primitives2D::Shape::Circle, X::Color::Green);
     Entities.push_back(e);
@@ -42,41 +41,24 @@ void MainScene::HandleInput(const SDL_Event &event)
     {
         if (event.button.button == SDL_BUTTON_LEFT)
         {
-            const auto& view = Registry.view<CTarget>();
-            f32 x = (f32)event.button.x;
-            f32 y = (f32)event.button.y;
-
-            double x_ndc = (2.0f * x / (f32)WINDOW_WIDTH) - 1.f;
-            double y_ndc = (2.0f * y / (f32)WINDOW_HEIGHT) - 1.f;
-            m4 viewProjectionInverse = x::Engine::GetRenderer().GetViewProjectionInverse();
-            v4 worldSpacePosition(x_ndc, y_ndc, 0.0f, 1.0f);
-            auto world = viewProjectionInverse * worldSpacePosition;
-
-            x = world.x * abs(Game::GetCamera.Position.z);
-            y = world.y * abs(Game::Camera.Position.z);
-
-            for(auto entity : view)
-            {
-                Registry.get<trgt>(entity).XY = glm::vec2(x, y);
-            }
-            auto e = registry.create();
-            Registry.emplace<pos>(e, glm::vec2(x, y));
-            Registry.emplace<modelId>(e, ECSManager::GetInstance().models);
-            Registry.emplace<trgt>(e, glm::vec2(x, y));
-            Registry.emplace<vel>(e, glm::vec2(0.f, 0.f));
-            ECSManager::GetInstance().models++;
-            Renderer.CreateMesh();
+            v3 worldPos = xRUtil::GetMouseWorldPosition();
+            auto e = Registry.create();
+            Registry.emplace<CTransform3d>(e, worldPos, glm::vec3(.01f, .01f, .01f), CameraSystem::Get().GetMainCameraRotation() + v3(0.f, glm::radians(90.f), 0.f));
+            Registry.emplace<CMesh>(e, Models++);
+            Registry.emplace<CPhysics3d>(e, CameraSystem::Get().GetMainCameraForward() * .2f);
+            x::Engine::GetInstance().CreateMesh("1x1.png", X::Primitives2D::Shape::Circle, X::Color::Blue);
+            Entities.push_back(e);
         }
     }
 }
 
 void MainScene::Update(f32 deltaTime)
 {
-    auto view = Registry.view<CTransform, CPhysics>();
+    auto view = Registry.view<CTransform3d, CPhysics3d>();
     for (auto entity : view)
     {
-        auto& transform = view.get<CTransform>(entity);
-        auto& physics = view.get<CPhysics>(entity);
+        auto& transform = view.get<CTransform3d>(entity);
+        auto& physics = view.get<CPhysics3d>(entity);
 
         transform.Position += physics.Velocity * deltaTime;
     }

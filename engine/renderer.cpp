@@ -16,6 +16,7 @@
 #include "core/Scene.h"
 #include "Components/MeshComponent.h"
 #include "Components/TransformComponent.h"
+#include "core/Camera.h"
 
 namespace x
 {
@@ -35,7 +36,6 @@ namespace x
         TextureSampler(VK_NULL_HANDLE),
         SamplerSetLayout(VK_NULL_HANDLE),
         SamplerDescriptorPool(VK_NULL_HANDLE),
-        Camera({}),
 //        ModelUniformAlignment(0),
 //        ModelTransferSpace(VK_NULL_HANDLE),
 //        MinUniformBufferOffset(0),
@@ -83,11 +83,7 @@ namespace x
             CreateDescriptorSets();
             CreateSynchronization();
             CreateMeshes();
-
-                Camera = x::Camera(glm::vec3(0.f, 0.f, 2.0f), glm::vec3(0.f, 0.f, -1.f), glm::vec3(0.f, 1.f, 0.f), 45.f);
-                UboViewProjection.Projection = glm::perspective(glm::radians(Camera.FOV), (f32)SwapchainExtent.width / (f32)SwapchainExtent.height, 0.1f, 100.f);
-                UboViewProjection.View = Camera.View;
-            }
+        }
         catch (const std::runtime_error& e)
         {
             printf("Error: %s\n", e.what());
@@ -1095,18 +1091,22 @@ namespace x
 
         Scene* scene = Game::GetInstance().GetScene();
 
-        scene->GetRegistry().view<CTransform, CMesh>().each([&](CTransform& t, CMesh& m)
+        scene->GetRegistry().view<CTransform3d, CMesh>().each([&](CTransform3d& t, CMesh& m)
         {
             glm::mat4 transform = glm::mat4(1.0f);
-            transform = glm::scale(glm::mat4(1.0f), glm::vec3(t.Scale)) * transform;
-            transform = glm::translate(glm::mat4(1.0f), {t.Position.x, t.Position.y, 0.f}) * transform;
+            transform = glm::scale(glm::mat4(1.0f), t.Scale) * transform;
+            transform = glm::rotate(glm::mat4(1.0f), t.Rotation.x, glm::vec3(1.0f, 0.0f, 0.0f)) * transform;
+            transform = glm::rotate(glm::mat4(1.0f), t.Rotation.y, glm::vec3(0.0f, 1.0f, 0.0f)) * transform;
+            transform = glm::rotate(glm::mat4(1.0f), t.Rotation.z, glm::vec3(0.0f, 0.0f, 1.0f)) * transform;
+            transform = glm::translate(glm::mat4(1.0f), t.Position) * transform;
             UpdateModel(m.Id, transform);
         });
 
         RecordCommands(imageIndex);
         UpdateUniformBuffers(imageIndex);
 
-        UboViewProjection.View = Camera.View;
+        UboViewProjection.View = CameraSystem::Get().GetMainCameraView();
+        UboViewProjection.Projection = CameraSystem::Get().GetMainCameraProjection();
 
         VkSubmitInfo submitInfo = {};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -1564,13 +1564,6 @@ namespace x
 
     void Renderer::CreateMeshes()
     {
-
-    }
-
-    void Renderer::UpdateCamera(const v3 &pos)
-    {
-        Camera.Position = pos;
-        Camera.View = glm::lookAt(Camera.Position, Camera.Forward + Camera.Position, Camera.Up);
     }
 
     glm::mat4 Renderer::GetViewProjectionInverse()

@@ -6,7 +6,7 @@
 #include "SDL_events.h"
 
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/random.hpp>
+#include "core/Camera.h"
 
 namespace x
 {
@@ -18,7 +18,9 @@ namespace x
 
     Engine::Engine() :
         TotalTime(0.f),
-        DeltaTime(0.f)
+        DeltaTime(0.f),
+        Renderer(x::Renderer()),
+        Window(x::Window())
         {}
 
     Engine::~Engine() = default;
@@ -41,7 +43,9 @@ namespace x
             LastTime = CurrentTime;
             TotalTime += DeltaTime;
 
-            MoveCamera(event);
+            Game::GetInstance().HandleInput(event);
+
+            CameraSystem::Get().MoveCamera(event, DeltaTime.count());
 
             Update(DeltaTime.count());
             Draw();
@@ -77,84 +81,5 @@ namespace x
     void Engine::CreateMesh(const std::string& path, X::Primitives2D::Shape shape, const v4& color)
     {
         Renderer.CreateMesh(path, shape, color);
-    }
-
-    void Engine::UpdateCamera(const v3 &pos)
-    {
-        Renderer.UpdateCamera(pos);
-    }
-
-    void Engine::MoveCamera(const SDL_Event& event)
-    {
-        if(event.type == SDL_KEYDOWN)
-        {
-            if(event.key.keysym.sym == SDLK_w)
-            {
-                mask |= 1u << 0;
-            }
-            if(event.key.keysym.sym == SDLK_s)
-            {
-                mask |= 1u << 1;
-            }
-            if(event.key.keysym.sym == SDLK_a)
-            {
-                mask |= 1u << 2;
-            }
-            if(event.key.keysym.sym == SDLK_d)
-            {
-                mask |= 1u << 3;
-            }
-        }
-        if(event.type == SDL_KEYUP)
-        {
-            if(event.key.keysym.sym == SDLK_w)
-            {
-                mask &= ~(1u << 0);
-            }
-            if(event.key.keysym.sym == SDLK_s)
-            {
-                mask &= ~(1u << 1);
-            }
-            if(event.key.keysym.sym == SDLK_a)
-            {
-                mask &= ~(1u << 2);
-            }
-            if(event.key.keysym.sym == SDLK_d)
-            {
-                mask &= ~(1u << 3);
-            }
-        }
-        if(event.type == SDL_MOUSEWHEEL)
-        {
-            if(event.wheel.y > 0)
-            {
-                Renderer.Camera.Position.z -= 1.f;
-            }
-            else if(event.wheel.y < 0)
-            {
-                Renderer.Camera.Position.z += 1.f;
-            }
-        }
-
-        v3 pos = Renderer.Camera.Position;
-        f32 speed = 1.f;
-
-        if(mask & 1u << 0)
-        {
-            pos.y -= speed * DeltaTime.count();
-        }
-        if(mask & 1u << 1)
-        {
-            pos.y += speed * DeltaTime.count();
-        }
-        if(mask & 1u << 2)
-        {
-            pos.x -= speed * DeltaTime.count();
-        }
-        if(mask & 1u << 3)
-        {
-            pos.x += speed * DeltaTime.count();
-        }
-        Renderer.UpdateCamera(pos);
     }
 }

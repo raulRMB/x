@@ -11,6 +11,8 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <vendor/stb_image.h>
+#include "core/Camera.h"
+#include "core/Game.h"
 
 namespace xRUtil
 {
@@ -299,6 +301,20 @@ namespace xRUtil
         *imageSize = *width * *height * 4;
 
         return image;
+    }
+
+    inline v3 GetMouseWorldPosition()
+    {
+        i32 x, y;
+        SDL_GetMouseState(&x, &y);
+
+        double x_ndc = (2.0f * (f32)x / (f32)WINDOW_WIDTH) - 1.f;
+        double y_ndc = (2.0f * (f32)y / (f32)WINDOW_HEIGHT) - 1.f;
+        m4 viewProjectionInverse = CameraSystem::Get().GetVPI();
+        v4 worldSpacePosition(x_ndc, y_ndc, .1f, 1.0f);
+        auto world = viewProjectionInverse * worldSpacePosition;
+        world /= world.w;
+        return world;
     }
 };
 
