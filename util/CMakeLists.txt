@@ -7,7 +7,6 @@ set(SOURCE
     file.cpp file.h
     primitives.h
     color.h
-        LoopedList.h
 )
 
 add_library(${PROJECT_NAME} ${SOURCE})

@@ -28,9 +28,6 @@ namespace x
 
         i32 Run();
 
-        inline Window& GetWindow() { return Window; }
-        inline Renderer& GetRenderer() { return Renderer; }
-
     private:
         Engine();
 
@@ -41,10 +38,6 @@ namespace x
         void Update(f32 deltaTime);
         void Draw();
         void Clean();
-
-    private:
-        Window Window;
-        Renderer Renderer;
 
     public:
         void CreateMesh(const std::string& path, X::Primitives2D::Shape shape, const v4& color);

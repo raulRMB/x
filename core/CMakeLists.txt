@@ -10,6 +10,12 @@ add_library(${PROJECT_NAME}
         Game.h Game.cpp
         Scene.h Scene.cpp
         Camera.h Camera.cpp
+        MeshModel.cpp
+        MeshModel.h
 )
-target_include_directories(${PROJECT_NAME} PRIVATE base glfw glm Vulkan::Vulkan)
-target_link_libraries(${PROJECT_NAME} PRIVATE base glfw glm Vulkan::Vulkan)
+
+set (ASSIMP_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../vendor/assimp)
+
+target_include_directories(${PROJECT_NAME} PRIVATE base glfw glm Vulkan::Vulkan ${ASSIMP_DIR}/include)
+target_link_directories(${PROJECT_NAME} PRIVATE ${ASSIMP_DIR}/lib)
+target_link_libraries(${PROJECT_NAME} PRIVATE base glfw glm Vulkan::Vulkan ${ASSIMP_DIR}/lib/libassimp-5.dll)

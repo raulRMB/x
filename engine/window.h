@@ -16,6 +16,8 @@ namespace x
 {
     class Window
     {
+    public:
+        static Window &Get();
     private:
         friend class Engine;
 

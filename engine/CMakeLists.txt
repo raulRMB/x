@@ -25,6 +25,9 @@ set (SOURCES
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 
+set (ASSIMP_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../vendor/assimp)
+
 find_package(Vulkan REQUIRED)
-target_include_directories(${PROJECT_NAME} PUBLIC base util core SDL2::SDL2 glfw glm Vulkan::Vulkan)
-target_link_libraries(${PROJECT_NAME} PUBLIC base util core SDL2::SDL2 glfw glm Vulkan::Vulkan)
+target_include_directories(${PROJECT_NAME} PUBLIC base util core SDL2::SDL2 glfw glm Vulkan::Vulkan ${ASSIMP_DIR}/include)
+target_link_directories(${PROJECT_NAME} PRIVATE ${ASSIMP_DIR}/lib)
+target_link_libraries(${PROJECT_NAME} PUBLIC base util core SDL2::SDL2 glfw glm Vulkan::Vulkan ${ASSIMP_DIR}/lib/libassimp-5.dll)

@@ -18,6 +18,7 @@
 
 #include "rutil.h"
 #include "core/mesh.h"
+#include "core/MeshModel.h"
 
 #include "util/primitives.h"
 
@@ -27,16 +28,17 @@ namespace x
 
     class Renderer
     {
+    public:
+        static Renderer &Get();
     private:
         friend class Engine;
-
-        Window *Window;
 
         VkInstance Instance;
 
         int CurrentFrame = 0;
 
-        std::vector<class xMesh> MeshList;
+        std::vector<xMesh> MeshList;
+        std::vector<MeshModel> ModelList;
 
         struct
         {
@@ -119,7 +121,7 @@ namespace x
 
         ~Renderer();
 
-        i32 Init(x::Window *window);
+        i32 Init();
 
         void UpdateModel(u32 modelId, glm::mat4 newModel);
 
@@ -225,10 +227,11 @@ namespace x
         i32 CreateTexture(const std::string &fileName);
 
         i32 CreateTextureDescriptor(VkImageView textureImage);
-
     public:
+
         void CreateMesh(const std::string& texture, X::Primitives2D::Shape shape = X::Primitives2D::Shape::Circle,
                         const v4& color = {1.f, 1.f, 1.f, 1.f});
+        i32 CreateMeshModel(const std::string& fileName);
 
         const UBOViewProjection& GetUBOViewProjection() { return UboViewProjection; }
 

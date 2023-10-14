@@ -112,7 +112,7 @@ namespace x
 #ifdef X_WINDOWING_API_SDL
         if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
         {
-            std::cout << "SDL failed to initialize" << std::endl;
+            std::cout << "SDL failed to initialize " << std::endl;
             return EXIT_FAILURE;
         }
 
@@ -158,5 +158,11 @@ namespace x
 #ifdef X_WINDOWING_API_SDL
         SDL_SetWindowTitle(SDLWindow, (WINDOW_TITLE + std::string(" | FPS: ") + std::to_string(i)).c_str());
 #endif
+    }
+
+    Window &Window::Get()
+    {
+        static Window instance;
+        return instance;
     }
 }

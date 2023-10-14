@@ -9,7 +9,7 @@
 
 struct CMesh
 {
-    u32 Id;
+    i32 Id;
 };
 
 #endif //X_MESHCOMPONENT_H

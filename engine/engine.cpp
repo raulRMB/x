@@ -18,16 +18,14 @@ namespace x
 
     Engine::Engine() :
         TotalTime(0.f),
-        DeltaTime(0.f),
-        Renderer(x::Renderer()),
-        Window(x::Window())
+        DeltaTime(0.f)
         {}
 
     Engine::~Engine() = default;
 
     i32 Engine::Run()
     {
-        if(Window.Init() != EXIT_SUCCESS || Renderer.Init(&Window) != EXIT_SUCCESS)
+        if(Window::Get().Init() != EXIT_SUCCESS || x::Renderer::Get().Init() != EXIT_SUCCESS)
         {
             return EXIT_FAILURE;
         }
@@ -36,7 +34,7 @@ namespace x
 
         LastTime = std::chrono::high_resolution_clock::now();
         SDL_Event event;
-        while(Window.bRunning(event))
+        while(Window::Get().bRunning(event))
         {
             CurrentTime = std::chrono::high_resolution_clock::now();
             DeltaTime = CurrentTime - LastTime;
@@ -63,7 +61,7 @@ namespace x
 
     void Engine::Draw()
     {
-        Renderer.DrawFrame();
+        x::Renderer::Get().DrawFrame();
     }
 
     void Engine::Init()
@@ -74,12 +72,12 @@ namespace x
     void Engine::Clean()
     {
         Game::GetInstance().Clean();
-        Renderer.Clean();
-        Window.Clean();
+        Renderer::Get().Clean();
+        Window::Get().Clean();
     }
 
     void Engine::CreateMesh(const std::string& path, X::Primitives2D::Shape shape, const v4& color)
     {
-        Renderer.CreateMesh(path, shape, color);
+        x::Renderer::Get().CreateMesh(path, shape, color);
     }
 }

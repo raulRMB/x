@@ -135,15 +135,15 @@ void CameraSystem::MoveCamera(const SDL_Event& event, f32 DeltaTime)
         }
     }
 //    SDL_ShowCursor(SDL_DISABLE);
-//    if(event.type == SDL_MOUSEMOTION)
-//    {
-//        if(event.motion.state & SDL_BUTTON_RMASK)
-//        {
-//            GetMainCameraRotation().x += (f32)event.motion.yrel * 10.f * DeltaTime;
-//            GetMainCameraRotation().y += (f32)event.motion.xrel * 10.f * DeltaTime;
-//            std::clamp(GetMainCameraRotation().y, glm::radians(-85.f), glm::radians(85.f));
-//        }
-//    }
+    if(event.type == SDL_MOUSEMOTION)
+    {
+        if(event.motion.state & SDL_BUTTON_RMASK)
+        {
+            GetMainCameraRotation().x += (f32)event.motion.yrel * 10.f * DeltaTime;
+            GetMainCameraRotation().y += (f32)event.motion.xrel * 10.f * DeltaTime;
+            std::clamp(GetMainCameraRotation().y, glm::radians(-85.f), glm::radians(85.f));
+        }
+    }
 
     v3& pos = GetMainCameraPosition();
     f32 speed = 1.f;

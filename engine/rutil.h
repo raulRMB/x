@@ -21,9 +21,10 @@ namespace xRUtil
 
     struct Vertex
     {
-        glm::vec3 Pos;
-        glm::vec4 Col;
-        glm::vec2 Tex;
+        v3 Pos;
+        v4 Col;
+        v2 Tex;
+//        v3 Nrm;
     };
 
     const std::vector<const char*> DeviceExtensions = {

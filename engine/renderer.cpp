@@ -17,14 +17,17 @@
 #include "Components/MeshComponent.h"
 #include "Components/TransformComponent.h"
 #include "core/Camera.h"
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
 
 namespace x
 {
     Renderer::Renderer() :
-        Window(nullptr),
         Instance(VK_NULL_HANDLE),
         MainDevice({VK_NULL_HANDLE, VK_NULL_HANDLE}),
         MeshList(std::vector<xMesh>()),
+        ModelList(std::vector<MeshModel>()),
         Surface(VK_NULL_HANDLE),
         Swapchain(VK_NULL_HANDLE),
         SwapchainImageFormat(VK_FORMAT_UNDEFINED),
@@ -56,10 +59,8 @@ namespace x
         GraphicsPipeline(VK_NULL_HANDLE)
     {}
 
-    i32 Renderer::Init(x::Window* window)
+    i32 Renderer::Init()
     {
-        Window = window;
-
         try
         {
             CreateInstance();
@@ -82,7 +83,7 @@ namespace x
             CreateDescriptorPool();
             CreateDescriptorSets();
             CreateSynchronization();
-            CreateMeshes();
+//            CreateMeshes();
         }
         catch (const std::runtime_error& e)
         {
@@ -122,9 +123,9 @@ namespace x
         }
     #endif
     #ifdef X_WINDOWING_API_SDL
-        SDL_Vulkan_GetInstanceExtensions(Window->GetWindow(), &extensionCount, nullptr);
+        SDL_Vulkan_GetInstanceExtensions(Window::Get().GetWindow(), &extensionCount, nullptr);
         instanceExtensions.resize(extensionCount);
-        SDL_Vulkan_GetInstanceExtensions(Window->GetWindow(), &extensionCount, instanceExtensions.data());
+        SDL_Vulkan_GetInstanceExtensions(Window::Get().GetWindow(), &extensionCount, instanceExtensions.data());
     #endif
 
         if(!CheckInstanceExtensionSupport(&instanceExtensions))
@@ -606,7 +607,7 @@ namespace x
         glfwGetFramebufferSize(Window->GetWindow(), &width, &height);
     #endif
     #ifdef X_WINDOWING_API_SDL
-        SDL_Vulkan_GetDrawableSize(Window->GetWindow(), &width, &height);
+        SDL_Vulkan_GetDrawableSize(Window::Get().GetWindow(), &width, &height);
     #endif
 
         VkExtent2D newExtent = {};
@@ -624,6 +625,11 @@ namespace x
         vkDeviceWaitIdle(MainDevice.LogicalDevice);
 
     //    _aligned_free(ModelTransferSpace);
+
+        for(auto& model : ModelList)
+        {
+            model.DestroyMesh();
+        }
 
         vkDestroyDescriptorPool(MainDevice.LogicalDevice, SamplerDescriptorPool, nullptr);
         vkDestroyDescriptorSetLayout(MainDevice.LogicalDevice, SamplerSetLayout, nullptr);
@@ -693,10 +699,7 @@ namespace x
         vkDestroyInstance(Instance, nullptr);
     }
 
-    Renderer::~Renderer()
-    {
-        Window = nullptr;
-    }
+    Renderer::~Renderer() = default;
 
     void Renderer::CreateGraphicsPipeline()
     {
@@ -750,7 +753,7 @@ namespace x
 
         VkPipelineInputAssemblyStateCreateInfo inputAssemblyCreateInfo = {};
         inputAssemblyCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-        inputAssemblyCreateInfo.topology = VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
+        inputAssemblyCreateInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
         inputAssemblyCreateInfo.primitiveRestartEnable = VK_FALSE;
 
     //    std::vector<VkDynamicState> dynamicStateEnables;
@@ -1015,7 +1018,7 @@ namespace x
 
         if(vkAllocateCommandBuffers(MainDevice.LogicalDevice, &commandBufferAllocateInfo, CommandBuffers.data()) != VK_SUCCESS)
         {
-            throw std::runtime_error("Failed to allocate command buffers");
+            throw std::runtime_error("Failed to allocate command buffer s");
         }
     }
 
@@ -1048,29 +1051,35 @@ namespace x
 
                 vkCmdBindPipeline(CommandBuffers[currentImage], VK_PIPELINE_BIND_POINT_GRAPHICS, GraphicsPipeline);
 
-                for(const xMesh& mesh : MeshList)
+                for(MeshModel& model : ModelList)
                 {
-                    VkBuffer vertexBuffers[] = {mesh.GetVertexBuffer()};
-                    VkDeviceSize offsets[] = {0};
-                    vkCmdBindVertexBuffers(CommandBuffers[currentImage], 0, 1, vertexBuffers, offsets);
-                    vkCmdBindIndexBuffer(CommandBuffers[currentImage], mesh.GetIndexBuffer(), 0, VK_INDEX_TYPE_UINT32);
-
-    //                u32 dynamicOffset = (u32)ModelUniformAlignment * j;
                     vkCmdPushConstants(CommandBuffers[currentImage], PipelineLayout,
                                        VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(xModel),
-                                       &mesh.GetModel());
+                                       &model.GetModel());
 
-                    std::array<VkDescriptorSet, 2> descriptorSets =
+                    for(size_t i = 0; i < model.GetMeshCount(); i++)
                     {
-                        DescriptorSets[currentImage],
-                        SamplerDescriptorSets[mesh.GetTextureId()]
-                    };
+                        const xMesh* mesh = model.GetMesh(i);
 
-                    vkCmdBindDescriptorSets(CommandBuffers[currentImage], VK_PIPELINE_BIND_POINT_GRAPHICS,
-                                            PipelineLayout, 0, (u32)descriptorSets.size(), descriptorSets.data(),
-                                            0, nullptr);
+                        VkBuffer vertexBuffers[] = {mesh->GetVertexBuffer()};
+                        VkDeviceSize offsets[] = {0};
+                        vkCmdBindVertexBuffers(CommandBuffers[currentImage], 0, 1, vertexBuffers, offsets);
+                        vkCmdBindIndexBuffer(CommandBuffers[currentImage], mesh->GetIndexBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
-                    vkCmdDrawIndexed(CommandBuffers[currentImage], mesh.GetIndexCount(), 1, 0, 0, 0);
+                        //                u32 dynamicOffset = (u32)ModelUniformAlignment * j;
+
+                        std::array<VkDescriptorSet, 2> descriptorSets =
+                                {
+                                        DescriptorSets[currentImage],
+                                        SamplerDescriptorSets[mesh->GetTextureId()]
+                                };
+
+                        vkCmdBindDescriptorSets(CommandBuffers[currentImage], VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                                PipelineLayout, 0, (u32)descriptorSets.size(), descriptorSets.data(),
+                                                0, nullptr);
+
+                        vkCmdDrawIndexed(CommandBuffers[currentImage], mesh->GetIndexCount(), 1, 0, 0, 0);
+                    }
                 }
 
             vkCmdEndRenderPass(CommandBuffers[currentImage]);
@@ -1184,7 +1193,7 @@ namespace x
     void Renderer::CreateSurfaceSDL()
     {
     #ifdef X_WINDOWING_API_SDL
-        if(SDL_Vulkan_CreateSurface(Window->GetWindow(), Instance, &Surface) != SDL_TRUE)
+        if(SDL_Vulkan_CreateSurface(Window::Get().GetWindow(), Instance, &Surface) != SDL_TRUE)
         {
             throw std::runtime_error("Failed to create surface");
         }
@@ -1371,9 +1380,9 @@ namespace x
 
     void Renderer::UpdateModel(u32 modelId, glm::mat4 newModel)
     {
-        if(modelId < MeshList.size())
+        if(modelId < ModelList.size())
         {
-            MeshList[modelId].SetModel(newModel);
+            ModelList[modelId].SetModel(newModel);
         }
     }
 
@@ -1562,13 +1571,49 @@ namespace x
                               MainDevice.PhysicalDevice, MainDevice.LogicalDevice);
     }
 
-    void Renderer::CreateMeshes()
-    {
-    }
-
     glm::mat4 Renderer::GetViewProjectionInverse()
     {
         return glm::inverse(UboViewProjection.View * UboViewProjection.Projection);
+    }
+
+    i32 Renderer::CreateMeshModel(const std::string &fileName)
+    {
+        Assimp::Importer importer;
+        u32 flags = aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_JoinIdenticalVertices;
+        const aiScene* scene = importer.ReadFile(fileName, flags);
+        if(!scene)
+        {
+            throw std::runtime_error("Failed to load model" + fileName + ")");
+        }
+        std::vector<std::string> textureNames = MeshModel::LoadMaterials(scene);
+
+        std::vector<i32> matToTex(textureNames.size());
+        for(size_t i = 0; i < textureNames.size(); i++)
+        {
+            if(textureNames[i].empty())
+            {
+                matToTex[i] = 0;
+            }
+            else
+            {
+                matToTex[i] = CreateTexture(textureNames[i]);
+            }
+        }
+
+        std::vector<xMesh> modelMeshes = MeshModel::LoadNode(MainDevice.PhysicalDevice, MainDevice.LogicalDevice,
+                                                             GraphicsQueue, GraphicsCommandPool, scene->mRootNode,
+                                                             scene, matToTex);
+
+        MeshModel meshModel = MeshModel(modelMeshes);
+        ModelList.push_back(meshModel);
+
+        return (i32)ModelList.size() - 1;
+    }
+
+    Renderer &Renderer::Get()
+    {
+        static Renderer instance;
+        return instance;
     }
 
     //void xRenderer::AllocateDynamicBufferTransferSpace()
