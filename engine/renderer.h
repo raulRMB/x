@@ -22,6 +22,8 @@
 
 #include "util/primitives.h"
 
+#include "vendor/imgui/imgui.h"
+
 namespace x
 {
     class Window;
@@ -78,6 +80,8 @@ namespace x
         VkDescriptorSetLayout SamplerSetLayout;
         VkPushConstantRange PushConstantRange;
 
+        VkDescriptorPool ImguiPool;
+
         VkDescriptorPool DescriptorPool;
         VkDescriptorPool SamplerDescriptorPool;
         std::vector<VkDescriptorSet> DescriptorSets;
@@ -118,7 +122,6 @@ namespace x
 
     private:
         Renderer();
-
         ~Renderer();
 
         i32 Init();
@@ -236,6 +239,8 @@ namespace x
         const UBOViewProjection& GetUBOViewProjection() { return UboViewProjection; }
 
         glm::mat4 GetViewProjectionInverse();
+    private:
+        void InitImGui();
     };
 }
 

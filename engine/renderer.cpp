@@ -20,43 +20,47 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+#include "vendor/imgui/imgui.h"
+#include "vendor/imgui/backends/imgui_impl_vulkan.h"
+#include "vendor/imgui/backends/imgui_impl_sdl2.h"
 
 namespace x
 {
     Renderer::Renderer() :
-        Instance(VK_NULL_HANDLE),
-        MainDevice({VK_NULL_HANDLE, VK_NULL_HANDLE}),
-        MeshList(std::vector<xMesh>()),
-        ModelList(std::vector<MeshModel>()),
-        Surface(VK_NULL_HANDLE),
-        Swapchain(VK_NULL_HANDLE),
-        SwapchainImageFormat(VK_FORMAT_UNDEFINED),
-        SwapchainExtent({0, 0}),
-        SwapchainFramebuffers(std::vector<VkFramebuffer>()),
-        CommandBuffers(std::vector<VkCommandBuffer>()),
-        RenderFinishedSemaphores(std::vector<VkSemaphore>()),
-        ImageAvailableSemaphores(std::vector<VkSemaphore>()),
-        TextureSampler(VK_NULL_HANDLE),
-        SamplerSetLayout(VK_NULL_HANDLE),
-        SamplerDescriptorPool(VK_NULL_HANDLE),
+            Instance(VK_NULL_HANDLE),
+            MainDevice({VK_NULL_HANDLE, VK_NULL_HANDLE}),
+            MeshList(std::vector<xMesh>()),
+            ModelList(std::vector<MeshModel>()),
+            Surface(VK_NULL_HANDLE),
+            Swapchain(VK_NULL_HANDLE),
+            SwapchainImageFormat(VK_FORMAT_UNDEFINED),
+            SwapchainExtent({0, 0}),
+            SwapchainFramebuffers(std::vector<VkFramebuffer>()),
+            CommandBuffers(std::vector<VkCommandBuffer>()),
+            RenderFinishedSemaphores(std::vector<VkSemaphore>()),
+            ImageAvailableSemaphores(std::vector<VkSemaphore>()),
+            TextureSampler(VK_NULL_HANDLE),
+            SamplerSetLayout(VK_NULL_HANDLE),
+            SamplerDescriptorPool(VK_NULL_HANDLE),
 //        ModelUniformAlignment(0),
 //        ModelTransferSpace(VK_NULL_HANDLE),
 //        MinUniformBufferOffset(0),
-        DepthBufferImageFormat(VK_FORMAT_UNDEFINED),
-        DepthBufferImage(VK_NULL_HANDLE),
-        DepthBufferImageMemory(VK_NULL_HANDLE),
-        DepthBufferImageView(VK_NULL_HANDLE),
-        UboViewProjection({}),
-        PushConstantRange({}),
-        GraphicsCommandPool(VK_NULL_HANDLE),
-        GraphicsQueue(VK_NULL_HANDLE),
-        PresentationQueue(VK_NULL_HANDLE),
-        DebugMessenger(VK_NULL_HANDLE),
-        RenderPass(VK_NULL_HANDLE),
-        DescriptorSetLayout(VK_NULL_HANDLE),
-        DescriptorPool(VK_NULL_HANDLE),
-        PipelineLayout(VK_NULL_HANDLE),
-        GraphicsPipeline(VK_NULL_HANDLE)
+            DepthBufferImageFormat(VK_FORMAT_UNDEFINED),
+            DepthBufferImage(VK_NULL_HANDLE),
+            DepthBufferImageMemory(VK_NULL_HANDLE),
+            DepthBufferImageView(VK_NULL_HANDLE),
+            UboViewProjection({}),
+            PushConstantRange({}),
+            GraphicsCommandPool(VK_NULL_HANDLE),
+            GraphicsQueue(VK_NULL_HANDLE),
+            PresentationQueue(VK_NULL_HANDLE),
+            DebugMessenger(VK_NULL_HANDLE),
+            RenderPass(VK_NULL_HANDLE),
+            DescriptorSetLayout(VK_NULL_HANDLE),
+            DescriptorPool(VK_NULL_HANDLE),
+            PipelineLayout(VK_NULL_HANDLE),
+            GraphicsPipeline(VK_NULL_HANDLE),
+            ImguiPool(VK_NULL_HANDLE)
     {}
 
     i32 Renderer::Init()
@@ -84,6 +88,7 @@ namespace x
             CreateDescriptorSets();
             CreateSynchronization();
 //            CreateMeshes();
+            InitImGui();
         }
         catch (const std::runtime_error& e)
         {
@@ -624,6 +629,9 @@ namespace x
     {
         vkDeviceWaitIdle(MainDevice.LogicalDevice);
 
+        vkDestroyDescriptorPool(MainDevice.LogicalDevice, ImguiPool, nullptr);
+        ImGui_ImplVulkan_Shutdown();
+
     //    _aligned_free(ModelTransferSpace);
 
         for(auto& model : ModelList)
@@ -1046,7 +1054,6 @@ namespace x
         {
             throw std::runtime_error("Failed to begin recording command buffer");
         }
-
             vkCmdBeginRenderPass(CommandBuffers[currentImage], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
                 vkCmdBindPipeline(CommandBuffers[currentImage], VK_PIPELINE_BIND_POINT_GRAPHICS, GraphicsPipeline);
@@ -1082,6 +1089,8 @@ namespace x
                     }
                 }
 
+            ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), CommandBuffers[currentImage]);
+
             vkCmdEndRenderPass(CommandBuffers[currentImage]);
 
         if(vkEndCommandBuffer(CommandBuffers[currentImage]) != VK_SUCCESS)
@@ -1110,6 +1119,7 @@ namespace x
             transform = glm::translate(glm::mat4(1.0f), t.Position) * transform;
             UpdateModel(m.Id, transform);
         });
+
 
         RecordCommands(imageIndex);
         UpdateUniformBuffers(imageIndex);
@@ -1614,6 +1624,96 @@ namespace x
     {
         static Renderer instance;
         return instance;
+    }
+
+    void Renderer::InitImGui()
+    {
+        VkDescriptorPoolSize pool_sizes[] =
+        {
+            { VK_DESCRIPTOR_TYPE_SAMPLER, 1000 },
+            { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000 },
+            { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000 },
+            { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000 },
+            { VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000 },
+            { VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000 },
+            { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000 },
+            { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000 },
+            { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000 },
+            { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000 },
+            { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000 }
+        };
+
+        VkDescriptorPoolCreateInfo pool_info = {};
+        pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+        pool_info.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+        pool_info.maxSets = 1000;
+        pool_info.poolSizeCount = std::size(pool_sizes);
+        pool_info.pPoolSizes = pool_sizes;
+
+        if(vkCreateDescriptorPool(MainDevice.LogicalDevice, &pool_info, nullptr, &ImguiPool) != VK_SUCCESS)
+        {
+            throw std::runtime_error("Failed to create imgui descriptor pool");
+        }
+
+        // 2: initialize imgui library
+
+        //this initializes the core structures of imgui
+        ImGui::CreateContext();
+
+        //this initializes imgui for SDL
+        ImGui_ImplSDL2_InitForVulkan(Window::Get().GetWindow());
+
+        //this initializes imgui for Vulkan
+        ImGui_ImplVulkan_InitInfo init_info = {};
+        init_info.Instance = Instance;
+        init_info.PhysicalDevice = MainDevice.PhysicalDevice;
+        init_info.Device = MainDevice.LogicalDevice;
+        init_info.Queue = GraphicsQueue;
+        init_info.DescriptorPool = ImguiPool;
+        init_info.MinImageCount = 3;
+        init_info.ImageCount = 3;
+        init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
+
+        ImGui_ImplVulkan_Init(&init_info, RenderPass);
+
+        {
+            VkCommandPool command_pool = GraphicsCommandPool;
+            VkCommandBuffer command_buffer = CommandBuffers[0];
+
+            if(vkResetCommandPool(MainDevice.LogicalDevice, command_pool, 0) != VK_SUCCESS)
+            {
+                throw std::runtime_error("Failed to reset command pool");
+            }
+
+            VkCommandBufferBeginInfo begin_info = {};
+            begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+            begin_info.flags |= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+            if(vkBeginCommandBuffer(command_buffer, &begin_info) != VK_SUCCESS)
+            {
+                throw std::runtime_error("Failed to begin command buffer");
+            }
+
+            ImGui_ImplVulkan_CreateFontsTexture(command_buffer);
+
+            VkSubmitInfo end_info = {};
+            end_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+            end_info.commandBufferCount = 1;
+            end_info.pCommandBuffers = &command_buffer;
+            if(vkEndCommandBuffer(command_buffer) != VK_SUCCESS)
+            {
+                throw std::runtime_error("Failed to end command buffer");
+            }
+            if(vkQueueSubmit(GraphicsQueue, 1, &end_info, VK_NULL_HANDLE) != VK_SUCCESS)
+            {
+                throw std::runtime_error("Failed to submit queue");
+            }
+
+            if(vkDeviceWaitIdle(MainDevice.LogicalDevice) != VK_SUCCESS)
+            {
+                throw std::runtime_error("Failed to wait for device");
+            }
+            ImGui_ImplVulkan_DestroyFontUploadObjects();
+        }
     }
 
     //void xRenderer::AllocateDynamicBufferTransferSpace()

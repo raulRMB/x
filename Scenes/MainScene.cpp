@@ -10,8 +10,11 @@
 #include "engine/engine.h"
 #include "core/Camera.h"
 
+i32 model = 0;
 void MainScene::Start()
 {
+    model = x::Renderer::Get().CreateMeshModel("../models/uh60.obj");
+
 //    entt::entity e = CreateEntity();
 //    CTransform3d transform{};
 //    transform.Position = {0.0f, 0.0f, 0.0f};
@@ -44,7 +47,7 @@ void MainScene::HandleInput(const SDL_Event &event)
             v3 worldPos = xRUtil::GetMouseWorldPosition();
             auto e = Registry.create();
             Registry.emplace<CTransform3d>(e, worldPos, glm::vec3(.01f, .01f, .01f), CameraSystem::Get().GetMainCameraRotation() + v3(0.f, glm::radians(90.f), 0.f));
-            Registry.emplace<CMesh>(e, x::Renderer::Get().CreateMeshModel("../models/uh60.obj"));
+            Registry.emplace<CMesh>(e, model);
             Registry.emplace<CPhysics3d>(e, CameraSystem::Get().GetMainCameraForward() * .2f);
 //            x::Engine::GetInstance().CreateMesh("1x1.png", X::Primitives2D::Shape::Circle, X::Color::Blue);
             Entities.push_back(e);

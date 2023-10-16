@@ -7,6 +7,7 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 #include "core/Camera.h"
+#include "vendor/imgui/backends/imgui_impl_sdl2.h"
 
 namespace x
 {
@@ -36,16 +37,21 @@ namespace x
         SDL_Event event;
         while(Window::Get().bRunning(event))
         {
+
+            Game::GetInstance().HandleInput(event);
             CurrentTime = std::chrono::high_resolution_clock::now();
             DeltaTime = CurrentTime - LastTime;
             LastTime = CurrentTime;
             TotalTime += DeltaTime;
 
-            Game::GetInstance().HandleInput(event);
-
             CameraSystem::Get().MoveCamera(event, DeltaTime.count());
 
             Update(DeltaTime.count());
+
+            ImGui_ImplSDL2_ProcessEvent(&event);
+            ImGui_ImplSDL2_NewFrame(Window::Get().GetWindow());
+            ImGui::NewFrame();
+            ImGui::ShowDemoWindow();
             Draw();
         }
 
@@ -61,6 +67,7 @@ namespace x
 
     void Engine::Draw()
     {
+        ImGui::Render();
         x::Renderer::Get().DrawFrame();
     }
 
