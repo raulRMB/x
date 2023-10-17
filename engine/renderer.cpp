@@ -24,43 +24,44 @@
 #include "vendor/imgui/backends/imgui_impl_vulkan.h"
 #include "vendor/imgui/backends/imgui_impl_sdl2.h"
 
+
 namespace x
 {
     Renderer::Renderer() :
-            Instance(VK_NULL_HANDLE),
-            MainDevice({VK_NULL_HANDLE, VK_NULL_HANDLE}),
-            MeshList(std::vector<xMesh>()),
-            ModelList(std::vector<MeshModel>()),
-            Surface(VK_NULL_HANDLE),
-            Swapchain(VK_NULL_HANDLE),
-            SwapchainImageFormat(VK_FORMAT_UNDEFINED),
-            SwapchainExtent({0, 0}),
-            SwapchainFramebuffers(std::vector<VkFramebuffer>()),
-            CommandBuffers(std::vector<VkCommandBuffer>()),
-            RenderFinishedSemaphores(std::vector<VkSemaphore>()),
-            ImageAvailableSemaphores(std::vector<VkSemaphore>()),
-            TextureSampler(VK_NULL_HANDLE),
-            SamplerSetLayout(VK_NULL_HANDLE),
-            SamplerDescriptorPool(VK_NULL_HANDLE),
+        Instance(VK_NULL_HANDLE),
+        MainDevice({VK_NULL_HANDLE, VK_NULL_HANDLE}),
+        MeshList(std::vector<xMesh>()),
+        ModelList(std::vector<MeshModel>()),
+        Surface(VK_NULL_HANDLE),
+        Swapchain(VK_NULL_HANDLE),
+        SwapchainImageFormat(VK_FORMAT_UNDEFINED),
+        SwapchainExtent({0, 0}),
+        SwapchainFramebuffers(std::vector<VkFramebuffer>()),
+        CommandBuffers(std::vector<VkCommandBuffer>()),
+        RenderFinishedSemaphores(std::vector<VkSemaphore>()),
+        ImageAvailableSemaphores(std::vector<VkSemaphore>()),
+        TextureSampler(VK_NULL_HANDLE),
+        SamplerSetLayout(VK_NULL_HANDLE),
+        SamplerDescriptorPool(VK_NULL_HANDLE),
 //        ModelUniformAlignment(0),
 //        ModelTransferSpace(VK_NULL_HANDLE),
 //        MinUniformBufferOffset(0),
-            DepthBufferImageFormat(VK_FORMAT_UNDEFINED),
-            DepthBufferImage(VK_NULL_HANDLE),
-            DepthBufferImageMemory(VK_NULL_HANDLE),
-            DepthBufferImageView(VK_NULL_HANDLE),
-            UboViewProjection({}),
-            PushConstantRange({}),
-            GraphicsCommandPool(VK_NULL_HANDLE),
-            GraphicsQueue(VK_NULL_HANDLE),
-            PresentationQueue(VK_NULL_HANDLE),
-            DebugMessenger(VK_NULL_HANDLE),
-            RenderPass(VK_NULL_HANDLE),
-            DescriptorSetLayout(VK_NULL_HANDLE),
-            DescriptorPool(VK_NULL_HANDLE),
-            PipelineLayout(VK_NULL_HANDLE),
-            GraphicsPipeline(VK_NULL_HANDLE),
-            ImguiPool(VK_NULL_HANDLE)
+        DepthBufferImageFormat(VK_FORMAT_UNDEFINED),
+        DepthBufferImage(VK_NULL_HANDLE),
+        DepthBufferImageMemory(VK_NULL_HANDLE),
+        DepthBufferImageView(VK_NULL_HANDLE),
+        UboViewProjection({}),
+        PushConstantRange({}),
+        GraphicsCommandPool(VK_NULL_HANDLE),
+        GraphicsQueue(VK_NULL_HANDLE),
+        PresentationQueue(VK_NULL_HANDLE),
+        DebugMessenger(VK_NULL_HANDLE),
+        RenderPass(VK_NULL_HANDLE),
+        DescriptorSetLayout(VK_NULL_HANDLE),
+        DescriptorPool(VK_NULL_HANDLE),
+        PipelineLayout(VK_NULL_HANDLE),
+        GraphicsPipeline(VK_NULL_HANDLE),
+        ImguiPool(VK_NULL_HANDLE)
     {}
 
     i32 Renderer::Init()
@@ -1117,7 +1118,7 @@ namespace x
             transform = glm::rotate(glm::mat4(1.0f), t.Rotation.y, glm::vec3(0.0f, 1.0f, 0.0f)) * transform;
             transform = glm::rotate(glm::mat4(1.0f), t.Rotation.z, glm::vec3(0.0f, 0.0f, 1.0f)) * transform;
             transform = glm::translate(glm::mat4(1.0f), t.Position) * transform;
-            UpdateModel(m.Id, transform);
+            UpdateModel(0, transform);
         });
 
 

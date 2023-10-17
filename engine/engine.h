@@ -25,6 +25,7 @@ namespace x
         Engine(const Engine &) = delete;
         Engine &operator=(const Engine &) = delete;
         static Engine &GetInstance();
+        static f32 GetDeltaTime() { return GetInstance().DeltaTime.count(); }
 
         i32 Run();
 

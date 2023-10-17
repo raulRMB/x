@@ -3,8 +3,8 @@
 
 #include <cstdint>
 
-#define WINDOW_WIDTH 800
-#define WINDOW_HEIGHT 600
+#define WINDOW_WIDTH 1600
+#define WINDOW_HEIGHT 900
 #define WINDOW_WIDTH_F (f32)WINDOW_WIDTH
 #define WINDOW_HEIGHT_F (f32)WINDOW_HEIGHT
 #define WINDOW_TITLE "x"

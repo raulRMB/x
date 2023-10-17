@@ -9,6 +9,7 @@
 #include "../vendor/entt.hpp"
 #include <SDL2/SDL_events.h>
 #include "Components/TransformComponent.h"
+#include "Components/AxesComponent.h"
 
 struct CCamera
 {
@@ -38,7 +39,7 @@ public:
     }
 
     CameraSystem();
-    entt::entity CreateCamera(const CCamera& camera, const CTransform3d& transform);
+    entt::entity CreateCamera(const CCamera& camera, const CTransform3d& transform, const CAxes& axes);
     void SwitchCamera(entt::entity camera);
     void NextCamera();
 
@@ -57,6 +58,7 @@ public:
     inline f32& GetCameraFOV(entt::entity camera) { return pRegistry->get<CCamera>(camera).FOV; }
     inline f32& GetCameraNear(entt::entity camera) { return pRegistry->get<CCamera>(camera).Near; }
     inline f32& GetCameraFar(entt::entity camera) { return pRegistry->get<CCamera>(camera).Far; }
+    inline CAxes& GetCameraAxes(entt::entity camera) { return pRegistry->get<CAxes>(camera); }
 
     inline CCamera& GetMainCameraComponent() { return pRegistry->get<CCamera>(MainCamera); }
     inline CTransform3d& GetMainCameraTransform() { return pRegistry->get<CTransform3d>(MainCamera); }
@@ -70,6 +72,8 @@ public:
     inline f32& GetMainCameraFOV() { return pRegistry->get<CCamera>(MainCamera).FOV; }
     inline f32& GetMainCameraNear() { return pRegistry->get<CCamera>(MainCamera).Near; }
     inline f32& GetMainCameraFar() { return pRegistry->get<CCamera>(MainCamera).Far; }
+    inline CAxes& GetMainCameraAxes() { return GetCameraAxes(MainCamera); }
+
 
     inline void SetCameraFOV(entt::entity camera, f32 fov) { pRegistry->get<CCamera>(camera).FOV = fov; }
     inline void SetCameraNear(entt::entity camera, f32 near) { pRegistry->get<CCamera>(camera).Near = near; }

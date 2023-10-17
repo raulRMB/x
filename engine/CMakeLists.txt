@@ -22,6 +22,7 @@ set (SOURCES
         ../Scenes/MainScene.h
         ${VENDOR_DIR}/entt.hpp
         ../Components/TargetComponent.h
+        ../Components/AxesComponent.h
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})

@@ -6,13 +6,15 @@
 #include "Game.h"
 #include "Components/TransformComponent.h"
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/quaternion.hpp>
+#include <glm/glm.hpp>
 
 CameraSystem::CameraSystem() : MainCamera(entt::null)
 {
     pRegistry = &x::Game::GetInstance().GetScene()->GetRegistry();
     CTransform3d transform{};
     transform.Position = v3(0.0f, 0.0f, 3.0f);
-    transform.Rotation = v3(0.0f, glm::radians(-90.f), 0.0f);
+    transform.Rotation = v3(0.0f, 0.0f, 0.0f);
     transform.Scale = v3(1.0f, 1.0f, 1.0f);
 
     CCamera camera{};
@@ -22,17 +24,23 @@ CameraSystem::CameraSystem() : MainCamera(entt::null)
     camera.View = glm::lookAt(transform.Position, camera.Forward, camera.Up);
     camera.FOV = 30.0f;
     camera.Near = 0.1f;
-    camera.Far = 100.0f;
+    camera.Far = 10000.0f;
     camera.Projection = glm::perspective(glm::radians(camera.FOV), WINDOW_WIDTH_F / WINDOW_HEIGHT_F, camera.Near, camera.Far);
 
-    SwitchCamera(CreateCamera(camera, transform));
+    CAxes axes{};
+    axes.Yaw = 0.f;
+    axes.Pitch = 0.f;
+    axes.Roll = 0.f;
+
+    SwitchCamera(CreateCamera(camera, transform, axes));
 }
 
-entt::entity CameraSystem::CreateCamera(const CCamera& camera, const CTransform3d& transform)
+entt::entity CameraSystem::CreateCamera(const CCamera& camera, const CTransform3d& transform, const CAxes& axes)
 {
     auto e = pRegistry->create();
     pRegistry->emplace<CCamera>(e, camera);
     pRegistry->emplace<CTransform3d>(e, transform);
+    pRegistry->emplace<CAxes>(e, axes);
     Cameras.push_back(e);
     return e;
 }
@@ -40,6 +48,17 @@ entt::entity CameraSystem::CreateCamera(const CCamera& camera, const CTransform3
 void CameraSystem::SwitchCamera(entt::entity camera)
 {
     MainCamera = camera;
+}
+
+glm::vec3 RotateVectorWithQuaternion(const glm::vec3& vectorToRotate, const glm::quat& rotationQuaternion) {
+    // Convert the vector to a quaternion to perform the rotation
+    glm::vec4 vec4ToRotate(vectorToRotate, 0.0f); // 0.0f for the homogeneous coordinate
+    glm::vec4 rotatedVectorQuaternion = rotationQuaternion * vec4ToRotate * glm::conjugate(rotationQuaternion);
+
+    // Extract the rotated vector from the quaternion
+    glm::vec3 rotatedVector(rotatedVectorQuaternion.x, rotatedVectorQuaternion.y, rotatedVectorQuaternion.z);
+
+    return rotatedVector;
 }
 
 void CameraSystem::NextCamera()
@@ -88,7 +107,7 @@ void CameraSystem::MoveCamera(const SDL_Event& event, f32 DeltaTime)
             Mask |= 1u << 5;
             break;
         case SDLK_n:
-            CreateCamera(GetMainCameraComponent(), GetMainCameraTransform());
+            CreateCamera(GetMainCameraComponent(), GetMainCameraTransform(), GetMainCameraAxes());
             break;
         case SDLK_m:
             NextCamera();
@@ -134,19 +153,17 @@ void CameraSystem::MoveCamera(const SDL_Event& event, f32 DeltaTime)
             SetMainCameraFOV(GetMainCameraFOV() + 1.f);
         }
     }
-//    SDL_ShowCursor(SDL_DISABLE);
     if(event.type == SDL_MOUSEMOTION)
     {
         if(event.motion.state & SDL_BUTTON_RMASK)
         {
-            GetMainCameraRotation().x += (f32)event.motion.yrel * 10.f * DeltaTime;
-            GetMainCameraRotation().y += (f32)event.motion.xrel * 10.f * DeltaTime;
-            std::clamp(GetMainCameraRotation().y, glm::radians(-85.f), glm::radians(85.f));
+            GetMainCameraAxes().Yaw += event.motion.xrel * 0.1f;
+            GetMainCameraAxes().Pitch += event.motion.yrel * 0.1f;
         }
     }
 
     v3& pos = GetMainCameraPosition();
-    f32 speed = 1.f;
+    f32 speed = 100.f;
 
     if(Mask & 1u << 0)
     {
@@ -179,13 +196,14 @@ void CameraSystem::UpdateCamera(entt::entity camera)
 {
     auto& transform = pRegistry->get<CTransform3d>(camera);
     auto& cameraComponent = pRegistry->get<CCamera>(camera);
+    auto& axes = pRegistry->get<CAxes>(camera);
 
-    cameraComponent.Forward.x = cosf(transform.Rotation.y) * cosf(transform.Rotation.x);
-    cameraComponent.Forward.y = sinf(transform.Rotation.x);
-    cameraComponent.Forward.z = sinf(transform.Rotation.y) * cosf(transform.Rotation.x);
-
+    cameraComponent.Forward.x = cosf(glm::radians(axes.Yaw)) * cosf(glm::radians(axes.Pitch));
+    cameraComponent.Forward.y = sinf(glm::radians(axes.Pitch));
+    cameraComponent.Forward.z = sinf(glm::radians(axes.Yaw)) * cosf(glm::radians(axes.Pitch));
     cameraComponent.Forward = glm::normalize(cameraComponent.Forward);
-    cameraComponent.Right = glm::normalize(glm::cross(cameraComponent.Forward, cameraComponent.Up));
+
+    cameraComponent.Right = glm::normalize(glm::cross(cameraComponent.Forward, v3(0.0f, 1.0f, 0.0f)));
     cameraComponent.Up = glm::normalize(glm::cross(cameraComponent.Right, cameraComponent.Forward));
 
     cameraComponent.View = glm::lookAt(transform.Position, transform.Position + cameraComponent.Forward, cameraComponent.Up);
