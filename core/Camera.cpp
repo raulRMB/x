@@ -13,15 +13,15 @@ CameraSystem::CameraSystem() : MainCamera(entt::null)
 {
     pRegistry = &x::Game::GetInstance().GetScene()->GetRegistry();
     CTransform3d transform{};
-    transform.Position = v3(0.0f, 0.0f, 3.0f);
-    transform.Rotation = v3(0.0f, 0.0f, 0.0f);
-    transform.Scale = v3(1.0f, 1.0f, 1.0f);
+    transform.WorldPosition = v3(0.0f, 0.0f, 3.0f);
+    transform.WorldRotation = v3(0.0f, 0.0f, 0.0f);
+    transform.WorldScale = v3(1.0f, 1.0f, 1.0f);
 
     CCamera camera{};
     camera.Forward = v3(0.0f, 0.0f, -1.0f);
     camera.Right = v3(1.0f, 0.0f, 0.0f);
     camera.Up = v3(0.0f, 1.0f, 0.0f);
-    camera.View = glm::lookAt(transform.Position, camera.Forward, camera.Up);
+    camera.View = glm::lookAt(transform.WorldPosition, camera.Forward, camera.Up);
     camera.FOV = 30.0f;
     camera.Near = 0.1f;
     camera.Far = 10000.0f;
@@ -206,7 +206,7 @@ void CameraSystem::UpdateCamera(entt::entity camera)
     cameraComponent.Right = glm::normalize(glm::cross(cameraComponent.Forward, v3(0.0f, 1.0f, 0.0f)));
     cameraComponent.Up = glm::normalize(glm::cross(cameraComponent.Right, cameraComponent.Forward));
 
-    cameraComponent.View = glm::lookAt(transform.Position, transform.Position + cameraComponent.Forward, cameraComponent.Up);
+    cameraComponent.View = glm::lookAt(transform.WorldPosition, transform.WorldPosition + cameraComponent.Forward, cameraComponent.Up);
     cameraComponent.Projection = glm::perspective(glm::radians(cameraComponent.FOV), WINDOW_WIDTH_F / WINDOW_HEIGHT_F, cameraComponent.Near, cameraComponent.Far);
 }
 

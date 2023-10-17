@@ -100,6 +100,7 @@ namespace x
         VkPipelineLayout PipelineLayout;
         VkRenderPass RenderPass;
         VkPipeline GraphicsPipeline;
+        VkPipeline LinePipeline;
 
         VkCommandPool GraphicsCommandPool;
 
@@ -127,6 +128,7 @@ namespace x
         i32 Init();
 
         void UpdateModel(u32 modelId, glm::mat4 newModel);
+        void UpdateMesh(u32 meshId, glm::mat4 newModel);
 
         void DrawFrame();
 
@@ -149,7 +151,7 @@ namespace x
 
         void CreatePushConstantRange();
 
-        void CreateGraphicsPipeline();
+        void CreatePipeline(VkPipeline &pipeline, VkBool32 depthTestEnable = VK_TRUE, VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
 
         void CreateRenderPass();
 
@@ -170,8 +172,6 @@ namespace x
         void CreateDescriptorPool();
 
         void CreateDescriptorSets();
-
-        void CreateMeshes();
 
         void UpdateUniformBuffers(u32 imageIndex);
 

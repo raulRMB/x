@@ -48,8 +48,10 @@ public:
     inline entt::entity GetMainCamera() { return MainCamera; }
     inline CCamera& GetCameraComponent(entt::entity camera) { return pRegistry->get<CCamera>(camera); }
     inline CTransform3d& GetCameraTransform(entt::entity camera) { return pRegistry->get<CTransform3d>(camera); }
-    inline v3& GetCameraPosition(entt::entity camera) { return pRegistry->get<CTransform3d>(camera).Position; }
-    inline v3& GetCameraRotation(entt::entity camera) { return pRegistry->get<CTransform3d>(camera).Rotation; }
+    inline v3& GetCameraWorldPosition(entt::entity camera) { return pRegistry->get<CTransform3d>(camera).WorldPosition; }
+    inline v3& GetCameraWorldRotation(entt::entity camera) { return pRegistry->get<CTransform3d>(camera).WorldRotation; }
+    inline v3& GetCameraLocalPosition(entt::entity camera) { return pRegistry->get<CTransform3d>(camera).LocalPosition; }
+    inline v3& GetCameraLocalRotation(entt::entity camera) { return pRegistry->get<CTransform3d>(camera).LocalRotation; }
     inline m4& GetCameraView(entt::entity camera) { return pRegistry->get<CCamera>(camera).View; }
     inline m4& GetCameraProjection(entt::entity camera) { return pRegistry->get<CCamera>(camera).Projection; }
     inline v3& GetCameraForward(entt::entity camera) { return pRegistry->get<CCamera>(camera).Forward; }
@@ -60,18 +62,20 @@ public:
     inline f32& GetCameraFar(entt::entity camera) { return pRegistry->get<CCamera>(camera).Far; }
     inline CAxes& GetCameraAxes(entt::entity camera) { return pRegistry->get<CAxes>(camera); }
 
-    inline CCamera& GetMainCameraComponent() { return pRegistry->get<CCamera>(MainCamera); }
-    inline CTransform3d& GetMainCameraTransform() { return pRegistry->get<CTransform3d>(MainCamera); }
-    inline v3& GetMainCameraPosition() { return pRegistry->get<CTransform3d>(MainCamera).Position; }
-    inline v3& GetMainCameraRotation() { return pRegistry->get<CTransform3d>(MainCamera).Rotation; }
-    inline m4& GetMainCameraView() { return pRegistry->get<CCamera>(MainCamera).View; }
-    inline m4& GetMainCameraProjection() { return pRegistry->get<CCamera>(MainCamera).Projection; }
-    inline v3& GetMainCameraForward() { return pRegistry->get<CCamera>(MainCamera).Forward; }
-    inline v3& GetMainCameraRight() { return pRegistry->get<CCamera>(MainCamera).Right; }
-    inline v3& GetMainCameraUp() { return pRegistry->get<CCamera>(MainCamera).Up; }
-    inline f32& GetMainCameraFOV() { return pRegistry->get<CCamera>(MainCamera).FOV; }
-    inline f32& GetMainCameraNear() { return pRegistry->get<CCamera>(MainCamera).Near; }
-    inline f32& GetMainCameraFar() { return pRegistry->get<CCamera>(MainCamera).Far; }
+    inline CCamera& GetMainCameraComponent() { return GetCameraComponent(MainCamera); }
+    inline CTransform3d& GetMainCameraTransform() { return GetCameraTransform(MainCamera); }
+    inline v3& GetMainCameraPosition() { return GetCameraWorldPosition(MainCamera); }
+    inline v3& GetMainCameraRotation() { return GetCameraWorldRotation(MainCamera); }
+    inline v3& GetMainCameraLocalPosition() { return GetCameraLocalPosition(MainCamera); }
+    inline v3& GetMainCameraLocalRotation() { return GetCameraLocalRotation(MainCamera); }
+    inline m4& GetMainCameraView() { return GetCameraView(MainCamera); }
+    inline m4& GetMainCameraProjection() { return GetCameraProjection(MainCamera); }
+    inline v3& GetMainCameraForward() { return GetCameraForward(MainCamera); }
+    inline v3& GetMainCameraRight() { return GetCameraRight(MainCamera); }
+    inline v3& GetMainCameraUp() { return GetCameraUp(MainCamera); }
+    inline f32& GetMainCameraFOV() { return GetCameraFOV(MainCamera); }
+    inline f32& GetMainCameraNear() { return GetCameraNear(MainCamera); }
+    inline f32& GetMainCameraFar() { return GetCameraFar(MainCamera); }
     inline CAxes& GetMainCameraAxes() { return GetCameraAxes(MainCamera); }
 
 

@@ -23,6 +23,8 @@ set (SOURCES
         ${VENDOR_DIR}/entt.hpp
         ../Components/TargetComponent.h
         ../Components/AxesComponent.h
+        ../Components/ParentComponent.h
+        ../Components/ChildComponent.h
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})

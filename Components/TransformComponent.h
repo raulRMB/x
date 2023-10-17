@@ -17,9 +17,13 @@ struct CTransform2d
 
 struct CTransform3d
 {
-    v3 Position;
-    v3 Scale;
-    v3 Rotation;
+    v3 LocalPosition;
+    v3 LocalScale;
+    v3 LocalRotation;
+
+    v3 WorldPosition;
+    v3 WorldScale;
+    v3 WorldRotation;
 };
 
 #endif //X_TRANSFORM_COMPONENT_H

@@ -77,7 +77,8 @@ namespace x
             CreateRenderPass();
             CreateDescriptorSetLayout();
             CreatePushConstantRange();
-            CreateGraphicsPipeline();
+            CreatePipeline(GraphicsPipeline, VK_TRUE, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+            CreatePipeline(LinePipeline, VK_FALSE, VK_PRIMITIVE_TOPOLOGY_LINE_STRIP);
             CreateDepthBufferImage();
             CreateFramebuffers();
             CreateGraphicsCommandPool();
@@ -710,7 +711,7 @@ namespace x
 
     Renderer::~Renderer() = default;
 
-    void Renderer::CreateGraphicsPipeline()
+    void Renderer::CreatePipeline(VkPipeline& pipeline, VkBool32 depthTestEnable, VkPrimitiveTopology topology)
     {
         std::vector<char> vertShaderCode = xUtil::xFile::ReadAsBin("../shaders/vert.spv");
         std::vector<char> fragShaderCode = xUtil::xFile::ReadAsBin("../shaders/frag.spv");
@@ -762,7 +763,7 @@ namespace x
 
         VkPipelineInputAssemblyStateCreateInfo inputAssemblyCreateInfo = {};
         inputAssemblyCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-        inputAssemblyCreateInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+        inputAssemblyCreateInfo.topology = topology;
         inputAssemblyCreateInfo.primitiveRestartEnable = VK_FALSE;
 
     //    std::vector<VkDynamicState> dynamicStateEnables;
@@ -847,7 +848,7 @@ namespace x
 
         VkPipelineDepthStencilStateCreateInfo depthStencilCreateInfo = {};
         depthStencilCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-        depthStencilCreateInfo.depthTestEnable = VK_TRUE;
+        depthStencilCreateInfo.depthTestEnable = depthTestEnable;
         depthStencilCreateInfo.depthWriteEnable = VK_TRUE;
         depthStencilCreateInfo.depthCompareOp = VK_COMPARE_OP_LESS;
         depthStencilCreateInfo.depthBoundsTestEnable = VK_FALSE;
@@ -871,7 +872,7 @@ namespace x
         pipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE;
         pipelineCreateInfo.basePipelineIndex = -1;
 
-        if(vkCreateGraphicsPipelines(MainDevice.LogicalDevice, VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr, &GraphicsPipeline) != VK_SUCCESS)
+        if(vkCreateGraphicsPipelines(MainDevice.LogicalDevice, VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr, &pipeline) != VK_SUCCESS)
         {
             throw std::runtime_error("Failed to create graphics pipeline");
         }
@@ -1059,38 +1060,66 @@ namespace x
 
                 vkCmdBindPipeline(CommandBuffers[currentImage], VK_PIPELINE_BIND_POINT_GRAPHICS, GraphicsPipeline);
 
-                for(MeshModel& model : ModelList)
-                {
-                    vkCmdPushConstants(CommandBuffers[currentImage], PipelineLayout,
-                                       VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(xModel),
-                                       &model.GetModel());
-
-                    for(size_t i = 0; i < model.GetMeshCount(); i++)
+                    for(MeshModel& model : ModelList)
                     {
-                        const xMesh* mesh = model.GetMesh(i);
+                        vkCmdPushConstants(CommandBuffers[currentImage], PipelineLayout,
+                                           VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(xModel),
+                                           &model.GetModel());
 
-                        VkBuffer vertexBuffers[] = {mesh->GetVertexBuffer()};
+                        for(size_t i = 0; i < model.GetMeshCount(); i++)
+                        {
+                            const xMesh* mesh = model.GetMesh(i);
+
+                            VkBuffer vertexBuffers[] = {mesh->GetVertexBuffer()};
+                            VkDeviceSize offsets[] = {0};
+                            vkCmdBindVertexBuffers(CommandBuffers[currentImage], 0, 1, vertexBuffers, offsets);
+                            vkCmdBindIndexBuffer(CommandBuffers[currentImage], mesh->GetIndexBuffer(), 0, VK_INDEX_TYPE_UINT32);
+
+                            //                u32 dynamicOffset = (u32)ModelUniformAlignment * j;
+
+                            std::array<VkDescriptorSet, 2> descriptorSets =
+                            {
+                                DescriptorSets[currentImage],
+                                SamplerDescriptorSets[mesh->GetTextureId()]
+                            };
+
+                            vkCmdBindDescriptorSets(CommandBuffers[currentImage], VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                                    PipelineLayout, 0, (u32)descriptorSets.size(), descriptorSets.data(),
+                                                    0, nullptr);
+
+                            vkCmdDrawIndexed(CommandBuffers[currentImage], mesh->GetIndexCount(), 1, 0, 0, 0);
+                        }
+                    }
+
+                vkCmdBindPipeline(CommandBuffers[currentImage], VK_PIPELINE_BIND_POINT_GRAPHICS, LinePipeline);
+
+                    for(xMesh& mesh : MeshList)
+                    {
+                        vkCmdPushConstants(CommandBuffers[currentImage], PipelineLayout,
+                                           VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(xModel),
+                                           &mesh.GetModel());
+
+                        VkBuffer vertexBuffers[] = {mesh.GetVertexBuffer()};
                         VkDeviceSize offsets[] = {0};
                         vkCmdBindVertexBuffers(CommandBuffers[currentImage], 0, 1, vertexBuffers, offsets);
-                        vkCmdBindIndexBuffer(CommandBuffers[currentImage], mesh->GetIndexBuffer(), 0, VK_INDEX_TYPE_UINT32);
+                        vkCmdBindIndexBuffer(CommandBuffers[currentImage], mesh.GetIndexBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
                         //                u32 dynamicOffset = (u32)ModelUniformAlignment * j;
 
                         std::array<VkDescriptorSet, 2> descriptorSets =
-                                {
-                                        DescriptorSets[currentImage],
-                                        SamplerDescriptorSets[mesh->GetTextureId()]
-                                };
+                        {
+                                DescriptorSets[currentImage],
+                                SamplerDescriptorSets[mesh.GetTextureId()]
+                        };
 
                         vkCmdBindDescriptorSets(CommandBuffers[currentImage], VK_PIPELINE_BIND_POINT_GRAPHICS,
                                                 PipelineLayout, 0, (u32)descriptorSets.size(), descriptorSets.data(),
                                                 0, nullptr);
 
-                        vkCmdDrawIndexed(CommandBuffers[currentImage], mesh->GetIndexCount(), 1, 0, 0, 0);
+                        vkCmdDrawIndexed(CommandBuffers[currentImage], mesh.GetIndexCount(), 1, 0, 0, 0);
                     }
-                }
 
-            ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), CommandBuffers[currentImage]);
+                    ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), CommandBuffers[currentImage]);
 
             vkCmdEndRenderPass(CommandBuffers[currentImage]);
 
@@ -1113,12 +1142,21 @@ namespace x
         scene->GetRegistry().view<CTransform3d, CMesh>().each([&](CTransform3d& t, CMesh& m)
         {
             glm::mat4 transform = glm::mat4(1.0f);
-            transform = glm::scale(glm::mat4(1.0f), t.Scale) * transform;
-            transform = glm::rotate(glm::mat4(1.0f), t.Rotation.x, glm::vec3(1.0f, 0.0f, 0.0f)) * transform;
-            transform = glm::rotate(glm::mat4(1.0f), t.Rotation.y, glm::vec3(0.0f, 1.0f, 0.0f)) * transform;
-            transform = glm::rotate(glm::mat4(1.0f), t.Rotation.z, glm::vec3(0.0f, 0.0f, 1.0f)) * transform;
-            transform = glm::translate(glm::mat4(1.0f), t.Position) * transform;
-            UpdateModel(0, transform);
+            transform = glm::scale(glm::mat4(1.0f), t.WorldScale) * transform;
+            transform = glm::rotate(glm::mat4(1.0f), t.WorldRotation.x, glm::vec3(1.0f, 0.0f, 0.0f)) * transform;
+            transform = glm::rotate(glm::mat4(1.0f), t.WorldRotation.y, glm::vec3(0.0f, 1.0f, 0.0f)) * transform;
+            transform = glm::rotate(glm::mat4(1.0f), t.WorldRotation.z, glm::vec3(0.0f, 0.0f, 1.0f)) * transform;
+            transform = glm::translate(glm::mat4(1.0f), t.WorldPosition) * transform;
+            UpdateModel(m.Id, transform);
+            i32 i = 0;
+            for(auto& mesh : MeshList)
+            {
+                i++;
+                if(i == m.Id)
+                {
+                    mesh.SetModel(transform);
+                }
+            }
         });
 
 
