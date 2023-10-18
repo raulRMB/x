@@ -24,7 +24,7 @@ void MainScene::Start()
     Entities.push_back(e);
 
     entt::entity parent = CreateEntity();
-    transform.WorldPosition = {100.0f, 0.0f, 0.0f};
+    transform.WorldPosition = {0.0f, 0.0f, 0.0f};
     transform.WorldRotation = {0.0f, 0.0f, 0.0f};
     transform.WorldScale = v3(1.0f);
     AddComponent(parent, transform);
@@ -32,7 +32,7 @@ void MainScene::Start()
     x = {1};
     AddComponent(parent, x);
     CPhysics3d physics{};
-    physics.Velocity = {1.0f, 0.0f, 0.0f};
+    physics.Velocity = {10.0f, 0.0f, 0.0f};
     AddComponent(parent, physics);
     Entities.push_back(parent);
 
