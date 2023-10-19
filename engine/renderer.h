@@ -151,6 +151,8 @@ namespace x
 
         void CreatePushConstantRange();
 
+        void CreatePipelineLayout();
+
         void CreatePipeline(VkPipeline &pipeline, VkBool32 depthTestEnable = VK_TRUE, VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
 
         void CreateRenderPass();
@@ -219,7 +221,7 @@ namespace x
         VkFormat ChooseSupportedFormat(const std::vector<VkFormat> &formats, VkImageTiling tiling,
                                        VkFormatFeatureFlags featureFlags);
 
-        [[nodiscard]] VkShaderModule CreateShaderModule(const std::vector<byte> &bytes) const;
+        [[nodiscard]] VkShaderModule CreateShaderModule(const std::vector<char>& bytes) const;
 
         void CreateSurfaceGLFW();
 

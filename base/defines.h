@@ -3,8 +3,8 @@
 
 #include <cstdint>
 
-#define WINDOW_WIDTH 1600
-#define WINDOW_HEIGHT 900
+#define WINDOW_WIDTH 200
+#define WINDOW_HEIGHT 200
 #define WINDOW_WIDTH_F (f32)WINDOW_WIDTH
 #define WINDOW_HEIGHT_F (f32)WINDOW_HEIGHT
 #define WINDOW_TITLE "x"
@@ -27,7 +27,7 @@ typedef int64_t i64;
 typedef float f32;
 typedef double f64;
 
-typedef char byte;
+typedef unsigned char byte;
 
 typedef glm::vec2 v2;
 typedef glm::vec3 v3;

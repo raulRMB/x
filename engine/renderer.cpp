@@ -77,6 +77,7 @@ namespace x
             CreateRenderPass();
             CreateDescriptorSetLayout();
             CreatePushConstantRange();
+            CreatePipelineLayout();
             CreatePipeline(GraphicsPipeline, VK_TRUE, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
             CreatePipeline(LinePipeline, VK_FALSE, VK_PRIMITIVE_TOPOLOGY_LINE_STRIP);
             CreateDepthBufferImage();
@@ -688,6 +689,7 @@ namespace x
         }
 
         vkDestroyPipeline(MainDevice.LogicalDevice, GraphicsPipeline, nullptr);
+        vkDestroyPipeline(MainDevice.LogicalDevice, LinePipeline, nullptr);
         vkDestroyPipelineLayout(MainDevice.LogicalDevice, PipelineLayout, nullptr);
         vkDestroyRenderPass(MainDevice.LogicalDevice, RenderPass, nullptr);
 
@@ -711,7 +713,7 @@ namespace x
 
     Renderer::~Renderer() = default;
 
-    void Renderer::CreatePipeline(VkPipeline& pipeline, VkBool32 depthTestEnable, VkPrimitiveTopology topology)
+    void Renderer:: CreatePipeline(VkPipeline& pipeline, VkBool32 depthTestEnable, VkPrimitiveTopology topology)
     {
         std::vector<char> vertShaderCode = xUtil::xFile::ReadAsBin("../shaders/vert.spv");
         std::vector<char> fragShaderCode = xUtil::xFile::ReadAsBin("../shaders/frag.spv");
@@ -828,24 +830,6 @@ namespace x
         colorBlendCreateInfo.blendConstants[1] = 0.0f;
         colorBlendCreateInfo.blendConstants[2] = 0.0f;
 
-        std::array<VkDescriptorSetLayout, 2> setLayouts =
-        {
-            DescriptorSetLayout,
-            SamplerSetLayout
-        };
-
-        VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = {};
-        pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-        pipelineLayoutCreateInfo.setLayoutCount = (u32)setLayouts.size();
-        pipelineLayoutCreateInfo.pSetLayouts = setLayouts.data();
-        pipelineLayoutCreateInfo.pushConstantRangeCount = 1;
-        pipelineLayoutCreateInfo.pPushConstantRanges = &PushConstantRange;
-
-        if(vkCreatePipelineLayout(MainDevice.LogicalDevice, &pipelineLayoutCreateInfo, nullptr, &PipelineLayout) != VK_SUCCESS)
-        {
-            throw std::runtime_error("Failed to create pipeline layout");
-        }
-
         VkPipelineDepthStencilStateCreateInfo depthStencilCreateInfo = {};
         depthStencilCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
         depthStencilCreateInfo.depthTestEnable = depthTestEnable;
@@ -881,7 +865,7 @@ namespace x
         vkDestroyShaderModule(MainDevice.LogicalDevice, FragmentShaderModule, nullptr);
     }
 
-    VkShaderModule Renderer::CreateShaderModule(const std::vector<byte>& bytes) const
+    VkShaderModule Renderer::CreateShaderModule(const std::vector<char>& bytes) const
     {
         VkShaderModuleCreateInfo shaderModuleCreateInfo = {};
         shaderModuleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
@@ -1752,6 +1736,27 @@ namespace x
                 throw std::runtime_error("Failed to wait for device");
             }
             ImGui_ImplVulkan_DestroyFontUploadObjects();
+        }
+    }
+
+    void Renderer::CreatePipelineLayout()
+    {
+        std::array<VkDescriptorSetLayout, 2> setLayouts =
+                {
+                        DescriptorSetLayout,
+                        SamplerSetLayout
+                };
+
+        VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = {};
+        pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+        pipelineLayoutCreateInfo.setLayoutCount = (u32)setLayouts.size();
+        pipelineLayoutCreateInfo.pSetLayouts = setLayouts.data();
+        pipelineLayoutCreateInfo.pushConstantRangeCount = 1;
+        pipelineLayoutCreateInfo.pPushConstantRanges = &PushConstantRange;
+
+        if(vkCreatePipelineLayout(MainDevice.LogicalDevice, &pipelineLayoutCreateInfo, nullptr, &PipelineLayout) != VK_SUCCESS)
+        {
+            throw std::runtime_error("Failed to create pipeline layout");
         }
     }
 

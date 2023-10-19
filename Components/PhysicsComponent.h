@@ -2,8 +2,8 @@
 // Created by Raul Romero on 2023-10-11.
 //
 
-#ifndef X_PHYSICSCOMPONENT_H
-#define X_PHYSICSCOMPONENT_H
+#ifndef X_PHYSICS_COMPONENT_H
+#define X_PHYSICS_COMPONENT_H
 
 #include "../base/defines.h"
 
@@ -21,4 +21,4 @@ struct CPhysics3d
     f32 Mass;
 };
 
-#endif //X_PHYSICSCOMPONENT_H
+#endif //X_PHYSICS_COMPONENT_H

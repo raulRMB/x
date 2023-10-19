@@ -9,5 +9,6 @@ layout(location = 0) out vec4 outCol;
 
 void main()
 {
-    outCol = texture(texSampler, inTex) * vec4(inCol, 1.0);
+    vec4 texCol = texture(texSampler, inTex);
+    outCol = texCol * vec4(inCol, 1.0);
 }

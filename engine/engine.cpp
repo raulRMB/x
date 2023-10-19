@@ -8,9 +8,9 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "core/Camera.h"
 #include <random>
-#include <glm/glm.hpp>
-#include "vendor/imgui/imconfig.h"
 #include "vendor/imgui/backends/imgui_impl_sdl2.h"
+#include "NetworkDriver.h"
+#include <thread>
 
 namespace x
 {
@@ -29,6 +29,16 @@ namespace x
 
     i32 Engine::Run()
     {
+        NetworkDriver::Get().Init();
+
+        std::thread networkThread([]()
+        {
+            while(1)
+            {
+                NetworkDriver::Get().Loop();
+            }
+        });
+
         if(Window::Get().Init() != EXIT_SUCCESS || x::Renderer::Get().Init() != EXIT_SUCCESS)
         {
             return EXIT_FAILURE;
@@ -39,7 +49,6 @@ namespace x
         LastTime = std::chrono::high_resolution_clock::now();
         SDL_Event event;
 
-        static bool b = true;
         while(Window::Get().bRunning(event))
         {
             Game::GetInstance().HandleInput(event);
@@ -55,6 +64,11 @@ namespace x
             ImGui_ImplSDL2_ProcessEvent(&event);
             ImGui_ImplSDL2_NewFrame(Window::Get().GetWindow());
             ImGui::NewFrame();
+
+            if(ImGui::Button("Fuck this button"))
+            {
+                printf("HEllo");
+            }
             Draw();
         }
 

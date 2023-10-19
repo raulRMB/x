@@ -15,7 +15,7 @@ namespace xUtil
     {
     public:
         static std::vector<char> Read(const std::string& fileName, const std::ios::openmode& mode);
-        static std::vector<byte> ReadAsBin(const std::string& fileName);
+        static std::vector<char> ReadAsBin(const std::string& fileName);
         static std::vector<char> ReadAsText(const std::string& fileName);
     };
 }

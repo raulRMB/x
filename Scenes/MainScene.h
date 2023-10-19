@@ -11,13 +11,12 @@
 
 class MainScene final : public x::Scene
 {
-    v3 pos = {0, 0, 2};
-
 public:
     void Start() override;
-    void HandleInput(const SDL_Event& event) override;
+    void HandleClientInput(i32 NetId);
     void Update(f32 deltaTime) override;
     void Clean() override;
+    void HandleInput(const SDL_Event& event) override {};
 };
 
 

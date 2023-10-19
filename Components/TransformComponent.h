@@ -26,4 +26,23 @@ struct CTransform3d
     v3 WorldRotation;
 };
 
+struct CNetTransform2d
+{
+    v2 Position;
+    f32 Scale;
+    f32 Rotation;
+    f32 Elevation;
+};
+
+struct CNetTransform3d
+{
+    v3 LocalPosition;
+    v3 LocalScale;
+    v3 LocalRotation;
+
+    v3 WorldPosition;
+    v3 WorldScale;
+    v3 WorldRotation;
+};
+
 #endif //X_TRANSFORM_COMPONENT_H

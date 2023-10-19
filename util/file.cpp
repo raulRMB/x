@@ -23,7 +23,7 @@ std::vector<char> xUtil::xFile::Read(const std::string& fileName, const std::ios
     return buffer;
 }
 
-std::vector<byte> xUtil::xFile::ReadAsBin(const std::string &fileName)
+std::vector<char> xUtil::xFile::ReadAsBin(const std::string &fileName)
 {
     return Read(fileName, std::ios::binary);
 }

@@ -25,10 +25,15 @@ set (SOURCES
         ../Components/AxesComponent.h
         ../Components/ParentComponent.h
         ../Components/ChildComponent.h
+        NetworkDriver.cpp
+        NetworkDriver.h
+        ../Components/NetworkComponent.h
+        ../Net/NetMsgType.h
+        ../Net/NetMessage.h
+        ../Net/NetCompId.h
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})
-
 
 find_package(Vulkan REQUIRED)
 target_sources(${PROJECT_NAME} PUBLIC
@@ -46,6 +51,10 @@ target_include_directories(${PROJECT_NAME} PUBLIC
         SDL2::SDL2
         glfw glm
         Vulkan::Vulkan
-        ${VENDOR_DIR}/assimp/include)
-target_link_directories(${PROJECT_NAME} PRIVATE ${VENDOR_DIR}/assimp/lib)
-target_link_libraries(${PROJECT_NAME} PUBLIC base util core SDL2::SDL2 glfw glm Vulkan::Vulkan ${VENDOR_DIR}/assimp/lib/libassimp-5.dll)
+        ${VENDOR_DIR}/assimp/include
+        ${VENDOR_DIR}/enet/include
+        enet
+)
+
+target_link_directories(${PROJECT_NAME} PRIVATE ${VENDOR_DIR}/assimp/lib ${VENDOR_DIR}/enet enet)
+target_link_libraries(${PROJECT_NAME} PUBLIC base util core SDL2::SDL2 glfw glm Vulkan::Vulkan ${VENDOR_DIR}/enet/enet64.lib enet)
