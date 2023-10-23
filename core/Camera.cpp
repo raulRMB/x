@@ -13,7 +13,7 @@ CameraSystem::CameraSystem() : MainCamera(entt::null)
 {
     pRegistry = &x::Game::GetInstance().GetScene()->GetRegistry();
     CTransform3d transform{};
-    transform.WorldPosition = v3(0.0f, 0.0f, 3.0f);
+    transform.WorldPosition = v3(250.0f, -250.0f, -50.0f);
     transform.WorldRotation = v3(0.0f, 0.0f, 0.0f);
     transform.WorldScale = v3(1.0f, 1.0f, 1.0f);
 
@@ -26,10 +26,11 @@ CameraSystem::CameraSystem() : MainCamera(entt::null)
     camera.Near = 0.1f;
     camera.Far = 10000.0f;
     camera.Projection = glm::perspective(glm::radians(camera.FOV), WINDOW_WIDTH_F / WINDOW_HEIGHT_F, camera.Near, camera.Far);
+    camera.Projection[1][1] *= -1;
 
     CAxes axes{};
-    axes.Yaw = 0.f;
-    axes.Pitch = 0.f;
+    axes.Yaw = -90.f;
+    axes.Pitch = 55.f;
     axes.Roll = 0.f;
 
     SwitchCamera(CreateCamera(camera, transform, axes));
@@ -146,11 +147,11 @@ void CameraSystem::MoveCamera(const SDL_Event& event, f32 DeltaTime)
     {
         if(event.wheel.y > 0)
         {
-            SetMainCameraFOV(GetMainCameraFOV() - 1.f);
+            //SetMainCameraFOV(GetMainCameraFOV() - 1.f);
         }
         else if(event.wheel.y < 0)
         {
-            SetMainCameraFOV(GetMainCameraFOV() + 1.f);
+            //SetMainCameraFOV(GetMainCameraFOV() + 1.f);
         }
     }
     if(event.type == SDL_MOUSEMOTION)

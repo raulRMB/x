@@ -236,7 +236,7 @@ namespace x
 
         void CreateMesh(const std::string& texture, X::Primitives2D::Shape shape = X::Primitives2D::Shape::Circle,
                         const v4& color = {1.f, 1.f, 1.f, 1.f});
-        i32 CreateMeshModel(const std::string& fileName);
+        u32 CreateMeshModel(const std::string& fileName);
 
         const UBOViewProjection& GetUBOViewProjection() { return UboViewProjection; }
 

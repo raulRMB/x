@@ -6,7 +6,7 @@
 #define X_CAMERA_H
 
 #include <base/defines.h>
-#include "../vendor/entt.hpp"
+#include "vendor/entt.hpp"
 #include <SDL2/SDL_events.h>
 #include "Components/TransformComponent.h"
 #include "Components/AxesComponent.h"
@@ -62,6 +62,10 @@ public:
     inline f32& GetCameraFar(entt::entity camera) { return pRegistry->get<CCamera>(camera).Far; }
     inline CAxes& GetCameraAxes(entt::entity camera) { return pRegistry->get<CAxes>(camera); }
 
+    inline void SetCameraPosition(entt::entity camera, const v3& position) { GetCameraWorldPosition(camera) = position; }
+
+    inline void AddCameraPosition(entt::entity camera, const v3& position) { GetCameraWorldPosition(camera) += position; }
+
     inline CCamera& GetMainCameraComponent() { return GetCameraComponent(MainCamera); }
     inline CTransform3d& GetMainCameraTransform() { return GetCameraTransform(MainCamera); }
     inline v3& GetMainCameraPosition() { return GetCameraWorldPosition(MainCamera); }
@@ -76,8 +80,8 @@ public:
     inline f32& GetMainCameraFOV() { return GetCameraFOV(MainCamera); }
     inline f32& GetMainCameraNear() { return GetCameraNear(MainCamera); }
     inline f32& GetMainCameraFar() { return GetCameraFar(MainCamera); }
-    inline CAxes& GetMainCameraAxes() { return GetCameraAxes(MainCamera); }
 
+    inline CAxes& GetMainCameraAxes() { return GetCameraAxes(MainCamera); }
 
     inline void SetCameraFOV(entt::entity camera, f32 fov) { pRegistry->get<CCamera>(camera).FOV = fov; }
     inline void SetCameraNear(entt::entity camera, f32 near) { pRegistry->get<CCamera>(camera).Near = near; }
@@ -86,6 +90,10 @@ public:
     inline void SetMainCameraFOV(f32 fov) { SetCameraFOV(MainCamera, fov); }
     inline void SetMainCameraNear(f32 near) { SetCameraNear(MainCamera, near); }
     inline void SetMainCameraFar(f32 far) { SetCameraFar(MainCamera, far); }
+
+    inline void SetMainCameraPosition(const v3& position) { SetCameraPosition(MainCamera, position); }
+
+    inline void AddMainCameraPosition(const v3& position) { AddCameraPosition(MainCamera, position); }
 
     void UpdateCamera(entt::entity camera);
     void UpdateMainCamera();

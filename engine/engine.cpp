@@ -31,6 +31,13 @@ namespace x
     {
         NetworkDriver::Get().Init();
 
+        if(Window::Get().Init() != EXIT_SUCCESS || x::Renderer::Get().Init() != EXIT_SUCCESS)
+        {
+            return EXIT_FAILURE;
+        }
+
+        Init();
+
         std::thread networkThread([]()
         {
             while(1)
@@ -38,13 +45,6 @@ namespace x
                 NetworkDriver::Get().Loop();
             }
         });
-
-        if(Window::Get().Init() != EXIT_SUCCESS || x::Renderer::Get().Init() != EXIT_SUCCESS)
-        {
-            return EXIT_FAILURE;
-        }
-
-        Init();
 
         LastTime = std::chrono::high_resolution_clock::now();
         SDL_Event event;
@@ -64,11 +64,6 @@ namespace x
             ImGui_ImplSDL2_ProcessEvent(&event);
             ImGui_ImplSDL2_NewFrame(Window::Get().GetWindow());
             ImGui::NewFrame();
-
-            if(ImGui::Button("Fuck this button"))
-            {
-                printf("HEllo");
-            }
             Draw();
         }
 

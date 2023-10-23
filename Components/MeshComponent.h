@@ -7,9 +7,18 @@
 
 #include <base/defines.h>
 
-struct CMesh
+struct CLineMesh
 {
-    i32 Id;
+    u32 Id;
+    CLineMesh() = default;
+    CLineMesh(u32 id) : Id(id) {}
+};
+
+struct CTriangleMesh
+{
+    u32 Id;
+    CTriangleMesh() = default;
+    CTriangleMesh(u32 id) : Id(id) {}
 };
 
 #endif //X_MESHCOMPONENT_H

@@ -44,7 +44,6 @@ std::vector<std::string> MeshModel::LoadMaterials(const aiScene* scene)
     for(u32 i = 0; i < scene->mNumMaterials; i++)
     {
         aiMaterial* material = scene->mMaterials[i];
-
         textureList[i] = "";
         if(material->GetTextureCount(aiTextureType_DIFFUSE))
         {

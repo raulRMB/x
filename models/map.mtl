@@ -1,0 +1,134 @@
+# Blender 3.3.1 MTL File: 'None'
+# www.blender.org
+
+newmtl Maps/KitPieces/Cherry/Base/Materials/Default/Arena_B_Brush_MAT
+Ns 1000.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+map_Kd Brush.png
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 1
+
+newmtl Maps/KitPieces/Cherry/Base/Materials/Default/Arena_B_Cliffs_A_M
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+map_Kd Arena_B_Cliffs_A.2v2_Mode_Fighters.png
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 0.000000
+d 1.000000
+illum 1
+
+newmtl Maps/KitPieces/Cherry/Base/Materials/Default/Arena_B_InnerWall_
+Ns 1000.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+map_Kd Arena_B_InnerWall_A.2v2_Mode_Fighters.png
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 0.000000
+d 1.000000
+illum 1
+
+newmtl Maps/KitPieces/Cherry/Base/Materials/Default/Arena_B_Islands_A_
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+map_Kd Arena_B_Islands_A.2v2_Mode_Fighters.png
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 0.000000
+d 1.000000
+illum 1
+
+newmtl Maps/KitPieces/Cherry/Base/Materials/Default/Arena_B_OuterRing_
+Ns 1000.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+map_Kd Arena_B_OuterRing_A.2v2_Mode_Fighters.png
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 0.000000
+d 1.000000
+illum 1
+
+newmtl Maps/KitPieces/Cherry/Base/Materials/Default/Arena_B_Skybox_A_M
+Ns 1000.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+map_Kd Arena_B_Skybox_A.2v2_Mode_Fighters.png
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 0.000000
+d 1.000000
+illum 1
+
+newmtl Maps/KitPieces/Cherry/Base/Materials/Default/Arena_B_TreeCa
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+map_Kd Arena_B_TreeCanopies_A.2v2_Mode_Fighters.png
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 0.000000
+d 1.000000
+illum 1
+
+newmtl Maps/KitPieces/Cherry/Base/Materials/Default/Arena_B_TreeCanopi
+Ns 360.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+map_Kd Arena_B_TreeCanopies_A.2v2_Mode_Fighters.png
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+
+newmtl Maps/KitPieces/Cherry/Base/Materials/Default/Arena_B_Tree_A_MAT
+Ns 1000.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+map_Kd Arena_B_Tree_A.2v2_Mode_Fighters.png
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 0.000000
+d 1.000000
+illum 1
+
+newmtl Maps/KitPieces/Cherry/Base/Materials/Default/Arena_B_Water_A_MA
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+map_Kd Water.png
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 1
+
+newmtl Maps/KitPieces/Cherry/Base/Materials/Default/Arena_Floor_B_MAT
+Ns 1000.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+map_Kd Arena_Floor_B.2v2_Mode_Fighters.png
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 0.000000
+d 1.000000
+illum 1
+
+newmtl Maps/KitPieces/Cherry/Base/Materials/Default/Grass_Skirt_B_MAT
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+map_Kd Grass_Skirt_B.2v2_Mode_Fighters.png
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 0.000000
+d 1.000000
+illum 1

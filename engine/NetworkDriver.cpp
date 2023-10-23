@@ -3,17 +3,16 @@
 //
 
 #include "NetworkDriver.h"
-#include "Server/SNetworkDriver.h"
 #include "Components/NetworkComponent.h"
 #include "Components/TransformComponent.h"
 #include "Net/NetMessage.h"
 #include "Net/NetMsgType.h"
 
-#include <enet/enet.h>
 #include <vendor/entt.hpp>
 #include <cstdio>
 
 #include "core/Game.h"
+#include "Components/MeshComponent.h"
 
 i32 NetworkDriver::Init()
 {
@@ -62,23 +61,18 @@ void NetworkDriver::Loop()
         {
             case ENET_EVENT_TYPE_RECEIVE:
             {
-                printf("A packet of length %u containing %s was received from %u:%u on channel %u.\n",
-                       (u32) Event.packet->dataLength,
-                       Event.packet->data,
-                       Event.peer->address.host,
-                       Event.peer->address.port,
-                       Event.channelID);
-
                 ENetMsg type = *(ENetMsg *) Event.packet->data;
                 switch (type)
                 {
                     case ENetMsg::SpawnEntity:
                     {
-                        NetSpawnMessage message = *(NetSpawnMessage *) Event.packet->data;
+                        NetSpawnMessage message = *(NetSpawnMessage*) Event.packet->data;
                         printf("Entity spawned Id: %d\n", message.EntityId);
-                        entt::entity e = x::Game::GetInstance().GetScene()->CreateEntity();
                         auto s = x::Game::GetInstance().GetScene();
+                        entt::entity e = s->CreateEntity();
                         s->AddComponent(e, CNetwork{message.EntityId});
+                        s->AddComponent(e, message.Transform);
+                        s->AddComponent(e, CLineMesh{0});
                         break;
                     }
                     case ENetMsg::KillEntity:
@@ -88,7 +82,17 @@ void NetworkDriver::Loop()
                     }
                     case ENetMsg::UpdateEntity:
                     {
-                        printf("UpdateEntity\n");
+                        NetUpdateMessage message = *(NetUpdateMessage*) Event.packet->data;
+                        auto s = x::Game::GetInstance().GetScene();
+                        auto view = s->GetRegistry().view<CNetwork, CTransform3d>();
+                        for(auto e : view)
+                        {
+                            if(view.get<CNetwork>(e).Id == message.EntityId)
+                            {
+                                view.get<CTransform3d>(e) = message.Transform;
+                                break;
+                            }
+                        }
                         break;
                     }
                     case ENetMsg::AddComponent:

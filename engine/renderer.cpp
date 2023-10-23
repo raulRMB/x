@@ -1044,8 +1044,10 @@ namespace x
 
                 vkCmdBindPipeline(CommandBuffers[currentImage], VK_PIPELINE_BIND_POINT_GRAPHICS, GraphicsPipeline);
 
-                    for(MeshModel& model : ModelList)
+                    auto view = Game::GetInstance().GetScene()->GetRegistry().view<CTransform3d, CTriangleMesh>();
+                    for(entt::entity entity : view)
                     {
+                        MeshModel& model = ModelList[view.get<CTriangleMesh>(entity).Id];
                         vkCmdPushConstants(CommandBuffers[currentImage], PipelineLayout,
                                            VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(xModel),
                                            &model.GetModel());
@@ -1077,11 +1079,20 @@ namespace x
 
                 vkCmdBindPipeline(CommandBuffers[currentImage], VK_PIPELINE_BIND_POINT_GRAPHICS, LinePipeline);
 
-                    for(xMesh& mesh : MeshList)
+                    auto lineView = Game::GetInstance().GetScene()->GetRegistry().view<CTransform3d, CLineMesh>();
+                    for(entt::entity entity : lineView)
                     {
+                        CTransform3d transform3d = lineView.get<CTransform3d>(entity);
+                        xMesh& mesh = MeshList[lineView.get<CLineMesh>(entity).Id];
+                        glm::mat4 model = glm::mat4(1.0f);
+                        model = glm::scale(glm::mat4(1.0f), transform3d.WorldScale) * model;
+                        model = glm::rotate(glm::mat4(1.0f), transform3d.WorldRotation.x, glm::vec3(1.0f, 0.0f, 0.0f)) * model;
+                        model = glm::rotate(glm::mat4(1.0f), transform3d.WorldRotation.y, glm::vec3(0.0f, 1.0f, 0.0f)) * model;
+                        model = glm::rotate(glm::mat4(1.0f), transform3d.WorldRotation.z, glm::vec3(0.0f, 0.0f, 1.0f)) * model;
+                        model = glm::translate(glm::mat4(1.0f), transform3d.WorldPosition) * model;
                         vkCmdPushConstants(CommandBuffers[currentImage], PipelineLayout,
-                                           VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(xModel),
-                                           &mesh.GetModel());
+                                       VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(xModel),
+                                       &model);
 
                         VkBuffer vertexBuffers[] = {mesh.GetVertexBuffer()};
                         VkDeviceSize offsets[] = {0};
@@ -1122,8 +1133,7 @@ namespace x
         vkAcquireNextImageKHR(MainDevice.LogicalDevice, Swapchain, std::numeric_limits<u64>::max(), ImageAvailableSemaphores[CurrentFrame], VK_NULL_HANDLE, &imageIndex);
 
         Scene* scene = Game::GetInstance().GetScene();
-
-        scene->GetRegistry().view<CTransform3d, CMesh>().each([&](CTransform3d& t, CMesh& m)
+        scene->GetRegistry().view<CTransform3d, CTriangleMesh>().each([&](CTransform3d& t, CTriangleMesh& m)
         {
             glm::mat4 transform = glm::mat4(1.0f);
             transform = glm::scale(glm::mat4(1.0f), t.WorldScale) * transform;
@@ -1132,15 +1142,6 @@ namespace x
             transform = glm::rotate(glm::mat4(1.0f), t.WorldRotation.z, glm::vec3(0.0f, 0.0f, 1.0f)) * transform;
             transform = glm::translate(glm::mat4(1.0f), t.WorldPosition) * transform;
             UpdateModel(m.Id, transform);
-            i32 i = 0;
-            for(auto& mesh : MeshList)
-            {
-                i++;
-                if(i == m.Id)
-                {
-                    mesh.SetModel(transform);
-                }
-            }
         });
 
 
@@ -1609,7 +1610,7 @@ namespace x
         return glm::inverse(UboViewProjection.View * UboViewProjection.Projection);
     }
 
-    i32 Renderer::CreateMeshModel(const std::string &fileName)
+    u32 Renderer::CreateMeshModel(const std::string &fileName)
     {
         Assimp::Importer importer;
         u32 flags = aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_JoinIdenticalVertices;
@@ -1640,7 +1641,7 @@ namespace x
         MeshModel meshModel = MeshModel(modelMeshes);
         ModelList.push_back(meshModel);
 
-        return (i32)ModelList.size() - 1;
+        return (u32)ModelList.size() - 1;
     }
 
     Renderer &Renderer::Get()

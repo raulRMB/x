@@ -31,6 +31,7 @@ set (SOURCES
         ../Net/NetMsgType.h
         ../Net/NetMessage.h
         ../Net/NetCompId.h
+        ../Components/QueuedComponent.h
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})

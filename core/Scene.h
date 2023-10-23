@@ -8,6 +8,7 @@
 #include <base/defines.h>
 #include <vendor/entt.hpp>
 #include <SDL2/SDL_events.h>
+#include "Components/QueuedComponent.h"
 
 namespace x
 {
@@ -15,13 +16,13 @@ namespace x
     {
     protected:
         entt::registry Registry;
-        u32 Models;
+        u32 MeshCount = 0;
         std::vector<entt::entity> Entities;
 
         friend class Game;
         virtual void Start() = 0;
         virtual void HandleInput(const SDL_Event& event) = 0;
-        virtual void Update(f32 deltaTime) = 0;
+        virtual void Update(f32 deltaTime);
         virtual void Clean() = 0;
 
     public:
@@ -30,6 +31,7 @@ namespace x
         entt::entity CreateEntity()
         {
             entt::entity e = Registry.create();
+            Entities.push_back(e);
             return e;
         }
 
@@ -55,6 +57,12 @@ namespace x
         {
             return Registry.get<T>(entity);
         }
+
+        entt::entity QueueEntityForCreation(u32 compFlags);
+
+        void AddQueuedComponents(entt::entity entity, const std::bitset<128>& bitset);
+
+        void ResolveQueuedEntities();
     };
 }
 
