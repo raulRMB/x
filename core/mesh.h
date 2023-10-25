@@ -40,7 +40,7 @@ private:
     VkDevice Device;
 
     VkBuffer CreateVertexBuffer(VkQueue transferQueue, VkCommandPool transferCommandPool,
-                                const std::vector<xRUtil::Vertex>& vertices);
+                                const std::vector<x::RenderUtil::Vertex>& vertices);
     VkBuffer CreateIndexBuffer(VkQueue transferQueue, VkCommandPool transferCommandPool,
                                const std::vector<u32>& indices);
     void DestroyVertexBuffer();
@@ -48,7 +48,7 @@ private:
 public:
     xMesh() = default;
 
-    xMesh(const std::vector<xRUtil::Vertex>& vertices, const std::vector<u32>& indices, i32 textureId, VkQueue transferQueue,
+    xMesh(const std::vector<x::RenderUtil::Vertex>& vertices, const std::vector<u32>& indices, i32 textureId, VkQueue transferQueue,
           VkCommandPool transferComandPool, VkPhysicalDevice physicalDevice, VkDevice device);
     ~xMesh();
 

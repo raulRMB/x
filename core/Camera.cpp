@@ -9,7 +9,7 @@
 #include <glm/gtx/quaternion.hpp>
 #include <glm/glm.hpp>
 
-CameraSystem::CameraSystem() : MainCamera(entt::null)
+CameraSystem::CameraSystem() : MainCamera(entt::null), bDebugCamera(false)
 {
     pRegistry = &x::Game::GetInstance().GetScene()->GetRegistry();
     CTransform3d transform{};
@@ -89,6 +89,9 @@ void CameraSystem::MoveCamera(const SDL_Event& event, f32 DeltaTime)
     {
         switch(event.key.keysym.sym)
         {
+        case SDLK_RIGHTBRACKET:
+            bDebugCamera = !bDebugCamera;
+            break;
         case SDLK_w:
             Mask |= 1u << 0;
             break;
@@ -116,6 +119,10 @@ void CameraSystem::MoveCamera(const SDL_Event& event, f32 DeltaTime)
         default:
             break;
         }
+    }
+    if(!bDebugCamera)
+    {
+        return;
     }
     if(event.type == SDL_KEYUP)
     {
@@ -147,19 +154,20 @@ void CameraSystem::MoveCamera(const SDL_Event& event, f32 DeltaTime)
     {
         if(event.wheel.y > 0)
         {
-            //SetMainCameraFOV(GetMainCameraFOV() - 1.f);
+            SetMainCameraFOV(GetMainCameraFOV() - 1.f);
         }
         else if(event.wheel.y < 0)
         {
-            //SetMainCameraFOV(GetMainCameraFOV() + 1.f);
+            SetMainCameraFOV(GetMainCameraFOV() + 1.f);
         }
     }
+
     if(event.type == SDL_MOUSEMOTION)
     {
         if(event.motion.state & SDL_BUTTON_RMASK)
         {
-            GetMainCameraAxes().Yaw += event.motion.xrel * 0.1f;
-            GetMainCameraAxes().Pitch += event.motion.yrel * 0.1f;
+            GetMainCameraAxes().Yaw += (f32)event.motion.xrel * 0.1f;
+            GetMainCameraAxes().Pitch += (f32)event.motion.yrel * 0.1f;
         }
     }
 
@@ -190,7 +198,6 @@ void CameraSystem::MoveCamera(const SDL_Event& event, f32 DeltaTime)
     {
         pos -= GetMainCameraUp() * speed * DeltaTime;
     }
-    UpdateMainCamera();
 }
 
 void CameraSystem::UpdateCamera(entt::entity camera)
@@ -198,6 +205,8 @@ void CameraSystem::UpdateCamera(entt::entity camera)
     auto& transform = pRegistry->get<CTransform3d>(camera);
     auto& cameraComponent = pRegistry->get<CCamera>(camera);
     auto& axes = pRegistry->get<CAxes>(camera);
+
+    transform.WorldRotation = {glm::radians(axes.Yaw), glm::radians(axes.Pitch), glm::radians(axes.Roll)};
 
     cameraComponent.Forward.x = cosf(glm::radians(axes.Yaw)) * cosf(glm::radians(axes.Pitch));
     cameraComponent.Forward.y = sinf(glm::radians(axes.Pitch));

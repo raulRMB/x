@@ -7,7 +7,7 @@
 
 #include "glm/glm.hpp"
 
-namespace X::Color
+namespace x::Color
 {
     inline glm::vec4 White = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
     inline glm::vec4 Black = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);

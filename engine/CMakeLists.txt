@@ -32,6 +32,8 @@ set (SOURCES
         ../Net/NetMessage.h
         ../Net/NetCompId.h
         ../Components/QueuedComponent.h
+        ../Navigation/Navigation.h
+        ../Navigation/Navigation.cpp
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})
@@ -50,7 +52,8 @@ target_sources(${PROJECT_NAME} PUBLIC
 target_include_directories(${PROJECT_NAME} PUBLIC
         base util core
         SDL2::SDL2
-        glfw glm
+        glfw
+        glm
         Vulkan::Vulkan
         ${VENDOR_DIR}/assimp/include
         ${VENDOR_DIR}/enet/include

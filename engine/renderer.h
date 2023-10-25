@@ -32,6 +32,9 @@ namespace x
     {
     public:
         static Renderer &Get();
+
+        u32 CreateTriangle(v2 vec1, v2 vec2, v2 vec3, glm::vec4 vec4);
+
     private:
         friend class Engine;
 
@@ -59,7 +62,7 @@ namespace x
         VkSwapchainKHR Swapchain;
         VkFormat SwapchainImageFormat;
         VkExtent2D SwapchainExtent;
-        std::vector<xRUtil::SwapChainImage> SwapchainImages;
+        std::vector<x::RenderUtil::SwapChainImage> SwapchainImages;
         std::vector<VkFramebuffer> SwapchainFramebuffers;
         std::vector<VkCommandBuffer> CommandBuffers;
 
@@ -208,9 +211,9 @@ namespace x
                 VkDebugUtilsMessengerEXT debugMessenger,
                 const VkAllocationCallbacks *pAllocator);
 
-        xRUtil::QueueFamilyIndices GetQueueFamilies(VkPhysicalDevice device);
+        x::RenderUtil::QueueFamilyIndices GetQueueFamilies(VkPhysicalDevice device);
 
-        xRUtil::SwapChainDetails GetSwapChainDetails(VkPhysicalDevice device);
+        x::RenderUtil::SwapChainDetails GetSwapChainDetails(VkPhysicalDevice device);
 
         static VkSurfaceFormatKHR ChooseBestSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &formats);
 
@@ -234,9 +237,11 @@ namespace x
         i32 CreateTextureDescriptor(VkImageView textureImage);
     public:
 
-        void CreateMesh(const std::string& texture, X::Primitives2D::Shape shape = X::Primitives2D::Shape::Circle,
+        void CreateMesh(const std::string& texture, x::Primitives2D::Shape shape = x::Primitives2D::Shape::Circle,
                         const v4& color = {1.f, 1.f, 1.f, 1.f});
         u32 CreateMeshModel(const std::string& fileName);
+
+        u32 CreateLine(const v3& start, const v3& end, const v4& color = {1.f, 1.f, 1.f, 1.f});
 
         const UBOViewProjection& GetUBOViewProjection() { return UboViewProjection; }
 

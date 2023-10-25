@@ -14,7 +14,7 @@
 #include "core/Camera.h"
 #include "core/Game.h"
 
-namespace xRUtil
+namespace x::RenderUtil
 {
     const int MAX_FRAMES_IN_FLIGHT = 2;
     const int MAX_OBJECTS = 10000;
@@ -304,15 +304,15 @@ namespace xRUtil
         return image;
     }
 
-    inline v3 GetMouseWorldPosition()
+    inline v3 GetMouseWorldPosition(bool atZeroZ = false)
     {
         i32 x, y;
         SDL_GetMouseState(&x, &y);
 
-        double x_ndc = (2.0f * (f32)x / (f32)WINDOW_WIDTH) - 1.f;
-        double y_ndc = (2.0f * (f32)y / (f32)WINDOW_HEIGHT) - 1.f;
+        double x_ndc = (2.f * (f32)x / (f32)WINDOW_WIDTH) - 1.f;
+        double y_ndc = (2.f * (f32)y / (f32)WINDOW_HEIGHT) - 1.f;
         m4 viewProjectionInverse = CameraSystem::Get().GetVPI();
-        v4 worldSpacePosition(x_ndc, y_ndc, .1f, 1.0f);
+        v4 worldSpacePosition(x_ndc, y_ndc, atZeroZ ? 0.f : 1.f, 1.f);
         auto world = viewProjectionInverse * worldSpacePosition;
         world /= world.w;
         return world;

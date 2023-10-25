@@ -86,7 +86,7 @@ xMesh MeshModel::LoadMesh(VkPhysicalDevice physicalDevice, VkDevice device, VkQu
                           VkCommandPool transferCommandPool, const struct aiMesh *mesh,
                           const std::vector<i32> &matToTex)
 {
-    std::vector<xRUtil::Vertex> vertices;
+    std::vector<x::RenderUtil::Vertex> vertices;
     std::vector<u32> indices;
 
     vertices.resize(mesh->mNumVertices);
@@ -101,7 +101,7 @@ xMesh MeshModel::LoadMesh(VkPhysicalDevice physicalDevice, VkDevice device, VkQu
         else
             vertices[i].Tex = {0.0f, 0.0f};
 
-        vertices[i].Col = X::Color::White;
+        vertices[i].Col = x::Color::White;
     }
 
     for(size_t i = 0; i < mesh->mNumFaces; i++)

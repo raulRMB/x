@@ -11,6 +11,8 @@
 
 class MainScene final : public x::Scene
 {
+    entt::entity TargetEntity;
+    entt::entity FollowEntity;
 public:
     void Start() override;
     void Update(f32 deltaTime) override;

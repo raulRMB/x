@@ -17,16 +17,16 @@ struct CTransform2d
 
 struct CTransform3d
 {
-    v3 LocalPosition;
-    v3 LocalScale;
-    v3 LocalRotation;
+    v3 LocalPosition = v3{0.f};
+    v3 LocalScale = v3{1.f};
+    v3 LocalRotation = v3{0.f};
 
-    v3 WorldPosition;
-    v3 WorldScale;
-    v3 WorldRotation;
+    v3 WorldPosition = v3{0.f};
+    v3 WorldScale = v3{1.f};
+    v3 WorldRotation = v3{0.f};
 
-    m4 LocalMatrix;
-    m4 WorldMatrix;
+    m4 LocalMatrix = m4(1.f);
+    m4 WorldMatrix = m4(1.f);
 };
 
 struct CNetTransform2d

@@ -39,7 +39,7 @@ namespace x
         void Clean();
 
     public:
-        void CreateMesh(const std::string& path, X::Primitives2D::Shape shape, const v4& color);
+        void CreateMesh(const std::string& path, x::Primitives2D::Shape shape, const v4& color);
     };
 }
 

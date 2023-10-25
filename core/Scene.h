@@ -7,7 +7,7 @@
 
 #include <base/defines.h>
 #include <vendor/entt.hpp>
-#include <SDL2/SDL_events.h>
+#include "C:\dev\x\cmake-build-release\vendor\SDL\include\SDL2\SDL_events.h"
 #include "Components/QueuedComponent.h"
 
 namespace x

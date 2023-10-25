@@ -7,7 +7,7 @@
 
 #include <base/defines.h>
 #include "vendor/entt.hpp"
-#include <SDL2/SDL_events.h>
+#include "vendor/SDL/include/SDL_Events.h"
 #include "Components/TransformComponent.h"
 #include "Components/AxesComponent.h"
 
@@ -31,6 +31,7 @@ class CameraSystem
     entt::registry* pRegistry;
     std::vector<entt::entity> Cameras;
     u32 Mask = 0u;
+    u8 bDebugCamera : 1;
 public:
     static CameraSystem& Get()
     {

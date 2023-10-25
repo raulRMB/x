@@ -6,7 +6,7 @@
 #include "mesh.h"
 
 
-xMesh::xMesh(const std::vector<xRUtil::Vertex>& vertices, const std::vector<u32>& indices, i32 textureId, VkQueue transferQueue,
+xMesh::xMesh(const std::vector<x::RenderUtil::Vertex>& vertices, const std::vector<u32>& indices, i32 textureId, VkQueue transferQueue,
              VkCommandPool transferComandPool, VkPhysicalDevice physicalDevice, VkDevice device)
 :
     VertexCount(static_cast<u32>(vertices.size())),
@@ -23,14 +23,14 @@ xMesh::xMesh(const std::vector<xRUtil::Vertex>& vertices, const std::vector<u32>
 }
 
 VkBuffer xMesh::CreateVertexBuffer(VkQueue transferQueue, VkCommandPool transferCommandPool,
-                                   const std::vector<xRUtil::Vertex>& vertices)
+                                   const std::vector<x::RenderUtil::Vertex>& vertices)
 {
-    VkDeviceSize bufferSize = sizeof(xRUtil::Vertex) * vertices.size();
+    VkDeviceSize bufferSize = sizeof(x::RenderUtil::Vertex) * vertices.size();
 
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
 
-    xRUtil::CreateBuffer(PhysicalDevice, Device, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+    x::RenderUtil::CreateBuffer(PhysicalDevice, Device, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
             stagingBuffer, stagingBufferMemory);
 
@@ -39,10 +39,10 @@ VkBuffer xMesh::CreateVertexBuffer(VkQueue transferQueue, VkCommandPool transfer
     memcpy(data, vertices.data(), bufferSize);
     vkUnmapMemory(Device, stagingBufferMemory);
 
-    xRUtil::CreateBuffer(PhysicalDevice, Device, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+    x::RenderUtil::CreateBuffer(PhysicalDevice, Device, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VertexBuffer, VertexBufferMemory);
 
-    xRUtil::CopyBuffer(Device, transferQueue, transferCommandPool, stagingBuffer, VertexBuffer, bufferSize);
+    x::RenderUtil::CopyBuffer(Device, transferQueue, transferCommandPool, stagingBuffer, VertexBuffer, bufferSize);
 
     vkDestroyBuffer(Device, stagingBuffer, nullptr);
     vkFreeMemory(Device, stagingBufferMemory, nullptr);
@@ -64,7 +64,7 @@ VkBuffer xMesh::CreateIndexBuffer(VkQueue transferQueue, VkCommandPool transferC
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
 
-    xRUtil::CreateBuffer(PhysicalDevice, Device, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+    x::RenderUtil::CreateBuffer(PhysicalDevice, Device, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                          VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                          stagingBuffer, stagingBufferMemory);
 
@@ -73,10 +73,10 @@ VkBuffer xMesh::CreateIndexBuffer(VkQueue transferQueue, VkCommandPool transferC
     memcpy(data, indices.data(), bufferSize);
     vkUnmapMemory(Device, stagingBufferMemory);
 
-    xRUtil::CreateBuffer(PhysicalDevice, Device, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+    x::RenderUtil::CreateBuffer(PhysicalDevice, Device, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
                          VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, IndexBuffer, IndexBufferMemory);
 
-    xRUtil::CopyBuffer(Device, transferQueue, transferCommandPool, stagingBuffer, IndexBuffer, bufferSize);
+    x::RenderUtil::CopyBuffer(Device, transferQueue, transferCommandPool, stagingBuffer, IndexBuffer, bufferSize);
 
     vkDestroyBuffer(Device, stagingBuffer, nullptr);
     vkFreeMemory(Device, stagingBufferMemory, nullptr);

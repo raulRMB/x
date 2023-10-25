@@ -58,6 +58,7 @@ namespace x
             TotalTime += DeltaTime;
 
             CameraSystem::Get().MoveCamera(event, DeltaTime.count());
+            CameraSystem::Get().UpdateMainCamera();
 
             Update(DeltaTime.count());
 
@@ -95,7 +96,7 @@ namespace x
         Window::Get().Clean();
     }
 
-    void Engine::CreateMesh(const std::string& path, X::Primitives2D::Shape shape, const v4& color)
+    void Engine::CreateMesh(const std::string& path, x::Primitives2D::Shape shape, const v4& color)
     {
         x::Renderer::Get().CreateMesh(path, shape, color);
     }
