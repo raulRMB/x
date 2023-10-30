@@ -122,12 +122,79 @@ void MainScene::HandleInput(const SDL_Event &event)
             }
 
             x::Scene* s = x::Game::GetInstance().GetScene();
-            for(const Triangle2D& triangle : x::Navigation::BowyerWatson(verts))
+            std::vector<TriangleNode> tris = x::Navigation::BowyerWatson(verts);
+            for(const TriangleNode& graphTriangle : tris)
             {
                 auto e = s->CreateEntity();
                 s->AddComponent(e, CTransform3d());
+                const Triangle2D& triangle = graphTriangle.GetTriangle();
                 s->AddComponent(e, CLineMesh(x::Renderer::Get().CreateTriangle(triangle.vertices[0], triangle.vertices[1], triangle.vertices[2], x::Color::White)));
                 CTransform3d transform{};
+            }
+        }
+        if(event.key.keysym.sym == SDLK_c)
+        {
+            std::vector<TriangleNode> tris = x::Navigation::BowyerWatson(verts);
+            v3 start = CameraSystem::Get().GetMainCameraPosition();
+            v3 end = x::RenderUtil::GetMouseWorldPosition();
+            v3 p = x::Util::Intersect(v3(0.0f), v3(0.0f, 1.0f, 0.0f), start, end - start);
+            for(const TriangleNode& graphTriangle : tris)
+            {
+                v2 point = {p.x, p.z};
+                const Triangle2D& triangle = graphTriangle.GetTriangle();
+                if(x::Navigation::PointInTriangle(point, triangle))
+                {
+                    auto e = CreateEntity();
+                    CTransform3d transform{};
+                    AddComponent(e, transform);
+                    AddComponent(e, CLineMesh(x::Renderer::Get().CreateTriangle(triangle.vertices[0], triangle.vertices[1], triangle.vertices[2], x::Color::Cyan)));
+                    break;
+                }
+            }
+        }
+        if(event.key.keysym.sym == SDLK_h)
+        {
+            v3 start = CameraSystem::Get().GetMainCameraPosition();
+            v3 end = x::RenderUtil::GetMouseWorldPosition();
+            v3 p = x::Util::Intersect(v3(0.0f), v3(0.0f, 1.0f, 0.0f), start, end - start);
+            StartPoint = {p.x, p.z};
+
+            auto e = CreateEntity();
+            CTransform3d transform{};
+            transform.WorldPosition = {p.x, 0.0f, p.z};
+            transform.WorldRotation.x = glm::radians(90.f);
+            transform.WorldScale = v3(1.2f);
+            AddComponent(e, transform);
+            AddComponent(e, CLineMesh(0));
+        }
+        if(event.key.keysym.sym == SDLK_j)
+        {
+            v3 start = CameraSystem::Get().GetMainCameraPosition();
+            v3 end = x::RenderUtil::GetMouseWorldPosition();
+            v3 p = x::Util::Intersect(v3(0.0f), v3(0.0f, 1.0f, 0.0f), start, end - start);
+            EndPoint = {p.x, p.z};
+
+            auto e = CreateEntity();
+            CTransform3d transform{};
+            transform.WorldPosition = {p.x, 0.0f, p.z};
+            transform.WorldRotation.x = glm::radians(90.f);
+            transform.WorldScale = v3(1.2f);
+            AddComponent(e, transform);
+            AddComponent(e, CLineMesh(1));
+        }
+
+        if(event.key.keysym.sym == SDLK_k)
+        {
+            std::vector<TriangleNode*> path;
+            x::Navigation::AStar(StartPoint, EndPoint, path, verts);
+
+            for(TriangleNode* node : path)
+            {
+                const Triangle2D& triangle = node->GetTriangle();
+                auto e = CreateEntity();
+                CTransform3d transform{};
+                AddComponent(e, transform);
+                AddComponent(e, CLineMesh(x::Renderer::Get().CreateTriangle(triangle.vertices[0], triangle.vertices[1], triangle.vertices[2], x::Color::Orange)));
             }
         }
     }

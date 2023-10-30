@@ -35,6 +35,7 @@ namespace x::Primitives2D
 
     struct Edge {
         v2 vertices[2]{};
+        struct Triangle* triangle;
     };
 
     struct Triangle {
