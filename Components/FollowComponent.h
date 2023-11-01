@@ -10,6 +10,8 @@
 struct CFollow
 {
     bool bFollow = false;
+    std::vector<v2> StringPath;
+    v2 TargetPos;
     i32 index = 0;
 };
 

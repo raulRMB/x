@@ -13,7 +13,6 @@
 
 class MainScene final : public x::Scene
 {
-    entt::entity TargetEntity;
     std::vector<entt::entity> FollowEntities;
 
     v2 StartPoint;
@@ -21,7 +20,6 @@ class MainScene final : public x::Scene
 
     std::vector<v2> points;
 
-    std::vector<v2> StringPath;
     std::vector<Edge2D> Portals = {};
     std::vector<TriangleNode> Tris = {};
 
