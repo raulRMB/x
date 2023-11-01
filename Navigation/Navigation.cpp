@@ -368,7 +368,7 @@ std::vector<v2> StringPull(const std::vector<Edge2D> &portals, const v2 &start, 
 
     path.push_back(portalApex);
 
-    for(i32 i = 1; i < portals.size() - 1; i++)
+    for(i32 i = 1; i < portals.size(); ++i)
     {
         const v2& left = portals[i].vertices[0];
         const v2& right = portals[i].vertices[1];
