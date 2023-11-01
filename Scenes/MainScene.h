@@ -14,7 +14,7 @@
 class MainScene final : public x::Scene
 {
     entt::entity TargetEntity;
-    entt::entity FollowEntity;
+    std::vector<entt::entity> FollowEntities;
 
     v2 StartPoint;
     v2 EndPoint;

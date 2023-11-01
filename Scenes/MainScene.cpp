@@ -12,6 +12,7 @@
 #include "Components/ParentComponent.h"
 #include "util/Util.h"
 #include "Navigation/Navigation.h"
+#include "Components/FollowComponent.h"
 #include <glm/gtc/constants.hpp>
 #include <thread>
 #include <fstream>
@@ -37,27 +38,10 @@ void MainScene::Start()
     AddComponent(e, x);
     Entities.push_back(e);
 
-    e = CreateEntity();
-    transform.WorldPosition = {0.0f, 0.0f, 0.0f};
-    transform.WorldRotation = {glm::radians(180.f), 0.f, 0.0f};
-    transform.WorldScale = v3(.1f);
-    AddComponent(e, transform);
-    x = {x::Renderer::Get().CreateMeshModel("../models/Stones.fbx")};
-    AddComponent(e, x);
-    Entities.push_back(e);
-
-    FollowEntity = CreateEntity();
-    transform.WorldPosition = {251.0f, .0f, -251.0f};
-    transform.WorldRotation = {0.f, 0.f, 0.0f};
-    transform.WorldScale = v3(2.0f);
-    AddComponent(FollowEntity, transform);
-    AddComponent(FollowEntity, CTriangleMesh(x::Renderer::Get().CreateMeshModel("../models/ball.fbx")));
-    Entities.push_back(FollowEntity);
-
     TargetEntity = CreateEntity();
     transform.WorldPosition = {251.0f, .0f, -251.0f};
     AddComponent(TargetEntity, transform);
-    Entities.push_back(FollowEntity);
+    Entities.push_back(TargetEntity);
 
     SDL_SetWindowMouseGrab(x::Window::Get().GetWindow(), SDL_TRUE);
 
@@ -92,18 +76,29 @@ void MainScene::Update(f32 deltaTime)
         CameraSystem::Get().AddMainCameraPosition(v3(0.0f, 0.0f, speed) * deltaTime);
     }
 
-    v3& FollowPos = Registry.get<CTransform3d>(FollowEntity).WorldPosition;
     v3& targetPos = Registry.get<CTransform3d>(TargetEntity).WorldPosition;
 
-    if(glm::distance(FollowPos, targetPos) > 0.01f)
+    for(entt::entity entity : FollowEntities)
     {
-        FollowPos += glm::normalize(targetPos - FollowPos) * 50.0f * deltaTime;
-    }
-    else
-    {
-        indx++;
-        if(StringPath.size() > indx)
-            GetRegistry().get<CTransform3d>(TargetEntity).WorldPosition = {StringPath[indx].x, 0.0f, StringPath[indx].y};
+        v3& FollowPos = Registry.get<CTransform3d>(entity).WorldPosition;
+        CFollow& follow = GetComponent<CFollow>(entity);
+        if(!follow.bFollow)
+        {
+            continue;
+        }
+
+        if(glm::distance(FollowPos, targetPos) > 0.01f)
+        {
+            FollowPos += glm::normalize(targetPos - FollowPos) * 50.0f * deltaTime;
+        }
+        else
+        {
+            follow.index++;
+            if(StringPath.size() > follow.index)
+            {
+                GetRegistry().get<CTransform3d>(TargetEntity).WorldPosition = {StringPath[follow.index].x, 0.0f, StringPath[follow.index].y};
+            }
+        }
     }
 }
 
@@ -134,39 +129,61 @@ void MainScene::HandleInput(const SDL_Event &event)
         AddComponent(e, transform);
         AddComponent(e, CLineMesh(1));
 
-        std::vector<TriangleNode*> path;
-        StartPoint = {GetComponent<CTransform3d>(FollowEntity).WorldPosition.x, GetComponent<CTransform3d>(FollowEntity).WorldPosition.z};
 
-        x::Navigation::AStar(StartPoint, EndPoint, path, Portals, Tris);
-
-        StringPath = x::Navigation::StringPull(Portals, StartPoint, EndPoint);
-
-        printf("Portals size: %zu\n", Portals.size());
-        printf("String path size: %zu\n", StringPath.size());
-        Portals.clear();
-
-        for(TriangleNode* node : path)
+        for(const entt::entity& ent : FollowEntities)
         {
-            const Triangle2D& triangle = node->GetTriangle();
-            e = CreateEntity();
-            AddComponent(e, CTransform3d());
-            AddComponent(e, CLineMesh(x::Renderer::Get().CreateTriangle(triangle.vertices[0], triangle.vertices[1], triangle.vertices[2], x::Color::Green)));
-        }
+            std::vector<TriangleNode*> path;
+            GetComponent<CFollow>(ent).bFollow = true;
 
-        for(i32 i = 0; i < StringPath.size() - 1; i++)
-        {
-            e = CreateEntity();
-            v3 p1 = {StringPath[i].x, 0.0f, StringPath[i].y};
-            v3 p2 = {StringPath[i + 1].x, 0.0f, StringPath[i + 1].y};
-            AddComponent(e, CTransform3d());
-            AddComponent(e, CLineMesh(x::Renderer::Get().CreateLine(p1, p2, x::Color::Cyan)));
-        }
+            StartPoint = {GetComponent<CTransform3d>(ent).WorldPosition.x, GetComponent<CTransform3d>(ent).WorldPosition.z};
 
-        indx = 1;
-        GetRegistry().get<CTransform3d>(TargetEntity).WorldPosition = {StringPath[indx].x, 0.0f, StringPath[indx].y};
+            x::Navigation::AStar(StartPoint, EndPoint, path, Portals, Tris);
+
+            StringPath = x::Navigation::StringPull(Portals, StartPoint, EndPoint);
+            Portals.clear();
+
+            for (TriangleNode *node: path)
+            {
+                const Triangle2D &triangle = node->GetTriangle();
+                e = CreateEntity();
+                AddComponent(e, CTransform3d());
+                AddComponent(e, CLineMesh(x::Renderer::Get().CreateTriangle(triangle.vertices[0], triangle.vertices[1],
+                                                                            triangle.vertices[2], x::Color::Green)));
+            }
+
+            for (i32 i = 0; i < StringPath.size() - 1; i++)
+            {
+                e = CreateEntity();
+                v3 p1 = {StringPath[i].x, 0.0f, StringPath[i].y};
+                v3 p2 = {StringPath[i + 1].x, 0.0f, StringPath[i + 1].y};
+                AddComponent(e, CTransform3d());
+                AddComponent(e, CLineMesh(x::Renderer::Get().CreateLine(p1, p2, x::Color::Cyan)));
+            }
+
+            indx = 1;
+            GetRegistry().get<CTransform3d>(TargetEntity).WorldPosition = {StringPath[indx].x, 0.0f,
+                                                                           StringPath[indx].y};
+        }
     }
     else if(event.type == SDL_KEYDOWN)
     {
+        if(event.key.keysym.sym == SDLK_s)
+        {
+            v3 start = CameraSystem::Get().GetMainCameraPosition();
+            v3 end = x::RenderUtil::GetMouseWorldPosition();
+            v3 p = x::Util::Intersect(v3(0.0f), v3(0.0f, 1.0f, 0.0f), start, end - start);
+            auto e = CreateEntity();
+            CTransform3d transform{};
+            FollowEntities.emplace_back(e);
+            transform.WorldPosition = p;
+            transform.WorldRotation = {0.f, 0.f, 0.0f};
+            transform.WorldScale = v3(2.0f);
+            AddComponent(e, transform);
+            AddComponent(e, CTriangleMesh(x::Renderer::Get().CreateMeshModel("../models/ball.fbx")));
+            AddComponent(e, CFollow());
+            Entities.push_back(e);
+        }
+
         if(event.key.keysym.sym == SDLK_g)
         {
 //            auto view = Registry.clear<CLineMesh>();

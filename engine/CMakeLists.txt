@@ -34,6 +34,7 @@ set (SOURCES
         ../Components/QueuedComponent.h
         ../Navigation/Navigation.h
         ../Navigation/Navigation.cpp
+        ../Components/FollowComponent.h
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})
