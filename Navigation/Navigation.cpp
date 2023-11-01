@@ -4,12 +4,11 @@
 
 #include "Navigation.h"
 #include "util/Util.h"
+#include "Components/MeshComponent.h"
+#include "engine/engine.h"
 #include <util/primitives.h>
 #include <vector>
 #include <algorithm>
-#include <chrono>
-#include <iostream>
-
 namespace x::Navigation
 {
 
@@ -145,7 +144,7 @@ bool PointInTriangle(const v2 &p, const Triangle2D &triangle)
     return d == 0 || (d < 0) == (s + t <= 0);
 }
 
-std::vector<TriangleNode*> ReconstructPath(TriangleNode* end, TriangleNode* start)
+std::vector<TriangleNode*> ReconstructPath(TriangleNode* end, TriangleNode* start, std::vector<Edge2D>& portals)
 {
     std::vector<TriangleNode*> path;
     TriangleNode* current = end;
@@ -154,10 +153,29 @@ std::vector<TriangleNode*> ReconstructPath(TriangleNode* end, TriangleNode* star
         path.push_back(current);
         current = current->GetParent();
     }
+    path.push_back(start);
+
+    std::reverse(path.begin(), path.end());
+
+    for(i32 i = 0; i < path.size() - 1; i++)
+    {
+        if(const Edge2D* SharedEdge = GetSharedEdge(path[i]->GetTriangle(), path[i + 1]->GetTriangle()); SharedEdge != nullptr)
+        {
+            if(IsOnRight(path[i]->GetCenter(), path[i + 1]->GetCenter(), SharedEdge->vertices[0]))
+            {
+                portals.push_back({SharedEdge->vertices[1], SharedEdge->vertices[0]});
+            }
+            else
+            {
+                portals.push_back(*SharedEdge);
+            }
+        }
+    }
+
     return path;
 }
 
-void AStar(const v2 &start, const v2 &end, std::vector<TriangleNode*> &path, std::vector<v2>& points)
+void AStar(const v2 &start, const v2 &end, std::vector<TriangleNode*> &path, std::vector<Edge2D>& portals, std::vector<v2>& points)
 {
     TriangleNode* startTriangle = nullptr;
     TriangleNode* endTriangle = nullptr;
@@ -207,7 +225,7 @@ void AStar(const v2 &start, const v2 &end, std::vector<TriangleNode*> &path, std
 
         for(TriangleNode* neighbor : current->GetNeighbors())
         {
-            if(closed.find(neighbor) != closed.end())
+            if(closed.find(neighbor) != closed.end() || neighbor->IsBlocked())
             {
                 continue;
             }
@@ -223,7 +241,213 @@ void AStar(const v2 &start, const v2 &end, std::vector<TriangleNode*> &path, std
         }
     }
 
-    path = ReconstructPath(endTriangle, startTriangle);
+    path = ReconstructPath(endTriangle, startTriangle, portals);
+}
+
+void AStar(const v2 &start, const v2 &end, std::vector<TriangleNode*> &path, std::vector<Edge2D>& portals, std::vector<TriangleNode>& graphTriangles)
+{
+    TriangleNode* startTriangle = nullptr;
+    TriangleNode* endTriangle = nullptr;
+    std::set<TriangleNode*> open;
+    std::set<TriangleNode*> closed;
+
+    for(TriangleNode& graphTriangle : graphTriangles)
+    {
+        if(x::Navigation::PointInTriangle(start, graphTriangle.GetTriangle()))
+        {
+            startTriangle = &graphTriangle;
+        }
+        if(x::Navigation::PointInTriangle(end, graphTriangle.GetTriangle()))
+        {
+            endTriangle = &graphTriangle;
+        }
+    }
+
+    if(startTriangle == nullptr || endTriangle == nullptr)
+    {
+        return;
+    }
+
+    open.emplace(startTriangle);
+
+    while(!open.empty())
+    {
+        TriangleNode *current = *open.begin();
+
+        for (TriangleNode *node : open)
+        {
+            if (node->GetFCost() < current->GetFCost() || node->GetFCost() == current->GetFCost() && node->GetHCost() < current->GetHCost())
+            {
+                current = node;
+            }
+        }
+
+        open.erase(open.find(current));
+        closed.emplace(current);
+
+        if(current == endTriangle)
+        {
+            break;
+        }
+
+        for(TriangleNode* neighbor : current->GetNeighbors())
+        {
+            if(closed.find(neighbor) != closed.end() || neighbor->IsBlocked())
+            {
+                continue;
+            }
+
+            f32 newMovementCostToNeighbor = current->GetGCost() + glm::distance(current->GetCenter(), neighbor->GetCenter());
+            if(newMovementCostToNeighbor < neighbor->GetGCost() || open.find(neighbor) == open.end())
+            {
+                neighbor->SetGCost(newMovementCostToNeighbor);
+                neighbor->SetHCost(glm::distance(neighbor->GetCenter(), endTriangle->GetCenter()));
+                neighbor->SetParent(current);
+                open.emplace(neighbor);
+            }
+        }
+    }
+
+    path = ReconstructPath(endTriangle, startTriangle, portals);
+}
+
+f32 TriangleArea2(const v2 &A, const v2 &B, const v2 &C)
+{
+    const f32 ax = B.x - A.x;
+    const f32 ay = B.y - A.y;
+    const f32 bx = C.x - A.x;
+    const f32 by = C.y - A.y;
+    return bx*ay - ax*by;
+}
+
+struct CFunnelLeft
+{
+    v2 pos;
+
+    void operator = (const v2& pos)
+    {
+        this->pos = pos;
+    }
+} funnelLeft;
+
+struct CFunnelRight
+{
+    v2 pos;
+
+    void operator = (const v2& pos)
+    {
+        this->pos = pos;
+    }
+} funnelRight;
+
+struct CFunnelApex
+{
+    v2 pos;
+
+    void operator = (const v2& pos)
+    {
+        this->pos = pos;
+    }
+} funnelApex;
+
+
+std::vector<v2> StringPull(const std::vector<Edge2D> &portals, const v2 &start, const v2 &end)
+{
+    std::vector<v2> path;
+
+    v2 portalApex = start;
+    v2 portalLeft = portals[0].vertices[0];
+    v2 portalRight = portals[0].vertices[1];
+
+    const_cast<std::vector<Edge2D>&>(portals).push_back({end, end});
+    int apexIndex = 0, leftIndex = 0, rightIndex = 0;
+
+    funnelLeft = portalLeft;
+    funnelRight = portalRight;
+    funnelApex = portalApex;
+
+    path.push_back(portalApex);
+
+    for(i32 i = 1; i < portals.size() - 1; i++)
+    {
+        const v2& left = portals[i].vertices[0];
+        const v2& right = portals[i].vertices[1];
+
+        f32 area = TriangleArea2(portalApex, portalRight, right);
+        if(area <= 0.0f)
+        {
+            area = TriangleArea2(portalApex, portalLeft, right);
+            if(portalApex == portalRight ||
+                    area > 0.0f)
+            {
+                portalRight = right;
+                rightIndex = i;
+            }
+            else
+            {
+                path.push_back(portalLeft);
+                apexIndex = leftIndex;
+                portalApex = portalLeft;
+                portalLeft = portalApex;
+                portalRight = portalApex;
+                leftIndex = apexIndex;
+                rightIndex = apexIndex;
+                i = apexIndex;
+                continue;
+            }
+        }
+        area = TriangleArea2(portalApex, portalLeft, left);
+        if(area >= 0.0f)
+        {
+            area = TriangleArea2(portalApex, portalRight, left);
+            if(portalApex == portalLeft ||
+                    area < 0.0f)
+            {
+                portalLeft = left;
+                leftIndex = i;
+            }
+            else
+            {
+                path.push_back(portalRight);
+                apexIndex = rightIndex;
+                portalApex = portalRight;
+                portalLeft = portalApex;
+                portalRight = portalApex;
+                leftIndex = apexIndex;
+                rightIndex = apexIndex;
+                i = apexIndex;
+                continue;
+            }
+        }
+    }
+
+    if(path[path.size() - 1] != end)
+    {
+        path.push_back(end);
+    }
+
+    return path;
+}
+
+
+const Edge2D* GetSharedEdge(const Triangle2D &t1, const Triangle2D &t2)
+{
+    for(const Edge2D& edge : t1.edges)
+    {
+        if(x::Util::ContainsEdge(t2, edge))
+        {
+            return &edge;
+        }
+    }
+    return nullptr;
+}
+
+bool IsOnRight(const v2 &O, const v2 &A, const v2 &B)
+{
+    v2 a = glm::normalize(A - O);
+    v2 b = glm::normalize(B - O);
+
+    return a.x * -b.y + a.y * b.x > 0;
 }
 
 void TriangleNode::AddNeighbor(TriangleNode *neighbor)
@@ -257,7 +481,10 @@ void TriangleNode::SetIndex(u32 i)
     Index = i;
 }
 
-TriangleNode::TriangleNode(const Triangle2D &triangle, u32 index): triangle(triangle), Index(index), circumcenter(v2(0.f)), circumradius(0.f), incenter(v2(0.f))
+TriangleNode::TriangleNode(const Triangle2D &triangle, u32 index) :
+    triangle(triangle), Index(index),
+    circumcenter(v2(0.f)), circumradius(0.f),
+    incenter(v2(0.f)), parent(nullptr), bBlocked(false)
 {
     FindCircumcircle(triangle, circumcenter, circumradius);
     FindIncenter(triangle, incenter);

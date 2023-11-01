@@ -65,4 +65,14 @@ namespace x
             }
         }
     }
+
+    void Game::Save()
+    {
+        CurrentScene->Save();
+    }
+
+    void Game::Load()
+    {
+        CurrentScene->Load();
+    }
 }

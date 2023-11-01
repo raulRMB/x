@@ -1081,7 +1081,12 @@ namespace x
                 vkCmdBindPipeline(CommandBuffers[currentImage], VK_PIPELINE_BIND_POINT_GRAPHICS, LinePipeline);
 
                     auto lineView = Game::GetInstance().GetScene()->GetRegistry().view<CTransform3d, CLineMesh>();
+                    std::vector<entt::entity> entities;
                     for(entt::entity entity : lineView)
+                    {
+                        entities.emplace(entities.begin(), entity);
+                    }
+                    for(entt::entity entity : entities)
                     {
                         CTransform3d transform3d = lineView.get<CTransform3d>(entity);
                         xMesh& mesh = MeshList[lineView.get<CLineMesh>(entity).Id];

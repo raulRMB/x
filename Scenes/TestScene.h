@@ -14,6 +14,8 @@ public:
     void HandleInput(const SDL_Event& event) override;
     void Update(f32 deltaTime) override;
     void Clean() override;
+    void Save() override {};
+    void Load() override {};
 };
 
 

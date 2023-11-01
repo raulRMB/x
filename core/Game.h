@@ -29,6 +29,9 @@ namespace x
 
         void SetScene(SceneId sceneId);
         [[nodiscard]] inline Scene* GetScene() const { return CurrentScene; }
+
+        void Save();
+        void Load();
     };
 }
 

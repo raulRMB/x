@@ -8,6 +8,8 @@
 #include "../core/Scene.h"
 #include "../vendor/entt.hpp"
 #include "SDL2/SDL_events.h"
+#include "util/primitives.h"
+#include "Navigation/Navigation.h"
 
 class MainScene final : public x::Scene
 {
@@ -17,11 +19,19 @@ class MainScene final : public x::Scene
     v2 StartPoint;
     v2 EndPoint;
 
+    std::vector<v2> points;
+
+    std::vector<v2> StringPath;
+    std::vector<Edge2D> Portals = {};
+    std::vector<TriangleNode> Tris = {};
+
 public:
     void Start() override;
     void Update(f32 deltaTime) override;
     void Clean() override;
     void HandleInput(const SDL_Event& event) override;
+    void Save() override;
+    void Load() override;
 };
 
 

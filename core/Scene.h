@@ -24,6 +24,8 @@ namespace x
         virtual void HandleInput(const SDL_Event& event) = 0;
         virtual void Update(f32 deltaTime);
         virtual void Clean() = 0;
+        virtual void Save() = 0;
+        virtual void Load() = 0;
 
     public:
         inline entt::registry& GetRegistry() { return Registry; }
@@ -63,6 +65,7 @@ namespace x
         void AddQueuedComponents(entt::entity entity, const std::bitset<128>& bitset);
 
         void ResolveQueuedEntities();
+
     };
 }
 

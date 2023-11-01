@@ -19,6 +19,8 @@ namespace x
         std::chrono::high_resolution_clock::time_point CurrentTime;
         std::chrono::duration<f32> TotalTime;
         std::chrono::duration<f32> DeltaTime;
+
+        u8 bShowImGui : 1;
     public:
         Engine(const Engine &) = delete;
         Engine &operator=(const Engine &) = delete;
@@ -35,8 +37,10 @@ namespace x
         void Init();
 
         void Update(f32 deltaTime);
-        void Draw();
         void Clean();
+        void Draw();
+        void Save();
+        void Load();
 
     public:
         void CreateMesh(const std::string& path, x::Primitives2D::Shape shape, const v4& color);

@@ -52,6 +52,11 @@ namespace x
         while(Window::Get().bRunning(event))
         {
             Game::GetInstance().HandleInput(event);
+            if(event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_F1)
+            {
+                bShowImGui = !bShowImGui;
+            }
+
             CurrentTime = std::chrono::high_resolution_clock::now();
             DeltaTime = CurrentTime - LastTime;
             LastTime = CurrentTime;
@@ -65,6 +70,19 @@ namespace x
             ImGui_ImplSDL2_ProcessEvent(&event);
             ImGui_ImplSDL2_NewFrame(Window::Get().GetWindow());
             ImGui::NewFrame();
+
+            if(bShowImGui)
+            {
+                if(ImGui::Button("Save"))
+                {
+                    Save();
+                }
+                if(ImGui::Button("Load"))
+                {
+                    Load();
+                }
+            }
+
             Draw();
         }
 
@@ -99,5 +117,15 @@ namespace x
     void Engine::CreateMesh(const std::string& path, x::Primitives2D::Shape shape, const v4& color)
     {
         x::Renderer::Get().CreateMesh(path, shape, color);
+    }
+
+    void Engine::Save()
+    {
+        Game::GetInstance().Save();
+    }
+
+    void Engine::Load()
+    {
+        Game::GetInstance().Load();
     }
 }
