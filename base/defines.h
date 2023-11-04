@@ -13,6 +13,7 @@
 //#define X_WINDOWING_API_GLFW 1
 
 #include <glm/glm.hpp>
+#include <glm/gtx/quaternion.hpp>
 
 typedef uint8_t u8;
 typedef uint16_t u16;
@@ -36,5 +37,11 @@ typedef glm::vec4 v4;
 typedef glm::mat2 m2;
 typedef glm::mat3 m3;
 typedef glm::mat4 m4;
+
+typedef glm::quat q4;
+
+typedef glm::ivec2 iv2;
+typedef glm::ivec3 iv3;
+typedef glm::ivec4 iv4;
 
 #endif // R_DEFINES_H

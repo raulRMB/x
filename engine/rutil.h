@@ -24,7 +24,15 @@ namespace x::RenderUtil
         v3 Pos;
         v4 Col;
         v2 Tex;
-//        v3 Nrm;
+    };
+
+    struct SkeletalVertex
+    {
+        v3 Pos;
+        v4 Col;
+        v2 Tex;
+        iv4 BoneIds;
+        v4 BoneWeights = v4(0.0f);
     };
 
     const std::vector<const char*> DeviceExtensions = {

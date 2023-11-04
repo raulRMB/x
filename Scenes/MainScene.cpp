@@ -13,6 +13,7 @@
 #include "util/Util.h"
 #include "Navigation/Navigation.h"
 #include "Components/FollowComponent.h"
+#include "Components/SkeletalMeshComponent.h"
 #include <glm/gtc/constants.hpp>
 #include <thread>
 #include <fstream>
@@ -30,12 +31,20 @@ void MainScene::Start()
 
     entt::entity e = CreateEntity();
     CTransform3d transform{};
+    transform.WorldPosition = {250.0f, 0.0f, -250.0f};
+    transform.WorldRotation = {glm::radians(180.f), 0.f, 0.0f};
+    transform.WorldScale = v3(.1f);
+    AddComponent(e, transform);
+    x::Renderer::Get().CreateSkeletalMesh("../models/Lucha.fbx");
+    AddComponent(e, CSkeletalMesh(0));
+    Entities.push_back(e);
+
+    e = CreateEntity();
     transform.WorldPosition = {0.0f, 0.0f, 0.0f};
     transform.WorldRotation = {glm::radians(180.f), 0.f, 0.0f};
     transform.WorldScale = v3(.1f);
     AddComponent(e, transform);
-    CTriangleMesh x{x::Renderer::Get().CreateMeshModel("../models/map.obj")};
-    AddComponent(e, x);
+    AddComponent(e, CTriangleMesh(x::Renderer::Get().CreateMeshModel("../models/map.obj")));
     Entities.push_back(e);
 
     SDL_SetWindowMouseGrab(x::Window::Get().GetWindow(), SDL_TRUE);
@@ -70,7 +79,6 @@ void MainScene::Update(f32 deltaTime)
         CameraSystem::Get().AddMainCameraPosition(v3(0.0f, 0.0f, speed) * deltaTime);
     }
 
-
     for(entt::entity entity : FollowEntities)
     {
         v2& targetPos = Registry.get<CFollow>(entity).TargetPos;
@@ -97,6 +105,14 @@ void MainScene::Update(f32 deltaTime)
                 targetPos = StringPath[follow.index];
             }
         }
+    }
+
+    auto view = Registry.view<CTransform3d, CSkeletalMesh>();
+    for(entt::entity entity : view)
+    {
+        CSkeletalMesh& skeletalMeshComp = Registry.get<CSkeletalMesh>(entity);
+        SkeletalMesh skeletalMesh = x::Renderer::Get().GetSkeletalMesh(skeletalMeshComp.Id);
+        SkeletalMesh::GetPose(skeletalMesh.GetAnimation(), skeletalMesh.GetRootBone(), deltaTime, skeletalMesh.GetCurrentPose(), m4(1.f), skeletalMesh);
     }
 }
 
@@ -144,24 +160,6 @@ void MainScene::HandleInput(const SDL_Event &event)
             Portals.clear();
 
             follow.TargetPos = StringPath[follow.index];
-
-//            for (TriangleNode *node: path)
-//            {
-//                const Triangle2D &triangle = node->GetTriangle();
-//                e = CreateEntity();
-//                AddComponent(e, CTransform3d());
-//                AddComponent(e, CLineMesh(x::Renderer::Get().CreateTriangle(triangle.vertices[0], triangle.vertices[1],
-//                                                                            triangle.vertices[2], x::Color::Green)));
-//            }
-//
-//            for (i32 i = 0; i < StringPath.size() - 1; i++)
-//            {
-//                e = CreateEntity();
-//                v3 p1 = {StringPath[i].x, 0.0f, StringPath[i].y};
-//                v3 p2 = {StringPath[i + 1].x, 0.0f, StringPath[i + 1].y};
-//                AddComponent(e, CTransform3d());
-//                AddComponent(e, CLineMesh(x::Renderer::Get().CreateLine(p1, p2, x::Color::Cyan)));
-//            }
         }
     }
     else if(event.type == SDL_KEYDOWN)

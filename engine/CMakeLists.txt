@@ -35,6 +35,7 @@ set (SOURCES
         ../Navigation/Navigation.h
         ../Navigation/Navigation.cpp
         ../Components/FollowComponent.h
+        ../Components/SkeletalMeshComponent.h
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})

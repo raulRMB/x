@@ -39,6 +39,7 @@ private:
     VkPhysicalDevice PhysicalDevice;
     VkDevice Device;
 
+protected:
     VkBuffer CreateVertexBuffer(VkQueue transferQueue, VkCommandPool transferCommandPool,
                                 const std::vector<x::RenderUtil::Vertex>& vertices);
     VkBuffer CreateIndexBuffer(VkQueue transferQueue, VkCommandPool transferCommandPool,

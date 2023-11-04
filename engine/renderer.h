@@ -23,6 +23,7 @@
 #include "util/primitives.h"
 
 #include "vendor/imgui/imgui.h"
+#include "core/SkeletalMesh.h"
 
 namespace x
 {
@@ -35,6 +36,8 @@ namespace x
 
         u32 CreateTriangle(v2 vec1, v2 vec2, v2 vec3, glm::vec4 vec4);
 
+        SkeletalMesh& GetSkeletalMesh(u32 id);
+
     private:
         friend class Engine;
 
@@ -44,6 +47,7 @@ namespace x
 
         std::vector<xMesh> MeshList;
         std::vector<MeshModel> ModelList;
+        std::vector<SkeletalMesh> SkeletalMeshList;
 
         struct
         {
@@ -105,6 +109,11 @@ namespace x
         VkPipeline GraphicsPipeline;
         VkPipeline LinePipeline;
 
+        VkPipelineLayout SkeletalPipelineLayout;
+        VkPipeline SkeletalPipeline;
+
+//        VkPushConstantRange SkeletalPushConstantRange;
+
         VkCommandPool GraphicsCommandPool;
 
         std::vector<VkSemaphore> ImageAvailableSemaphores;
@@ -113,7 +122,7 @@ namespace x
         std::vector<VkFence> DrawFences;
 
         const std::vector<const char *> ValidationLayers = {
-                "VK_LAYER_KHRONOS_validation"
+            "VK_LAYER_KHRONOS_validation"
         };
 
 #ifdef NDEBUG
@@ -131,7 +140,6 @@ namespace x
         i32 Init();
 
         void UpdateModel(u32 modelId, glm::mat4 newModel);
-        void UpdateMesh(u32 meshId, glm::mat4 newModel);
 
         void DrawFrame();
 
@@ -157,6 +165,7 @@ namespace x
         void CreatePipelineLayout();
 
         void CreatePipeline(VkPipeline &pipeline, VkBool32 depthTestEnable = VK_TRUE, VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+        void CreateSkeletalPipeline();
 
         void CreateRenderPass();
 
@@ -241,6 +250,8 @@ namespace x
                         const v4& color = {1.f, 1.f, 1.f, 1.f});
         u32 CreateMeshModel(const std::string& fileName);
 
+        void CreateSkeletalMesh(const std::string& fileName);
+
         u32 CreateLine(const v3& start, const v3& end, const v4& color = {1.f, 1.f, 1.f, 1.f});
 
         const UBOViewProjection& GetUBOViewProjection() { return UboViewProjection; }
@@ -248,6 +259,8 @@ namespace x
         glm::mat4 GetViewProjectionInverse();
     private:
         void InitImGui();
+
+        void CreateSkeletalPipelineLayout();
     };
 }
 

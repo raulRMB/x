@@ -13,6 +13,8 @@ add_library(${PROJECT_NAME}
     Camera.h Camera.cpp
     MeshModel.cpp
     MeshModel.h
+        SkeletalMesh.cpp
+        SkeletalMesh.h
 )
 
 set (ASSIMP_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../vendor/assimp)
