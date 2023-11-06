@@ -107,13 +107,13 @@ void MainScene::Update(f32 deltaTime)
         }
     }
 
-    auto view = Registry.view<CTransform3d, CSkeletalMesh>();
-    for(entt::entity entity : view)
-    {
-        CSkeletalMesh& skeletalMeshComp = Registry.get<CSkeletalMesh>(entity);
-        SkeletalMesh skeletalMesh = x::Renderer::Get().GetSkeletalMesh(skeletalMeshComp.Id);
-        SkeletalMesh::GetPose(skeletalMesh.GetAnimation(), skeletalMesh.GetRootBone(), deltaTime, skeletalMesh.GetCurrentPose(), m4(1.f), skeletalMesh);
-    }
+//    auto view = Registry.view<CTransform3d, CSkeletalMesh>();
+//    for(entt::entity entity : view)
+//    {
+//        CSkeletalMesh& skeletalMeshComp = Registry.get<CSkeletalMesh>(entity);
+//        SkeletalMesh skeletalMesh = x::Renderer::Get().GetSkeletalMesh(skeletalMeshComp.Id);
+//        SkeletalMesh::GetPose(skeletalMesh.GetAnimation(), skeletalMesh.GetRootBone(), deltaTime, skeletalMesh.GetCurrentPose(), skeletalMesh.GetRootBone().OffsetMatrix, skeletalMesh.GetRootBone().OffsetMatrix);
+//    }
 }
 
 void MainScene::Clean()

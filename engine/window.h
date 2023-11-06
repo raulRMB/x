@@ -21,26 +21,12 @@ namespace x
     private:
         friend class Engine;
 
-#ifdef X_WINDOWING_API_GLFW
-        class GLFWwindow* GLFWWindow;
-#endif
-
-#ifdef X_WINDOWING_API_SDL
         class SDL_Window *SDLWindow;
         class SDL_Renderer *SDLRenderer;
-#endif
 
     public:
-#ifdef X_WINDOWING_API_GLFW
-        [[nodiscard]] GLFWwindow* GetWindow() const { return GLFWWindow; }
-#endif
-
-#ifdef X_WINDOWING_API_SDL
-
         [[nodiscard]] SDL_Window *GetWindow() const
         { return SDLWindow; }
-
-#endif
 
     private:
         Window();
@@ -58,12 +44,6 @@ namespace x
         bool bSDLRunning(SDL_Event &event);
 
         void CleanSDL();
-
-        i32 InitGLWF();
-
-        bool bGLFWRunning();
-
-        void CleanGLFW();
 
         void SetFPS(int i);
     };

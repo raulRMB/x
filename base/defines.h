@@ -10,7 +10,6 @@
 #define WINDOW_TITLE "x"
 
 #define X_WINDOWING_API_SDL 1
-//#define X_WINDOWING_API_GLFW 1
 
 #include <glm/glm.hpp>
 #include <glm/gtx/quaternion.hpp>

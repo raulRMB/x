@@ -54,7 +54,6 @@ target_sources(${PROJECT_NAME} PUBLIC
 target_include_directories(${PROJECT_NAME} PUBLIC
         base util core
         SDL2::SDL2
-        glfw
         glm
         Vulkan::Vulkan
         ${VENDOR_DIR}/assimp/include
@@ -63,4 +62,4 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 )
 
 target_link_directories(${PROJECT_NAME} PRIVATE ${VENDOR_DIR}/assimp/lib ${VENDOR_DIR}/enet enet)
-target_link_libraries(${PROJECT_NAME} PUBLIC base util core SDL2::SDL2 glfw glm Vulkan::Vulkan ${VENDOR_DIR}/enet/enet64.lib enet)
+target_link_libraries(${PROJECT_NAME} PUBLIC base util core SDL2::SDL2 glm Vulkan::Vulkan ${VENDOR_DIR}/enet/enet64.lib enet)
