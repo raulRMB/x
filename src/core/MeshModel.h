@@ -1,7 +1,3 @@
-//
-// Created by Raul Romero on 2023-10-13.
-//
-
 #ifndef X_MESH_MODEL_H
 #define X_MESH_MODEL_H
 

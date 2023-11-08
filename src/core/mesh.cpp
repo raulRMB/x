@@ -1,10 +1,5 @@
-//
-// Created by Raul Romero on 2023-09-30.
-//
-
 #include <stdexcept>
 #include "mesh.h"
-
 
 xMesh::xMesh(const std::vector<x::RenderUtil::Vertex>& vertices, const std::vector<u32>& indices, i32 textureId, VkQueue transferQueue,
              VkCommandPool transferComandPool, VkPhysicalDevice physicalDevice, VkDevice device)

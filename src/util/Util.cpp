@@ -1,7 +1,3 @@
-//
-// Created by Raul Romero on 2023-10-25.
-//
-
 #include "Util.h"
 #include "../util/primitives.h"
 

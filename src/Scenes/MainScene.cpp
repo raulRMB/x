@@ -1,7 +1,3 @@
-//
-// Created by Raul Romero on 2023-10-11.
-//
-
 #include "MainScene.h"
 #include "../Components/TransformComponent.h"
 #include "../Components/MeshComponent.h"
@@ -254,7 +250,7 @@ void MainScene::Save()
 void MainScene::Load()
 {
     std::ifstream file;
-    file.open("../assets/save.txt");
+    file.open("assets/save.txt");
     if(file.is_open())
     {
         std::string line;

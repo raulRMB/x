@@ -1,7 +1,3 @@
-//
-// Created by Raul Romero on 2023-10-11.
-//
-
 #ifndef X_TRANSFORM_COMPONENT_H
 #define X_TRANSFORM_COMPONENT_H
 

@@ -1,7 +1,3 @@
-//
-// Created by Raul Romero on 2023-09-23.
-//
-
 #include "window.h"
 
 namespace x

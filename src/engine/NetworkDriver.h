@@ -1,7 +1,3 @@
-//
-// Created by Raul Romero on 2023-10-17.
-//
-
 #ifndef X_NETWORK_DRIVER_H
 #define X_NETWORK_DRIVER_H
 

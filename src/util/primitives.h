@@ -1,7 +1,3 @@
-//
-// Created by Raul Romero on 2023-10-07.
-//
-
 #ifndef X_PRIMITIVES_H
 #define X_PRIMITIVES_H
 

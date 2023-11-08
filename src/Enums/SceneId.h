@@ -1,7 +1,3 @@
-//
-// Created by Raul Romero on 2023-10-11.
-//
-
 #ifndef X_SCENEID_H
 #define X_SCENEID_H
 

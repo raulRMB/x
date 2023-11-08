@@ -1,7 +1,3 @@
-//
-// Created by Raul Romero on 2023-09-22.
-//
-
 #include <cstring>
 #include <iostream>
 #include <limits>

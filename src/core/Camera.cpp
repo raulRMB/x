@@ -1,7 +1,3 @@
-//
-// Created by Raul Romero on 2023-10-12.
-//
-
 #include "Camera.h"
 #include "Game.h"
 #include "../Components/TransformComponent.h"

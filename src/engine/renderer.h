@@ -1,7 +1,3 @@
-//
-// Created by Raul Romero on 2023-09-22.
-//
-
 #ifndef X_RENDERER_H
 #define X_RENDERER_H
 

@@ -1,7 +1,3 @@
-//
-// Created by Raul Romero on 2023-10-17.
-//
-
 #include "NetworkDriver.h"
 #include "../Components/NetworkComponent.h"
 #include "../Components/TransformComponent.h"

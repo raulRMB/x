@@ -1,7 +1,3 @@
-//
-// Created by Raul Romero on 2023-09-23.
-//
-
 #include "engine.h"
 #include "SDL_events.h"
 

@@ -1,7 +1,3 @@
-//
-// Created by Raul Romero on 2023-10-19.
-//
-
 #ifndef X_NET_EVENT_H
 #define X_NET_EVENT_H
 

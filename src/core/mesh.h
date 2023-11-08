@@ -1,7 +1,3 @@
-//
-// Created by Raul Romero on 2023-09-30.
-//
-
 #ifndef X_MESH_COMPONENT_H
 #define X_MESH_COMPONENT_H
 

@@ -1,7 +1,3 @@
-//
-// Created by Raul Romero on 2023-10-25.
-//
-
 #ifndef X_NAVIGATION_H
 #define X_NAVIGATION_H
 

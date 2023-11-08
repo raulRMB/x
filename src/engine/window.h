@@ -1,7 +1,3 @@
-//
-// Created by Raul Romero on 2023-09-23.
-//
-
 #ifndef R_WINDOW_H
 #define R_WINDOW_H
 

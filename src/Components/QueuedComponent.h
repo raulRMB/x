@@ -1,7 +1,3 @@
-//
-// Created by Raul Romero on 2023-10-20.
-//
-
 #ifndef X_QUEUED_COMPONENT_H
 #define X_QUEUED_COMPONENT_H
 

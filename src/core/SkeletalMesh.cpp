@@ -1,7 +1,3 @@
-//
-// Created by Raul Romero on 2023-11-01.
-//
-
 #include "SkeletalMesh.h"
 #include "MeshModel.h"
 #include <glm/gtx/quaternion.hpp>

@@ -1,7 +1,3 @@
-//
-// Created by Raul Romero on 2023-11-01.
-//
-
 #ifndef X_SKELETAL_MESH_H
 #define X_SKELETAL_MESH_H
 

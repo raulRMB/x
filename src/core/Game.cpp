@@ -1,7 +1,3 @@
-//
-// Created by Raul Romero on 2023-10-11.
-//
-
 #include "Game.h"
 #include "Scene.h"
 #include "../Scenes/TestScene.h"

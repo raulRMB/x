@@ -1,7 +1,3 @@
-//
-// Created by Raul Romero on 2023-10-13.
-//
-
 #include "MeshModel.h"
 #include "../util/primitives.h"
 #include <assimp/scene.h>
