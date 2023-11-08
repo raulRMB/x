@@ -1,7 +1,7 @@
 add_executable(${PROJECT_NAME})
 
 set (SOURCES 
-    base/defines.h base/base.c
+    base/defines.h
     engine/main.cpp
     engine/renderer.h Engine/renderer.cpp
     engine/window.h Engine/window.cpp
