@@ -49,6 +49,11 @@ namespace x
         LastTime = std::chrono::high_resolution_clock::now();
         SDL_Event event;
 
+        // FPS
+        int frameCount = 0;
+        int fps = 0;
+        auto startTime = std::chrono::high_resolution_clock::now();
+
         while(Window::Get().bRunning(event))
         {
             Game::GetInstance().HandleInput(event);
@@ -58,6 +63,16 @@ namespace x
             }
 
             CurrentTime = std::chrono::high_resolution_clock::now();
+
+            // FPS
+            frameCount++;
+            auto dt = std::chrono::duration_cast<std::chrono::seconds>(CurrentTime - startTime).count();
+            if (dt >= 1) {
+                fps = frameCount / dt;
+                frameCount = 0;
+                startTime = CurrentTime;
+            }
+            
             DeltaTime = CurrentTime - LastTime;
             LastTime = CurrentTime;
             TotalTime += DeltaTime;
@@ -73,6 +88,7 @@ namespace x
 
             if(bShowImGui)
             {
+                ImGui::Text("FPS: %d", fps);
                 if(ImGui::Button("Save"))
                 {
                     Save();
