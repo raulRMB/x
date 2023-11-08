@@ -72,7 +72,7 @@ i32 Renderer::Init()
     try
     {
         CreateInstance();
-        //SetupDebugMessenger();
+        SetupDebugMessenger();
         CreateSurface();
         GetPhysicalDevice();
         CreateLogicalDevice();
@@ -180,7 +180,8 @@ void Renderer::CreateInstance()
         extensions[0] = "VK_KHR_surface";
         extensions[1] = "VK_EXT_metal_surface";
         extensions[2] = "VK_KHR_portability_enumeration";
-        instanceCreateInfo.enabledExtensionCount = 3;
+        extensions[3] = "VK_EXT_debug_utils";
+        instanceCreateInfo.enabledExtensionCount = 4;
         instanceCreateInfo.ppEnabledExtensionNames = extensions;
     #endif
 
@@ -553,6 +554,7 @@ void Renderer::SetupDebugMessenger()
 
     if (VkResult result = CreateDebugUtilsMessengerEXT(Instance, &debugUtilsMessengerCreateInfoExt, nullptr, &DebugMessenger); result != VK_SUCCESS)
     {
+        printf("failed to set up debug messenger! %d", (int)result);
         throw std::runtime_error("failed to set up debug messenger!");
     }
 }
