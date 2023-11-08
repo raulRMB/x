@@ -85,7 +85,6 @@ class SkeletalMesh
     VkPhysicalDevice PhysicalDevice = VK_NULL_HANDLE;
 
     void CalculateGlobalInverseTransform(const aiScene* scene);
-    m4& GetGlobalInverseTransform() { return GlobalInverseTransform; }
 
     static SkeletalAnimation LoadAnimation(const aiScene* scene);
 
@@ -115,6 +114,8 @@ public:
     inline SkeletalAnimation& GetAnimation() { return Animation; }
     inline Bone& GetRootBone() { return RootBone; }
     inline std::vector<m4>& GetCurrentPose() { return CurrentPose; }
+
+    m4& GetGlobalInverseTransform() { return GlobalInverseTransform; }
 
     static void GetPose(SkeletalAnimation& animation, Bone& skeleton, f32 animationTime, std::vector<m4>& outPose, m4& parentTransform, m4& globalInverseTransform);
 };

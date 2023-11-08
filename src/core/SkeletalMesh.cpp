@@ -247,6 +247,9 @@ SkeletalMesh::SkeletalMesh(const std::vector<x::RenderUtil::SkeletalVertex> &ver
 
 std::pair<u32, f32> SkeletalMesh::GetTimeFraction(const std::vector<f32>& timeStamps, f32 animationTime)
 {
+    if(timeStamps.empty())
+        return std::make_pair(0, 0.0f);
+
     u32 segment = 0;
     while(animationTime > timeStamps[segment])
     {
@@ -263,15 +266,22 @@ void SkeletalMesh::GetPose(SkeletalAnimation &animation, Bone &skeleton, f32 ani
 {
     BoneTransformTrack& track = animation.BoneTransformTracks[skeleton.Name];
     animationTime = (f32)fmod(animationTime, animation.Duration);
+    v3 position = v3(0.f);
+    v3 scale = v3(1.f);
+    q4 rotation = glm::identity<q4>();
+    if(!track.Positions.empty() && !track.Rotations.empty() && !track.Scales.empty())
+    {
+        std::pair<u32, f32> timeFraction = GetTimeFraction(track.PositionTimeStamps, animationTime);
+        position = glm::mix(track.Positions[timeFraction.first], track.Positions[timeFraction.first],
+                               timeFraction.second);
 
-    std::pair<u32, f32> timeFraction = GetTimeFraction(track.PositionTimeStamps, animationTime);
-    v3 position = glm::mix(track.Positions[timeFraction.first - 1], track.Positions[timeFraction.first], timeFraction.second);
+        timeFraction = GetTimeFraction(track.RotationTimeStamps, animationTime);
+        rotation = glm::slerp(track.Rotations[timeFraction.first], track.Rotations[timeFraction.first],
+                                        timeFraction.second);
 
-    timeFraction = GetTimeFraction(track.RotationTimeStamps, animationTime);
-    glm::quat rotation = glm::slerp(track.Rotations[timeFraction.first - 1], track.Rotations[timeFraction.first], timeFraction.second);
-
-    timeFraction = GetTimeFraction(track.ScaleTimeStamps, animationTime);
-    v3 scale = glm::mix(track.Scales[timeFraction.first - 1], track.Scales[timeFraction.first], timeFraction.second);
+        timeFraction = GetTimeFraction(track.ScaleTimeStamps, animationTime);
+        scale = glm::mix(track.Scales[timeFraction.first], track.Scales[timeFraction.first], timeFraction.second);
+    }
 
     m4 localTransform = glm::translate(m4(1.0f), position) * glm::toMat4(rotation) * glm::scale(m4(1.0f), scale);
     m4 globalTransform = parentTransform * localTransform;
