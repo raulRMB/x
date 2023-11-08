@@ -1,0 +1,1 @@
+add_library(entt INTERFACE entt.hpp)
