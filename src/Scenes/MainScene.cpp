@@ -201,13 +201,40 @@ void MainScene::HandleInput(const SDL_Event &event)
                 }
             }
         }
+        if(event.key.keysym.sym == SDLK_z)
+        {
+            v3 start = CameraSystem::Get().GetMainCameraPosition();
+            v3 end = x::RenderUtil::GetMouseWorldPosition();
+            v3 p = x::Util::Intersect(v3(0.0f), v3(0.0f, 1.0f, 0.0f), start, end - start);
+
+            auto e = CreateEntity();
+            CTransform3d transform{};
+            transform.WorldPosition = p;
+            transform.WorldRotation = {90.f, 0.f, 0.0f};
+            transform.WorldScale = v3(2.0f);
+            AddComponent(e, transform);
+            AddComponent(e, CLineMesh(1));
+            points.emplace_back(p.x, p.z);
+            Entities.push_back(e);
+        }
+        if(event.key.keysym.sym == SDLK_x)
+        {
+            for(const TriangleNode& graphTriangle : Tris)
+            {
+                auto e = CreateEntity();
+                AddComponent(e, CTransform3d());
+                const Triangle2D& triangle = graphTriangle.GetTriangle();
+                AddComponent(e, CLineMesh(x::Renderer::Get().CreateTriangle(triangle.vertices[0], triangle.vertices[1], triangle.vertices[2], graphTriangle.IsBlocked() ? x::Color::Red : x::Color::White)));
+                CTransform3d transform{};
+            }
+        }
     }
 }
 
 void MainScene::Save()
 {
     std::ofstream file;
-    file.open("save.txt");
+    file.open("../assets/save.txt");
     for(const v2& point : points)
     {
         file << point.x << " " << point.y << "\n";
@@ -227,7 +254,7 @@ void MainScene::Save()
 void MainScene::Load()
 {
     std::ifstream file;
-    file.open("save.txt");
+    file.open("../assets/save.txt");
     if(file.is_open())
     {
         std::string line;
@@ -252,14 +279,16 @@ void MainScene::Load()
 
         file.close();
 
-//        x::Scene* s = x::Game::GetInstance().GetScene();
-//        for(const TriangleNode& graphTriangle : Tris)
-//        {
-//            auto e = s->CreateEntity();
-//            s->AddComponent(e, CTransform3d());
-//            const Triangle2D& triangle = graphTriangle.GetTriangle();
-//            s->AddComponent(e, CLineMesh(x::Renderer::Get().CreateTriangle(triangle.vertices[0], triangle.vertices[1], triangle.vertices[2], graphTriangle.IsBlocked() ? x::Color::Red : x::Color::White)));
-//            CTransform3d transform{};
-//        }
+        for(const TriangleNode& graphTriangle : Tris)
+        {
+            auto e = CreateEntity();
+            AddComponent(e, CTransform3d());
+            const Triangle2D& triangle = graphTriangle.GetTriangle();
+            if(graphTriangle.IsBlocked())
+            {
+                AddComponent(e, CLineMesh(x::Renderer::Get().CreateTriangle(triangle.vertices[0], triangle.vertices[1], triangle.vertices[2], x::Color::Red)));
+            }
+            CTransform3d transform{};
+        }
     }
 }
