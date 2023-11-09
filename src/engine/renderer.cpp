@@ -1512,7 +1512,7 @@ void Renderer::CreateUniformBuffers()
     VPUniformBuffers.resize(SwapchainImages.size());
     VPUniformBuffersMemory.resize(SwapchainImages.size());
 
-    VkDeviceSize boneBufferSize = BoneUniformAlignment * x::RenderUtil::MAX_OBJECTS;
+    VkDeviceSize boneBufferSize = BoneUniformAlignment;
 
     BoneDUniformBuffers.resize(SwapchainImages.size());
     BoneDUniformBuffersMemory.resize(SwapchainImages.size());
@@ -1569,7 +1569,7 @@ void Renderer::CreateDescriptorPool()
 
     VkDescriptorPoolCreateInfo bonePoolCreateInfo{};
     bonePoolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-    bonePoolCreateInfo.maxSets = x::RenderUtil::MAX_OBJECTS;
+    bonePoolCreateInfo.maxSets = (u32)SwapchainImages.size();
     bonePoolCreateInfo.poolSizeCount = 1;
     bonePoolCreateInfo.pPoolSizes = &bonePoolSize;
 
@@ -2110,8 +2110,7 @@ SkeletalMesh& Renderer::GetSkeletalMesh(u32 id)
 
 void Renderer::AllocateDynamicBufferTransferSpace()
 {
-    u32 size = (u32)sizeof(BoneTransforms);
-    BoneUniformAlignment = (size + MinUniformBufferOffset - 1) & ~(MinUniformBufferOffset - 1);
+    BoneUniformAlignment = ((u32)sizeof(BoneTransforms) + MinUniformBufferOffset - 1) & ~(MinUniformBufferOffset - 1);
 #ifdef WIN32
     BoneTransferSpace = (BoneTransforms*)_aligned_malloc(BoneUniformAlignment, MinUniformBufferOffset);
 #else
