@@ -1569,7 +1569,7 @@ void Renderer::CreateDescriptorPool()
 
     VkDescriptorPoolCreateInfo bonePoolCreateInfo{};
     bonePoolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-    bonePoolCreateInfo.maxSets = (u32)SwapchainImages.size();
+    bonePoolCreateInfo.maxSets = x::RenderUtil::MAX_OBJECTS;
     bonePoolCreateInfo.poolSizeCount = 1;
     bonePoolCreateInfo.pPoolSizes = &bonePoolSize;
 
@@ -1659,7 +1659,6 @@ void Renderer::UpdateUniformBuffers(u32 imageIndex)
         BoneTransforms* bones = (BoneTransforms*)((u64)BoneTransferSpace + (i * BoneUniformAlignment));
         for(size_t j = 0; j < SkeletalMeshList[i].GetBoneCount(); j++)
         {
-            m4 boneTransform = SkeletalMeshList[i].GetCurrentPose()[j];
             bones->Bones[j] = SkeletalMeshList[i].GetCurrentPose()[j];
         }
     }
@@ -2109,14 +2108,24 @@ SkeletalMesh& Renderer::GetSkeletalMesh(u32 id)
     return SkeletalMeshList[id];
 }
 
+u32 findClosestPowerOf2(u32 x)
+{
+    u32 result = 1;
+    while (result < x)
+    {
+        result <<= 1;
+    }
+    return result;
+}
+
 void Renderer::AllocateDynamicBufferTransferSpace()
 {
     u32 size = (u32)sizeof(BoneTransforms);
     BoneUniformAlignment = (size + MinUniformBufferOffset - 1) & ~(MinUniformBufferOffset - 1);
 #ifdef WIN32
-    BoneTransferSpace = (BoneTransforms*)_aligned_malloc(BoneUniformAlignment, 8192);
+    BoneTransferSpace = (BoneTransforms*)_aligned_malloc(BoneUniformAlignment, findClosestPowerOf2(BoneUniformAlignment));
 #else
-    BoneTransferSpace = (BoneTransforms*)aligned_alloc(BoneUniformAlignment, 8192);
+    BoneTransferSpace = (BoneTransforms*)aligned_alloc(BoneUniformAlignment, findClosestPowerOf2(BoneUniformAlignment));
 #endif
 }
 }

@@ -27,9 +27,9 @@ void MainScene::Start()
 
     entt::entity e = CreateEntity();
     CTransform3d transform{};
-//    transform.WorldPosition = {250.0f, 0.0f, -250.0f};
-//    transform.WorldRotation = {glm::radians(180.f), 0.f, 0.0f};
-//    transform.WorldScale = v3(.1f);
+    transform.WorldPosition = {250.0f, 0.0f, -250.0f};
+    transform.WorldRotation = {glm::radians(180.f), 0.f, 0.0f};
+    transform.WorldScale = v3(.1f);
     AddComponent(e, transform);
     x::Renderer::Get().CreateSkeletalMesh("../assets/models/block.fbx");
     AddComponent(e, CSkeletalMesh(0));
