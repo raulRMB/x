@@ -247,7 +247,20 @@ void Renderer::CreateLogicalDevice()
     deviceCreateInfo.queueCreateInfoCount = (u32)queueCreateInfos.size();
     deviceCreateInfo.pQueueCreateInfos = queueCreateInfos.data();
     deviceCreateInfo.enabledExtensionCount = (u32)x::RenderUtil::DeviceExtensions.size();
+    
+    #ifdef __APPLE__
+    const char* const* currentExtensions = x::RenderUtil::DeviceExtensions.data();
+    uint32_t currentExtensionCount = static_cast<uint32_t>(x::RenderUtil::DeviceExtensions.size());
+    const char** newExtensions = new const char*[currentExtensionCount + 1];
+    for (uint32_t i = 0; i < currentExtensionCount; ++i) {
+        newExtensions[i] = currentExtensions[i];
+    }
+    newExtensions[currentExtensionCount] = "VK_KHR_portability_subset";
+    deviceCreateInfo.ppEnabledExtensionNames = newExtensions;
+    deviceCreateInfo.enabledExtensionCount = currentExtensionCount + 1;
+    #else
     deviceCreateInfo.ppEnabledExtensionNames = x::RenderUtil::DeviceExtensions.data();
+    #endif
 
     VkPhysicalDeviceFeatures deviceFeatures = {};
     deviceFeatures.samplerAnisotropy = VK_TRUE;
