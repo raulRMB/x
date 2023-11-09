@@ -1,5 +1,9 @@
 #include "Scene.h"
 #include "../Components/MeshComponent.h"
+#include "imgui.h"
+#include "../engine/engine.h"
+
+x::Scene::Scene() : bShowUI(false){}
 
 void x::Scene::Update(f32 deltaTime)
 {

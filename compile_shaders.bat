@@ -1,4 +1,4 @@
-set sourceDir=.\shaders
+set sourceDir=.\assets\shaders
 set validatorDir=C:\VulkanSDK\1.3.236.0\Bin
 
 %validatorDir%\glslangValidator.exe -V %sourceDir%\shader.vert -o %sourceDir%\vert.spv

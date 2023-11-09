@@ -41,9 +41,9 @@ Renderer::Renderer() :
     TextureSampler(VK_NULL_HANDLE),
     SamplerSetLayout(VK_NULL_HANDLE),
     SamplerDescriptorPool(VK_NULL_HANDLE),
-//        ModelUniformAlignment(0),
-//        ModelTransferSpace(VK_NULL_HANDLE),
-//        MinUniformBufferOffset(0),
+    BoneUniformAlignment(0),
+    BoneTransferSpace(VK_NULL_HANDLE),
+    MinUniformBufferOffset(0),
     DepthBufferImageFormat(VK_FORMAT_UNDEFINED),
     DepthBufferImage(VK_NULL_HANDLE),
     DepthBufferImageMemory(VK_NULL_HANDLE),
@@ -86,7 +86,7 @@ i32 Renderer::Init()
         CreateGraphicsCommandPool();
         CreateCommandBuffers();
         CreateTextureSampler();
-//        AllocateDynamicBufferTransferSpace();
+        AllocateDynamicBufferTransferSpace();
         CreateUniformBuffers();
         CreateDescriptorPool();
         CreateDescriptorSets();
@@ -218,7 +218,7 @@ void Renderer::GetPhysicalDevice()
     vkGetPhysicalDeviceProperties(MainDevice.PhysicalDevice, &deviceProperties);
 
     printf("Using GPU: %s\n", deviceProperties.deviceName);
-//    MinUniformBufferOffset = deviceProperties.limits.minUniformBufferOffsetAlignment;
+    MinUniformBufferOffset = deviceProperties.limits.minUniformBufferOffsetAlignment;
 }
 
 void Renderer::CreateLogicalDevice()
@@ -648,7 +648,7 @@ void Renderer::Clean()
     vkDestroyDescriptorPool(MainDevice.LogicalDevice, ImguiPool, nullptr);
     ImGui_ImplVulkan_Shutdown();
 
-//    _aligned_free(ModelTransferSpace);
+    _aligned_free(BoneTransferSpace);
 
     for(auto& model : ModelList)
     {
@@ -672,14 +672,17 @@ void Renderer::Clean()
     vkFreeMemory(MainDevice.LogicalDevice, DepthBufferImageMemory, nullptr);
 
     vkDestroyDescriptorPool(MainDevice.LogicalDevice, DescriptorPool, nullptr);
+    vkDestroyDescriptorPool(MainDevice.LogicalDevice, BoneDescriptorPool, nullptr);
+
     vkDestroyDescriptorSetLayout(MainDevice.LogicalDevice, DescriptorSetLayout, nullptr);
+    vkDestroyDescriptorSetLayout(MainDevice.LogicalDevice, BoneDescriptorSetLayout, nullptr);
 
     for(size_t i = 0; i < SwapchainImages.size(); i++)
     {
         vkDestroyBuffer(MainDevice.LogicalDevice, VPUniformBuffers[i], nullptr);
         vkFreeMemory(MainDevice.LogicalDevice, VPUniformBuffersMemory[i], nullptr);
-//        vkDestroyBuffer(MainDevice.LogicalDevice, ModelDUniformBuffers[i], nullptr);
-//        vkFreeMemory(MainDevice.LogicalDevice, ModelDUniformBuffersMemory[i], nullptr);
+        vkDestroyBuffer(MainDevice.LogicalDevice, BoneDUniformBuffers[i], nullptr);
+        vkFreeMemory(MainDevice.LogicalDevice, BoneDUniformBuffersMemory[i], nullptr);
     }
 
     for(xMesh& Mesh : MeshList)
@@ -728,8 +731,8 @@ Renderer::~Renderer() = default;
 
 void Renderer::CreateSkeletalPipeline()
 {
-    std::vector<char> vertShaderCode = xUtil::xFile::ReadAsBin("assets/shaders/skeletalVert.spv");
-    std::vector<char> fragShaderCode = xUtil::xFile::ReadAsBin("assets/shaders/skeletalFrag.spv");
+    std::vector<char> vertShaderCode = xUtil::xFile::ReadAsBin("../assets/shaders/skeletalVert.spv");
+    std::vector<char> fragShaderCode = xUtil::xFile::ReadAsBin("../assets/shaders/skeletalFrag.spv");
 
     VkShaderModule VertexShaderModule = CreateShaderModule(vertShaderCode);
     VkShaderModule FragmentShaderModule = CreateShaderModule(fragShaderCode);
@@ -881,8 +884,8 @@ void Renderer::CreateSkeletalPipeline()
 
 void Renderer::CreatePipeline(VkPipeline& pipeline, VkBool32 depthTestEnable, VkPrimitiveTopology topology)
 {
-    std::vector<char> vertShaderCode = xUtil::xFile::ReadAsBin("assets/shaders/vert.spv");
-    std::vector<char> fragShaderCode = xUtil::xFile::ReadAsBin("assets/shaders/frag.spv");
+    std::vector<char> vertShaderCode = xUtil::xFile::ReadAsBin("../assets/shaders/vert.spv");
+    std::vector<char> fragShaderCode = xUtil::xFile::ReadAsBin("../assets/shaders/frag.spv");
 
     VkShaderModule VertexShaderModule = CreateShaderModule(vertShaderCode);
     VkShaderModule FragmentShaderModule = CreateShaderModule(fragShaderCode);
@@ -1293,7 +1296,7 @@ void Renderer::RecordCommands(u32 currentImage)
                     model = glm::rotate(glm::mat4(1.0f), transform3d.WorldRotation.y, glm::vec3(0.0f, 1.0f, 0.0f)) * model;
                     model = glm::rotate(glm::mat4(1.0f), transform3d.WorldRotation.z, glm::vec3(0.0f, 0.0f, 1.0f)) * model;
                     model = glm::translate(glm::mat4(1.0f), transform3d.WorldPosition) * model;
-                    vkCmdPushConstants(CommandBuffers[currentImage], PipelineLayout,
+                    vkCmdPushConstants(CommandBuffers[currentImage], SkeletalPipelineLayout,
                                        VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(xModel),
                                        &model);
 
@@ -1302,15 +1305,17 @@ void Renderer::RecordCommands(u32 currentImage)
                     vkCmdBindVertexBuffers(CommandBuffers[currentImage], 0, 1, vertexBuffers, offsets);
                     vkCmdBindIndexBuffer(CommandBuffers[currentImage], mesh.GetIndexBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
-                    std::array<VkDescriptorSet, 2> descriptorSets =
+                    std::array<VkDescriptorSet, 3> descriptorSets =
                     {
                         DescriptorSets[currentImage],
-                        SamplerDescriptorSets[mesh.GetTextureId()]
+                        SamplerDescriptorSets[mesh.GetTextureId()],
+                        BoneDescriptorSets[currentImage]
                     };
 
+                    u32 dynamicOffset = 0;
                     vkCmdBindDescriptorSets(CommandBuffers[currentImage], VK_PIPELINE_BIND_POINT_GRAPHICS,
-                                            PipelineLayout, 0, (u32)descriptorSets.size(), descriptorSets.data(),
-                                            0, nullptr);
+                                            SkeletalPipelineLayout, 0, (u32)descriptorSets.size(), descriptorSets.data(),
+                                            1, &dynamicOffset);
 
                     vkCmdDrawIndexed(CommandBuffers[currentImage], mesh.GetIndexCount(), 1, 0, 0, 0);
                 }
@@ -1445,14 +1450,7 @@ void Renderer::CreateDescriptorSetLayout()
     vpLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
     vpLayoutBinding.pImmutableSamplers = nullptr;
 
-//    VkDescriptorSetLayoutBinding modelLayoutBinding{};
-//    modelLayoutBinding.binding = 1;
-//    modelLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
-//    modelLayoutBinding.descriptorCount = 1;
-//    modelLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-//    modelLayoutBinding.pImmutableSamplers = nullptr;
-
-    std::vector<VkDescriptorSetLayoutBinding> layoutBindings = {vpLayoutBinding /*, modelLayoutBinding */};
+    std::vector<VkDescriptorSetLayoutBinding> layoutBindings = {vpLayoutBinding};
 
     VkDescriptorSetLayoutCreateInfo layoutCreateInfo{};
     layoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
@@ -1480,17 +1478,37 @@ void Renderer::CreateDescriptorSetLayout()
     {
         throw std::runtime_error("Failed to create sampler descriptor set layout");
     }
+
+    VkDescriptorSetLayoutBinding boneLayoutBinding{};
+    boneLayoutBinding.binding = 1;
+    boneLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+    boneLayoutBinding.descriptorCount = 1;
+    boneLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+    boneLayoutBinding.pImmutableSamplers = nullptr;
+
+    VkDescriptorSetLayoutCreateInfo boneLayoutCreateInfo{};
+    boneLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    layoutBindings.push_back(boneLayoutBinding);
+    boneLayoutCreateInfo.bindingCount = (u32)layoutBindings.size();
+    boneLayoutCreateInfo.pBindings = layoutBindings.data();
+
+    if(vkCreateDescriptorSetLayout(MainDevice.LogicalDevice, &boneLayoutCreateInfo, nullptr, &BoneDescriptorSetLayout) != VK_SUCCESS)
+    {
+        throw std::runtime_error("Failed to create bone descriptor set layout");
+    }
 }
 
 void Renderer::CreateUniformBuffers()
 {
     VkDeviceSize vpBufferSize = sizeof(UBOViewProjection);
-//    VkDeviceSize modelBufferSize = ModelUniformAlignment * x::RenderUtil::MAX_OBJECTS;
 
     VPUniformBuffers.resize(SwapchainImages.size());
     VPUniformBuffersMemory.resize(SwapchainImages.size());
-//    ModelDUniformBuffers.resize(SwapchainImages.size());
-//    ModelDUniformBuffersMemory.resize(SwapchainImages.size());
+
+    VkDeviceSize boneBufferSize = BoneUniformAlignment * x::RenderUtil::MAX_OBJECTS;
+
+    BoneDUniformBuffers.resize(SwapchainImages.size());
+    BoneDUniformBuffersMemory.resize(SwapchainImages.size());
 
     for(size_t i = 0; i < SwapchainImages.size(); i++)
     {
@@ -1498,9 +1516,9 @@ void Renderer::CreateUniformBuffers()
                              VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                              VPUniformBuffers[i], VPUniformBuffersMemory[i]);
 
-//        x::RenderUtil::CreateBuffer(MainDevice.PhysicalDevice, MainDevice.LogicalDevice, modelBufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-//                                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-//                                ModelDUniformBuffers[i], ModelDUniformBuffersMemory[i]);
+        x::RenderUtil::CreateBuffer(MainDevice.PhysicalDevice, MainDevice.LogicalDevice, boneBufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                                    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                                    BoneDUniformBuffers[i], BoneDUniformBuffersMemory[i]);
     }
 }
 
@@ -1509,10 +1527,6 @@ void Renderer::CreateDescriptorPool()
     VkDescriptorPoolSize vpPoolSize{};
     vpPoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     vpPoolSize.descriptorCount = (u32)VPUniformBuffers.size();
-
-//    VkDescriptorPoolSize modelPoolSize{};
-//    modelPoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
-//    modelPoolSize.descriptorCount = (u32)ModelDUniformBuffers.size();
 
     std::vector<VkDescriptorPoolSize> poolSizes = {vpPoolSize /*, modelPoolSize*/};
 
@@ -1541,6 +1555,21 @@ void Renderer::CreateDescriptorPool()
     {
         throw std::runtime_error("Failed to create sampler descriptor pool");
     }
+
+    VkDescriptorPoolSize bonePoolSize{};
+    bonePoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+    bonePoolSize.descriptorCount = (u32)BoneDUniformBuffers.size();
+
+    VkDescriptorPoolCreateInfo bonePoolCreateInfo{};
+    bonePoolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    bonePoolCreateInfo.maxSets = (u32)SwapchainImages.size();
+    bonePoolCreateInfo.poolSizeCount = 1;
+    bonePoolCreateInfo.pPoolSizes = &bonePoolSize;
+
+    if(vkCreateDescriptorPool(MainDevice.LogicalDevice, &bonePoolCreateInfo, nullptr, &BoneDescriptorPool) != VK_SUCCESS)
+    {
+        throw std::runtime_error("Failed to create bone descriptor pool");
+    }
 }
 
 void Renderer::CreateDescriptorSets()
@@ -1560,6 +1589,21 @@ void Renderer::CreateDescriptorSets()
         throw std::runtime_error("Failed to allocate descriptor sets");
     }
 
+    BoneDescriptorSets.resize(SwapchainImages.size());
+
+    std::vector<VkDescriptorSetLayout> boneSetLayouts(SwapchainImages.size(), BoneDescriptorSetLayout);
+
+    VkDescriptorSetAllocateInfo boneSetAllocateInfo{};
+    boneSetAllocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    boneSetAllocateInfo.descriptorPool = BoneDescriptorPool;
+    boneSetAllocateInfo.descriptorSetCount = (u32)SwapchainImages.size();
+    boneSetAllocateInfo.pSetLayouts = boneSetLayouts.data();
+
+    if(vkAllocateDescriptorSets(MainDevice.LogicalDevice, &boneSetAllocateInfo, BoneDescriptorSets.data()) != VK_SUCCESS)
+    {
+        throw std::runtime_error("Failed to allocate bone descriptor sets");
+    }
+
     for(size_t i = 0; i < SwapchainImages.size(); i++)
     {
         VkDescriptorBufferInfo vpBufferInfo{};
@@ -1576,21 +1620,21 @@ void Renderer::CreateDescriptorSets()
         vpSetWrite.descriptorCount = 1;
         vpSetWrite.pBufferInfo = &vpBufferInfo;
 
-//        VkDescriptorBufferInfo modelBufferInfo{};
-//        modelBufferInfo.buffer = ModelDUniformBuffers[i];
-//        modelBufferInfo.offset = 0;
-//        modelBufferInfo.range = ModelUniformAlignment;
-//
-//        VkWriteDescriptorSet modelSetWrite{};
-//        modelSetWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-//        modelSetWrite.dstSet = DescriptorSets[i];
-//        modelSetWrite.dstBinding = 1;
-//        modelSetWrite.dstArrayElement = 0;
-//        modelSetWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
-//        modelSetWrite.descriptorCount = 1;
-//        modelSetWrite.pBufferInfo = &modelBufferInfo;
+        VkDescriptorBufferInfo boneBufferInfo{};
+        boneBufferInfo.buffer = BoneDUniformBuffers[i];
+        boneBufferInfo.offset = 0;
+        boneBufferInfo.range = BoneUniformAlignment;
 
-        std::vector<VkWriteDescriptorSet> setWrites = {vpSetWrite /*, modelSetWrite*/};
+        VkWriteDescriptorSet boneSetWrite{};
+        boneSetWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        boneSetWrite.dstSet = BoneDescriptorSets[i];
+        boneSetWrite.dstBinding = 1;
+        boneSetWrite.dstArrayElement = 0;
+        boneSetWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+        boneSetWrite.descriptorCount = 1;
+        boneSetWrite.pBufferInfo = &boneBufferInfo;
+
+        std::vector<VkWriteDescriptorSet> setWrites = { vpSetWrite , boneSetWrite };
         vkUpdateDescriptorSets(MainDevice.LogicalDevice, setWrites.size(), setWrites.data(), 0, nullptr);
     }
 }
@@ -1603,15 +1647,19 @@ void Renderer::UpdateUniformBuffers(u32 imageIndex)
     vkUnmapMemory(MainDevice.LogicalDevice, VPUniformBuffersMemory[imageIndex]);
 
     /*  DYNAMIC UNIFORM BUFFER TEST */
-//    for(size_t i = 0; i < MeshList.size(); i++)
-//    {
-//        xModel* model = (xModel*)((u64)ModelTransferSpace + (i * ModelUniformAlignment));
-//        *model = MeshList[i].GetModel();
-//    }
-//
-//    vkMapMemory(MainDevice.LogicalDevice, ModelDUniformBuffersMemory[imageIndex], 0, ModelUniformAlignment * MeshList.size(), 0, &data);
-//    memcpy(data, ModelTransferSpace, ModelUniformAlignment * MeshList.size());
-//    vkUnmapMemory(MainDevice.LogicalDevice, ModelDUniformBuffersMemory[imageIndex]);
+    for(size_t i = 0; i < SkeletalMeshList.size(); i++)
+    {
+        BoneTransforms* bones = (BoneTransforms*)((u64)BoneTransferSpace + (i * BoneUniformAlignment));
+        for(size_t j = 0; j < SkeletalMeshList[i].GetBoneCount(); j++)
+        {
+            m4 boneTransform = SkeletalMeshList[i].GetCurrentPose()[j];
+            bones->Bones[j] = SkeletalMeshList[i].GetCurrentPose()[j];
+        }
+    }
+
+    vkMapMemory(MainDevice.LogicalDevice, BoneDUniformBuffersMemory[imageIndex], 0, BoneUniformAlignment * SkeletalMeshList.size(), 0, &data);
+    memcpy(data, BoneTransferSpace, BoneUniformAlignment * SkeletalMeshList.size());
+    vkUnmapMemory(MainDevice.LogicalDevice, BoneDUniformBuffersMemory[imageIndex]);
 }
 
 void Renderer::UpdateModel(u32 modelId, glm::mat4 newModel)
@@ -1981,10 +2029,11 @@ void Renderer::CreatePipelineLayout()
 
 void Renderer::CreateSkeletalPipelineLayout()
 {
-    std::array<VkDescriptorSetLayout, 2> setLayouts =
+    std::array<VkDescriptorSetLayout, 3> setLayouts =
     {
         DescriptorSetLayout,
-        SamplerSetLayout
+        SamplerSetLayout,
+        BoneDescriptorSetLayout
     };
 
     VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = {};
@@ -2024,7 +2073,7 @@ void Renderer::CreateSkeletalMesh(const std::string &fileName)
     const aiScene* scene = importer.ReadFile(fileName, flags);
     if(!scene)
     {
-        throw std::runtime_error("Failed to load model" + fileName + ")");
+        throw std::runtime_error("Failed to load model " + fileName + ")");
     }
     std::vector<std::string> textureNames = MeshModel::LoadMaterials(scene);
 
@@ -2053,10 +2102,10 @@ SkeletalMesh& Renderer::GetSkeletalMesh(u32 id)
     return SkeletalMeshList[id];
 }
 
-//void xRenderer::AllocateDynamicBufferTransferSpace()
-//{
-//    ModelUniformAlignment = ((u32)sizeof(xModel) + MinUniformBufferOffset - 1) & ~(MinUniformBufferOffset - 1);
-//
-//    ModelTransferSpace = (xModel*)_aligned_malloc(ModelUniformAlignment * x::RenderUtil::MAX_OBJECTS, ModelUniformAlignment);
-//}
+void Renderer::AllocateDynamicBufferTransferSpace()
+{
+    u32 size = (u32)sizeof(BoneTransforms);
+    BoneUniformAlignment = (size + MinUniformBufferOffset - 1) & ~(MinUniformBufferOffset - 1);
+    BoneTransferSpace = (BoneTransforms*)_aligned_malloc(BoneUniformAlignment, 8192);
+}
 }

@@ -2,6 +2,7 @@
 #include "MeshModel.h"
 #include <glm/gtx/quaternion.hpp>
 #include <utility>
+#include <iostream>
 #include "../util/color.h"
 
 void SkeletalMesh::CalculateGlobalInverseTransform(const aiScene *scene)
@@ -29,17 +30,17 @@ SkeletalAnimation SkeletalMesh::LoadAnimation(const aiScene *scene)
         BoneTransformTrack track = {};
         for(i32 j = 0; j < channel->mNumPositionKeys; j++)
         {
-            track.PositionTimeStamps.push_back((f32)channel->mPositionKeys[j].mTime);
+            track.PositionTimeStamps.push_back((f32)channel->mPositionKeys[j].mTime / animation.TicksPerSecond);
             track.Positions.push_back(AssimpToGlmVec3(channel->mPositionKeys[j].mValue));
         }
         for(i32 j = 0; j < channel->mNumRotationKeys; j++)
         {
-            track.RotationTimeStamps.push_back((f32)channel->mRotationKeys[j].mTime);
+            track.RotationTimeStamps.push_back((f32)channel->mRotationKeys[j].mTime / animation.TicksPerSecond);
             track.Rotations.push_back(AssimpToGlmQuat(channel->mRotationKeys[j].mValue));
         }
         for(i32 j = 0; j < channel->mNumScalingKeys; j++)
         {
-            track.ScaleTimeStamps.push_back((f32)channel->mScalingKeys[j].mTime);
+            track.ScaleTimeStamps.push_back((f32)channel->mScalingKeys[j].mTime / animation.TicksPerSecond);
             track.Scales.push_back(AssimpToGlmVec3(channel->mScalingKeys[j].mValue));
         }
         animation.BoneTransformTracks[channel->mNodeName.C_Str()] = track;
@@ -156,8 +157,8 @@ bool SkeletalMesh::ReadSkeleton(Bone &bone, aiNode *node, std::unordered_map<std
             Bone child;
             ReadSkeleton(child, node->mChildren[i], boneInfoTable);
             bone.Children.push_back(child);
-            return true;
         }
+        return true;
     }
     else
     {
@@ -241,51 +242,62 @@ SkeletalMesh::SkeletalMesh(const std::vector<x::RenderUtil::SkeletalVertex> &ver
     CurrentPose.resize(BoneCount, m4(1.0f));
 }
 
-std::pair<u32, f32> SkeletalMesh::GetTimeFraction(const std::vector<f32>& timeStamps, f32 animationTime)
+std::pair<u32, f32> SkeletalMesh::GetTimeFraction(const std::vector<f32>& timeStamps, f32& animationTime)
 {
-    if(timeStamps.empty())
-        return std::make_pair(0, 0.0f);
-
     u32 segment = 0;
     while(animationTime > timeStamps[segment])
     {
         segment++;
     }
+    if(segment == timeStamps.size() - 1)
+        return std::make_pair(segment, 0.0f);
+
     f32 start = timeStamps[segment - 1];
     f32 end = timeStamps[segment];
     f32 fraction = (animationTime - start) / (end - start);
-    return std::make_pair(segment - 1, fraction);
+    return std::make_pair(segment, fraction);
 }
 
 void SkeletalMesh::GetPose(SkeletalAnimation &animation, Bone &skeleton, f32 animationTime, std::vector<m4> &outPose,
                            m4 &parentTransform, m4 &globalInverseTransform)
 {
-    BoneTransformTrack& track = animation.BoneTransformTracks[skeleton.Name];
-    animationTime = (f32)fmod(animationTime, animation.Duration);
+    BoneTransformTrack &track = animation.BoneTransformTracks[skeleton.Name];
+
+    animationTime = fmod(animationTime, animation.Duration);
     v3 position = v3(0.f);
     v3 scale = v3(1.f);
     q4 rotation = glm::identity<q4>();
-    if(!track.Positions.empty() && !track.Rotations.empty() && !track.Scales.empty())
+    std::pair<u32, f32> timeFraction;
+    if (!track.Positions.empty())
     {
-        std::pair<u32, f32> timeFraction = GetTimeFraction(track.PositionTimeStamps, animationTime);
-        position = glm::mix(track.Positions[timeFraction.first], track.Positions[timeFraction.first],
-                               timeFraction.second);
-
-        timeFraction = GetTimeFraction(track.RotationTimeStamps, animationTime);
-        rotation = glm::slerp(track.Rotations[timeFraction.first], track.Rotations[timeFraction.first],
-                                        timeFraction.second);
-
-        timeFraction = GetTimeFraction(track.ScaleTimeStamps, animationTime);
-        scale = glm::mix(track.Scales[timeFraction.first], track.Scales[timeFraction.first], timeFraction.second);
+        timeFraction = GetTimeFraction(track.PositionTimeStamps, animationTime);
+        if (timeFraction.first == track.PositionTimeStamps.size() - 1)
+            timeFraction.first = 0;
+        position = glm::mix(track.Positions[timeFraction.first], track.Positions[timeFraction.first + 1],
+                            timeFraction.second);
     }
 
-    m4 localTransform = glm::translate(m4(1.0f), position) * glm::toMat4(rotation) * glm::scale(m4(1.0f), scale);
+    if (!track.Rotations.empty())
+    {
+        timeFraction = GetTimeFraction(track.RotationTimeStamps, animationTime);
+        if (timeFraction.first == track.RotationTimeStamps.size() - 1)
+            timeFraction.first = 0;
+        rotation = glm::slerp(track.Rotations[timeFraction.first], track.Rotations[timeFraction.first + 1],
+                                        timeFraction.second);
+    }
+
+    if(!track.Scales.empty())
+    {
+        timeFraction = GetTimeFraction(track.ScaleTimeStamps, animationTime);
+        if (timeFraction.first == track.ScaleTimeStamps.size() - 1)
+            timeFraction.first = 0;
+        scale = glm::mix(track.Scales[timeFraction.first], track.Scales[timeFraction.first + 1], timeFraction.second);
+    }
+
+    m4 localTransform = glm::translate(m4(1.0f), position) * glm::toMat4(rotation)  * glm::scale(m4(1.0f), scale);
     m4 globalTransform = parentTransform * localTransform;
 
-    if(animation.BoneTransformTracks.find(skeleton.Name) != animation.BoneTransformTracks.end())
-    {
-        outPose[skeleton.Id] = globalInverseTransform * globalTransform * skeleton.OffsetMatrix;
-    }
+    outPose[skeleton.Id] = globalInverseTransform * globalTransform * skeleton.OffsetMatrix;
 
     for(Bone& child : skeleton.Children)
     {

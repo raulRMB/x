@@ -12,6 +12,7 @@ public:
     void Clean() override;
     void Save() override {};
     void Load() override {};
+    void DrawUI() override {};
 };
 
 

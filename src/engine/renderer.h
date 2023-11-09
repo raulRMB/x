@@ -78,6 +78,7 @@ namespace x
 
         VkDescriptorSetLayout DescriptorSetLayout;
         VkDescriptorSetLayout SamplerSetLayout;
+        VkDescriptorSetLayout BoneDescriptorSetLayout;
         VkPushConstantRange PushConstantRange;
 
         VkDescriptorPool ImguiPool;
@@ -85,17 +86,20 @@ namespace x
         VkDescriptorPool DescriptorPool;
         VkDescriptorPool SamplerDescriptorPool;
         std::vector<VkDescriptorSet> DescriptorSets;
+        std::vector<VkDescriptorSet> BoneDescriptorSets;
         std::vector<VkDescriptorSet> SamplerDescriptorSets;
-
-//    VkDeviceSize MinUniformBufferOffset;
-//    size_t ModelUniformAlignment;
-//    class xModel* ModelTransferSpace;
 
         std::vector<VkBuffer> VPUniformBuffers;
         std::vector<VkDeviceMemory> VPUniformBuffersMemory;
 
-//    std::vector<VkBuffer> ModelDUniformBuffers;
-//    std::vector<VkDeviceMemory> ModelDUniformBuffersMemory;
+        VkDeviceSize MinUniformBufferOffset;
+        size_t BoneUniformAlignment;
+        BoneTransforms* BoneTransferSpace;
+
+        std::vector<VkBuffer> BoneDUniformBuffers;
+        std::vector<VkDeviceMemory> BoneDUniformBuffersMemory;
+
+        VkDescriptorPool BoneDescriptorPool;
 
         VkPipelineLayout PipelineLayout;
         VkRenderPass RenderPass;
@@ -104,8 +108,6 @@ namespace x
 
         VkPipelineLayout SkeletalPipelineLayout;
         VkPipeline SkeletalPipeline;
-
-//        VkPushConstantRange SkeletalPushConstantRange;
 
         VkCommandPool GraphicsCommandPool;
 
@@ -184,7 +186,7 @@ namespace x
 
         void RecordCommands(u32 currentImage);
 
-//    void AllocateDynamicBufferTransferSpace();
+        void AllocateDynamicBufferTransferSpace();
 
         static bool CheckInstanceExtensionSupport(std::vector<const char *> *extensions);
 

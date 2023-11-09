@@ -768,7 +768,7 @@ class ThrowListener : public testing::EmptyTestEventListener {
 };
 int main(int argc, char** argv) {
   ...
-  testing::UnitTest::GetInstance()->listeners().Append(new ThrowListener);
+  testing::UnitTest::Get()->listeners().Append(new ThrowListener);
   return RUN_ALL_TESTS();
 }
 ```
@@ -1660,7 +1660,7 @@ singleton object:
   // Gets information about the currently running test.
   // Do NOT delete the returned object - it's managed by the UnitTest class.
   const testing::TestInfo* const test_info =
-      testing::UnitTest::GetInstance()->current_test_info();
+      testing::UnitTest::Get()->current_test_info();
 
   printf("We are in test %s of test suite %s.\n",
          test_info->name(),
@@ -1745,7 +1745,7 @@ int main(int argc, char** argv) {
   testing::InitGoogleTest(&argc, argv);
   // Gets hold of the event listener list.
   testing::TestEventListeners& listeners =
-      testing::UnitTest::GetInstance()->listeners();
+      testing::UnitTest::Get()->listeners();
   // Adds a listener to the end.  GoogleTest takes the ownership.
   listeners.Append(new MinimalistPrinter);
   return RUN_ALL_TESTS();

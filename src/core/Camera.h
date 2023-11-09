@@ -97,6 +97,8 @@ public:
 
     m4 GetVPI();
     m4 GetVP();
+
+    static bool DebugCameraActive();
 };
 
 #endif //X_CAMERA_H

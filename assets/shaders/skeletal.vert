@@ -6,11 +6,10 @@ layout(set = 0, binding = 0) uniform UBOVP
     mat4 view;
 } uboVP;
 
-// NOT IN USE
-layout(set = 0, binding = 1) uniform UboModel
+layout(set = 2, binding = 1) uniform BoneTransforms
 {
-    mat4 model;
-} uboModel;
+    mat4 bones[100];
+} boneTransforms;
 
 layout(push_constant) uniform PushModel
 {
@@ -28,7 +27,12 @@ layout(location = 1) out vec2 outTex;
 
 void main()
 {
-    gl_Position = uboVP.proj * uboVP.view * pushModel.model * vec4(pos, 1.0);
+    mat4 boneTransform = boneTransforms.bones[boneIds[0]] * weights[0];
+    boneTransform += boneTransforms.bones[boneIds[1]] * weights[1];
+    boneTransform += boneTransforms.bones[boneIds[2]] * weights[2];
+    boneTransform += boneTransforms.bones[boneIds[3]] * weights[3];
+
+    gl_Position = uboVP.proj * uboVP.view * pushModel.model * boneTransform * vec4(pos, 1.0);
     outCol = col;
     outTex = tex;
 }

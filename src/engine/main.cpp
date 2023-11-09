@@ -3,5 +3,5 @@
 
 int main()
 {
-    return x::Engine::GetInstance().Run();
+    return x::Engine::Get().Run();
 }

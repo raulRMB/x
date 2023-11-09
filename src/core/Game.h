@@ -28,6 +28,8 @@ namespace x
 
         void Save();
         void Load();
+
+        void DrawUI();
     };
 }
 

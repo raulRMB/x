@@ -230,3 +230,8 @@ m4 CameraSystem::GetVP()
 {
     return GetMainCameraProjection() * GetMainCameraView();
 }
+
+bool CameraSystem::DebugCameraActive()
+{
+    return CameraSystem::Get().bDebugCamera;
+}

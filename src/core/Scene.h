@@ -15,6 +15,8 @@ namespace x
         u32 MeshCount = 0;
         std::vector<entt::entity> Entities;
 
+        u8 bShowUI : 1;
+
         friend class Game;
         virtual void Start() = 0;
         virtual void HandleInput(const SDL_Event& event) = 0;
@@ -22,8 +24,11 @@ namespace x
         virtual void Clean() = 0;
         virtual void Save() = 0;
         virtual void Load() = 0;
+        virtual void DrawUI() = 0;
 
     public:
+        Scene();
+
         inline entt::registry& GetRegistry() { return Registry; }
 
         entt::entity CreateEntity()

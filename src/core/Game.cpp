@@ -1,7 +1,7 @@
 #include "Game.h"
-#include "Scene.h"
 #include "../Scenes/TestScene.h"
 #include "../Scenes/MainScene.h"
+#include "../engine/engine.h"
 
 namespace x
 {
@@ -70,5 +70,10 @@ namespace x
     void Game::Load()
     {
         CurrentScene->Load();
+    }
+
+    void Game::DrawUI()
+    {
+        CurrentScene->DrawUI();
     }
 }

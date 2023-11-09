@@ -6,6 +6,7 @@
 #include "SDL2/SDL_events.h"
 #include "../util/primitives.h"
 #include "../Navigation/Navigation.h"
+#include "../core/SkeletalMesh.h"
 
 class MainScene final : public x::Scene
 {
@@ -19,6 +20,8 @@ class MainScene final : public x::Scene
     std::vector<Edge2D> Portals = {};
     std::vector<TriangleNode> Tris = {};
 
+    Bone Skeleton = {};
+    m4 GlobalInverseTransform = m4(1.0f);
 public:
     void Start() override;
     void Update(f32 deltaTime) override;
@@ -26,6 +29,7 @@ public:
     void HandleInput(const SDL_Event& event) override;
     void Save() override;
     void Load() override;
+    void DrawUI() override;
 };
 
 

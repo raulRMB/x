@@ -12,7 +12,7 @@
 namespace x::RenderUtil
 {
     const int MAX_FRAMES_IN_FLIGHT = 2;
-    const int MAX_OBJECTS = 10000;
+    const int MAX_OBJECTS = 100;
 
     struct Vertex
     {
@@ -295,7 +295,7 @@ namespace x::RenderUtil
     {
         i32 channels;
 
-        std::string fileLoc = "assets/textures/" + fileName;
+        std::string fileLoc = "../assets/textures/" + fileName;
         stbi_uc* image;
         if(image = stbi_load(fileLoc.c_str(), width, height, &channels, STBI_rgb_alpha); !image)
         {

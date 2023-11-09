@@ -766,15 +766,15 @@ and its integer index respectively.
 This class contains information about the test program.
 
 `UnitTest` is a singleton class. The only instance is created when
-`UnitTest::GetInstance()` is first called. This instance is never deleted.
+`UnitTest::Get()` is first called. This instance is never deleted.
 
 `UnitTest` is not copyable.
 
 #### Public Methods {#UnitTest-public}
 
-##### GetInstance {#UnitTest::GetInstance}
+##### Get {#UnitTest::Get}
 
-`static UnitTest* UnitTest::GetInstance()`
+`static UnitTest* UnitTest::Get()`
 
 Gets the singleton `UnitTest` object. The first time this method is called, a
 `UnitTest` object is constructed and returned. Consecutive calls will return the

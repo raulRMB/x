@@ -34,6 +34,11 @@ struct SkeletalAnimation
     std::unordered_map<std::string, BoneTransformTrack> BoneTransformTracks = {};
 };
 
+struct BoneTransforms
+{
+    std::array<m4, 100> Bones = {};
+};
+
 inline v3 AssimpToGlmVec3(const aiVector3D& vector)
 {
     return {vector.x, vector.y, vector.z};
@@ -95,9 +100,8 @@ class SkeletalMesh
     VkBuffer CreateVertexBuffer(VkQueue transferQueue, VkCommandPool transferCommandPool);
     VkBuffer CreateIndexBuffer(VkQueue transferQueue, VkCommandPool transferCommandPool);
 
-    static std::pair<u32, f32> GetTimeFraction(const std::vector<f32>& timeStamps, f32 animationTime);
+    static std::pair<u32, f32> GetTimeFraction(const std::vector<f32>& timeStamps, f32& animationTime);
 public:
-
     static SkeletalMesh LoadMesh(VkPhysicalDevice physicalDevice, VkDevice device,
                                  VkQueue transferQueue, VkCommandPool transferCommandPool,
                                  const aiScene* scene, aiMesh* mesh, u32 textureId);
@@ -110,6 +114,8 @@ public:
     inline SkeletalAnimation& GetAnimation() { return Animation; }
     inline Bone& GetRootBone() { return RootBone; }
     inline std::vector<m4>& GetCurrentPose() { return CurrentPose; }
+
+    inline u32 GetBoneCount() const { return BoneCount; }
 
     m4& GetGlobalInverseTransform() { return GlobalInverseTransform; }
 

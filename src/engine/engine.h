@@ -17,11 +17,18 @@ namespace x
         std::chrono::duration<f32> DeltaTime;
 
         u8 bShowImGui : 1;
+
+        u32 FrameCount = 0;
+        u32 FPS = 0;
+        f32 FrameTime = 0.f;
+        std::chrono::high_resolution_clock::time_point FrameStartTime;
     public:
         Engine(const Engine &) = delete;
         Engine &operator=(const Engine &) = delete;
-        static Engine &GetInstance();
-        static f32 GetDeltaTime() { return GetInstance().DeltaTime.count(); }
+        static Engine &Get();
+        static f32 GetDeltaTime() { return Get().DeltaTime.count(); }
+        static f32 GetTotalTime() { return Get().TotalTime.count(); }
+        static u32 GetFPS() { return Get().FPS; }
 
         i32 Run();
 
@@ -37,6 +44,8 @@ namespace x
         void Draw();
         void Save();
         void Load();
+
+        void CalculateFPS();
 
     public:
         void CreateMesh(const std::string& path, x::Primitives2D::Shape shape, const v4& color);

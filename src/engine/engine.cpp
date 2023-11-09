@@ -10,7 +10,7 @@
 
 namespace x
 {
-    Engine &Engine::GetInstance()
+    Engine &Engine::Get()
     {
         static Engine instance;
         return instance;
@@ -45,33 +45,17 @@ namespace x
         LastTime = std::chrono::high_resolution_clock::now();
         SDL_Event event;
 
-        // FPS
-        int frameCount = 0;
-        int fps = 0;
-        auto startTime = std::chrono::high_resolution_clock::now();
-
         while(Window::Get().bRunning(event))
         {
             Game::GetInstance().HandleInput(event);
-            if(event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_F1)
-            {
-                bShowImGui = !bShowImGui;
-            }
 
             CurrentTime = std::chrono::high_resolution_clock::now();
-
-            // FPS
-            frameCount++;
-            auto dt = std::chrono::duration_cast<std::chrono::seconds>(CurrentTime - startTime).count();
-            if (dt >= 1) {
-                fps = frameCount / dt;
-                frameCount = 0;
-                startTime = CurrentTime;
-            }
             
             DeltaTime = CurrentTime - LastTime;
             LastTime = CurrentTime;
             TotalTime += DeltaTime;
+
+            CalculateFPS();
 
             CameraSystem::Get().MoveCamera(event, DeltaTime.count());
             CameraSystem::Get().UpdateMainCamera();
@@ -80,20 +64,7 @@ namespace x
 
             ImGui_ImplSDL2_ProcessEvent(&event);
             ImGui_ImplSDL2_NewFrame(Window::Get().GetWindow());
-            ImGui::NewFrame();
 
-            if(bShowImGui)
-            {
-                ImGui::Text("FPS: %d", fps);
-                if(ImGui::Button("Save"))
-                {
-                    Save();
-                }
-                if(ImGui::Button("Load"))
-                {
-                    Load();
-                }
-            }
 
             Draw();
         }
@@ -110,6 +81,7 @@ namespace x
 
     void Engine::Draw()
     {
+        Game::GetInstance().DrawUI();
         ImGui::Render();
         x::Renderer::Get().DrawFrame();
     }
@@ -139,5 +111,16 @@ namespace x
     void Engine::Load()
     {
         Game::GetInstance().Load();
+    }
+
+    void Engine::CalculateFPS()
+    {
+        FrameCount++;
+        auto dt = std::chrono::duration_cast<std::chrono::seconds>(CurrentTime - FrameStartTime).count();
+        if (dt >= 1) {
+            FPS = FrameCount / dt;
+            FrameCount = 0;
+            FrameStartTime = CurrentTime;
+        }
     }
 }
