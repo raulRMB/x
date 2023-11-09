@@ -2108,24 +2108,14 @@ SkeletalMesh& Renderer::GetSkeletalMesh(u32 id)
     return SkeletalMeshList[id];
 }
 
-u32 findClosestPowerOf2(u32 x)
-{
-    u32 result = 1;
-    while (result < x)
-    {
-        result <<= 1;
-    }
-    return result;
-}
-
 void Renderer::AllocateDynamicBufferTransferSpace()
 {
     u32 size = (u32)sizeof(BoneTransforms);
     BoneUniformAlignment = (size + MinUniformBufferOffset - 1) & ~(MinUniformBufferOffset - 1);
 #ifdef WIN32
-    BoneTransferSpace = (BoneTransforms*)_aligned_malloc(BoneUniformAlignment, findClosestPowerOf2(BoneUniformAlignment));
+    BoneTransferSpace = (BoneTransforms*)_aligned_malloc(BoneUniformAlignment, MinUniformBufferOffset);
 #else
-    BoneTransferSpace = (BoneTransforms*)aligned_alloc(BoneUniformAlignment, findClosestPowerOf2(BoneUniformAlignment));
+    BoneTransferSpace = (BoneTransforms*)aligned_alloc(BoneUniformAlignment, MinUniformBufferOffset);
 #endif
 }
 }
