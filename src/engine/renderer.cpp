@@ -22,6 +22,9 @@
 #include "../core/SkeletalMesh.h"
 #include "../Components/SkeletalMeshComponent.h"
 
+#ifndef WIN32
+#include <stdlib.h>
+#endif
 
 namespace x
 {
@@ -648,7 +651,11 @@ void Renderer::Clean()
     vkDestroyDescriptorPool(MainDevice.LogicalDevice, ImguiPool, nullptr);
     ImGui_ImplVulkan_Shutdown();
 
+#ifdef WIN32
     _aligned_free(BoneTransferSpace);
+#else
+    free(BoneTransferSpace);
+#endif
 
     for(auto& model : ModelList)
     {
@@ -2106,6 +2113,10 @@ void Renderer::AllocateDynamicBufferTransferSpace()
 {
     u32 size = (u32)sizeof(BoneTransforms);
     BoneUniformAlignment = (size + MinUniformBufferOffset - 1) & ~(MinUniformBufferOffset - 1);
+#ifdef WIN32
     BoneTransferSpace = (BoneTransforms*)_aligned_malloc(BoneUniformAlignment, 8192);
+#else
+    BoneTransferSpace = (BoneTransforms*)aligned_alloc(BoneUniformAlignment, 8192);
+#endif
 }
 }
