@@ -1500,7 +1500,7 @@ void Renderer::CreateDescriptorSetLayout()
     }
 
     VkDescriptorSetLayoutBinding boneLayoutBinding{};
-    boneLayoutBinding.binding = 1;
+    boneLayoutBinding.binding = 0;
     boneLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
     boneLayoutBinding.descriptorCount = 1;
     boneLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
@@ -1649,7 +1649,7 @@ void Renderer::CreateDescriptorSets()
         VkWriteDescriptorSet boneSetWrite{};
         boneSetWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         boneSetWrite.dstSet = BoneDescriptorSets[i];
-        boneSetWrite.dstBinding = 1;
+        boneSetWrite.dstBinding = 0;
         boneSetWrite.dstArrayElement = 0;
         boneSetWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
         boneSetWrite.descriptorCount = 1;

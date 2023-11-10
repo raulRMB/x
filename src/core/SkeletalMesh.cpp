@@ -5,6 +5,25 @@
 #include <iostream>
 #include "../util/color.h"
 
+SkeletalMesh::SkeletalMesh(const std::vector<x::RenderUtil::SkeletalVertex> &vertices, const std::vector<u32> &indices,
+                           u32 textureId, VkQueue transferQueue, VkCommandPool transferCommandPool,
+                           VkPhysicalDevice physicalDevice, VkDevice device, SkeletalAnimation animation, u32 boneCount,
+                           Bone rootBone, m4 globalInverseTransform) :
+        Vertices(vertices),
+        Indices(indices),
+        TextureId(textureId),
+        PhysicalDevice(physicalDevice),
+        Device(device),
+        Animation(std::move(animation)),
+        BoneCount(boneCount),
+        RootBone(std::move(rootBone)),
+        GlobalInverseTransform(globalInverseTransform)
+{
+    VertexBuffer = CreateVertexBuffer(transferQueue, transferCommandPool);
+    IndexBuffer = CreateIndexBuffer(transferQueue, transferCommandPool);
+    CurrentPose.resize(BoneCount, m4(1.0f));
+}
+
 void SkeletalMesh::CalculateGlobalInverseTransform(const aiScene *scene)
 {
     GlobalInverseTransform = AssimpToGlmMat4(scene->mRootNode->mTransformation);
@@ -138,7 +157,10 @@ SkeletalMesh SkeletalMesh::LoadMesh(VkPhysicalDevice physicalDevice, VkDevice de
     ReadSkeleton(rootBone, scene->mRootNode, boneInfo);
     SkeletalAnimation animation = LoadAnimation(scene);
 
-    SkeletalMesh skeletalMesh = SkeletalMesh(vertices, indices, textureId, transferQueue, transferCommandPool, physicalDevice, device, animation, boneCount, rootBone);
+    m4 globalInverseTransform = AssimpToGlmMat4(scene->mRootNode->mTransformation);
+    globalInverseTransform = glm::inverse(globalInverseTransform);
+
+    SkeletalMesh skeletalMesh = SkeletalMesh(vertices, indices, textureId, transferQueue, transferCommandPool, physicalDevice, device, animation, boneCount, rootBone, globalInverseTransform);
     skeletalMesh.CalculateGlobalInverseTransform(scene);
 
     return skeletalMesh;
@@ -225,23 +247,6 @@ VkBuffer SkeletalMesh::CreateIndexBuffer(VkQueue transferQueue, VkCommandPool tr
     return IndexBuffer;
 }
 
-SkeletalMesh::SkeletalMesh(const std::vector<x::RenderUtil::SkeletalVertex> &vertices, const std::vector<u32> &indices,
-                           u32 textureId, VkQueue transferQueue, VkCommandPool transferCommandPool,
-                           VkPhysicalDevice physicalDevice, VkDevice device, SkeletalAnimation animation, u32 boneCount, Bone rootBone) :
-    Vertices(vertices),
-    Indices(indices),
-    TextureId(textureId),
-    PhysicalDevice(physicalDevice),
-    Device(device),
-    Animation(std::move(animation)),
-    BoneCount(boneCount),
-    RootBone(std::move(rootBone))
-{
-    VertexBuffer = CreateVertexBuffer(transferQueue, transferCommandPool);
-    IndexBuffer = CreateIndexBuffer(transferQueue, transferCommandPool);
-    CurrentPose.resize(BoneCount, m4(1.0f));
-}
-
 std::pair<u32, f32> SkeletalMesh::GetTimeFraction(const std::vector<f32>& timeStamps, f32& animationTime)
 {
     u32 segment = 0;
@@ -258,10 +263,10 @@ std::pair<u32, f32> SkeletalMesh::GetTimeFraction(const std::vector<f32>& timeSt
     return std::make_pair(segment, fraction);
 }
 
-void SkeletalMesh::GetPose(SkeletalAnimation &animation, Bone &skeleton, f32 animationTime, std::vector<m4> &outPose,
-                           m4 &parentTransform, m4 &globalInverseTransform)
+void SkeletalMesh::GetPose(SkeletalAnimation &animation, const Bone &skeleton, f32 animationTime, std::vector<m4> &outPose,
+                           const m4 &parentTransform, const m4 &globalInverseTransform)
 {
-    BoneTransformTrack &track = animation.BoneTransformTracks[skeleton.Name];
+    const BoneTransformTrack &track = animation.BoneTransformTracks[skeleton.Name];
 
     animationTime = fmod(animationTime, animation.Duration);
     v3 position = v3(0.f);
@@ -283,10 +288,10 @@ void SkeletalMesh::GetPose(SkeletalAnimation &animation, Bone &skeleton, f32 ani
         if (timeFraction.first == track.RotationTimeStamps.size() - 1)
             timeFraction.first = 0;
         rotation = glm::slerp(track.Rotations[timeFraction.first], track.Rotations[timeFraction.first + 1],
-                                        timeFraction.second);
+                              timeFraction.second);
     }
 
-    if(!track.Scales.empty())
+    if (!track.Scales.empty())
     {
         timeFraction = GetTimeFraction(track.ScaleTimeStamps, animationTime);
         if (timeFraction.first == track.ScaleTimeStamps.size() - 1)
@@ -294,13 +299,17 @@ void SkeletalMesh::GetPose(SkeletalAnimation &animation, Bone &skeleton, f32 ani
         scale = glm::mix(track.Scales[timeFraction.first], track.Scales[timeFraction.first + 1], timeFraction.second);
     }
 
-    m4 localTransform = glm::translate(m4(1.0f), position) * glm::toMat4(rotation)  * glm::scale(m4(1.0f), scale);
+    m4 localTransform = glm::translate(m4(1.0f), position) * glm::toMat4(rotation) * glm::scale(m4(1.0f), scale);
     m4 globalTransform = parentTransform * localTransform;
 
     outPose[skeleton.Id] = globalInverseTransform * globalTransform * skeleton.OffsetMatrix;
 
-    for(Bone& child : skeleton.Children)
+    for(const Bone& bone : skeleton.Children)
     {
-        GetPose(animation, child, animationTime, outPose, globalTransform, globalInverseTransform);
+        if(bone.Name.empty())
+        {
+            continue;
+        }
+        GetPose(animation, bone, animationTime, outPose, globalTransform, globalInverseTransform);
     }
 }

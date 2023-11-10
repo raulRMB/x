@@ -6,7 +6,7 @@ layout(set = 0, binding = 0) uniform UBOVP
     mat4 view;
 } uboVP;
 
-layout(set = 2, binding = 1) uniform BoneTransforms
+layout(set = 2, binding = 0) uniform BoneTransforms
 {
     mat4 bones[100];
 } boneTransforms;

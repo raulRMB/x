@@ -95,7 +95,8 @@ class SkeletalMesh
 
     SkeletalMesh(const std::vector<x::RenderUtil::SkeletalVertex>& vertices, const std::vector<u32>& indices,
                  u32 textureId, VkQueue transferQueue, VkCommandPool transferCommandPool,
-                 VkPhysicalDevice physicalDevice, VkDevice device, SkeletalAnimation animation, u32 boneCount, Bone rootBone);
+                 VkPhysicalDevice physicalDevice, VkDevice device, SkeletalAnimation animation, u32 boneCount,
+                 Bone rootBone, m4 globalInverseTransform);
 
     VkBuffer CreateVertexBuffer(VkQueue transferQueue, VkCommandPool transferCommandPool);
     VkBuffer CreateIndexBuffer(VkQueue transferQueue, VkCommandPool transferCommandPool);
@@ -119,7 +120,9 @@ public:
 
     m4& GetGlobalInverseTransform() { return GlobalInverseTransform; }
 
-    static void GetPose(SkeletalAnimation& animation, Bone& skeleton, f32 animationTime, std::vector<m4>& outPose, m4& parentTransform, m4& globalInverseTransform);
+    static void GetPose(SkeletalAnimation& animation, const Bone& skeleton,
+                        f32 animationTime, std::vector<m4>& outPose, const m4& parentTransform,
+                        const m4& globalInverseTransform);
 };
 
 
