@@ -2128,7 +2128,10 @@ void Renderer::AllocateDynamicBufferTransferSpace()
 #ifdef WIN32
     BoneTransferSpace = (BoneTransforms*)_aligned_malloc(BoneUniformAlignment, MinUniformBufferOffset);
 #else
-    BoneTransferSpace = (BoneTransforms*)aligned_alloc(BoneUniformAlignment, MinUniformBufferOffset);
+    BoneTransferSpace = (BoneTransforms*)aligned_alloc(MinUniformBufferOffset, BoneUniformAlignment);
 #endif
+    if(BoneTransferSpace == nullptr) {
+        throw std::runtime_error("BoneTransferSpace is null");
+    }
 }
 }
