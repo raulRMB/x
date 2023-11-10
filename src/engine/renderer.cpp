@@ -1508,6 +1508,7 @@ void Renderer::CreateDescriptorSetLayout()
 
     VkDescriptorSetLayoutCreateInfo boneLayoutCreateInfo{};
     boneLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    layoutBindings.clear();
     layoutBindings.push_back(boneLayoutBinding);
     boneLayoutCreateInfo.bindingCount = (u32)layoutBindings.size();
     boneLayoutCreateInfo.pBindings = layoutBindings.data();
