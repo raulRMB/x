@@ -1,12 +1,12 @@
 #ifndef X_MAIN_SCENE_H
 #define X_MAIN_SCENE_H
 
-#include "../core/Scene.h"
+#include "../Core/Scene.h"
 #include <entt.hpp>
 #include "SDL2/SDL_events.h"
-#include "../util/primitives.h"
+#include "../Util/Primitives.h"
 #include "../Navigation/Navigation.h"
-#include "../core/SkeletalMesh.h"
+#include "../Core/SkeletalMesh.h"
 
 class MainScene final : public x::Scene
 {

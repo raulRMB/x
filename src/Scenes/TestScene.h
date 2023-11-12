@@ -1,7 +1,7 @@
 #ifndef X_TEST_SCENE_H
 #define X_TEST_SCENE_H
 
-#include "../core/Scene.h"
+#include "../Core/Scene.h"
 
 class TestScene final : public x::Scene
 {

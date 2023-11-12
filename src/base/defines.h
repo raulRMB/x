@@ -9,8 +9,6 @@
 #define WINDOW_HEIGHT_F (f32)WINDOW_HEIGHT
 #define WINDOW_TITLE "x"
 
-#define X_WINDOWING_API_SDL 1
-
 #include <glm/glm.hpp>
 #include <glm/gtx/quaternion.hpp>
 

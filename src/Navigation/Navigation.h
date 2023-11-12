@@ -4,7 +4,7 @@
 #include "../base/defines.h"
 #include <glm/gtx/norm.hpp>
 #include <vector>
-#include "../util/primitives.h"
+#include "../Util/Primitives.h"
 
 namespace x::Navigation
 {

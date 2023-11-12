@@ -1,8 +1,8 @@
 #include "Navigation.h"
-#include "../util/Util.h"
+#include "../Util/Util.h"
 #include "../Components/MeshComponent.h"
-#include "../engine/engine.h"
-#include "../util/primitives.h"
+#include "../Engine/Engine.h"
+#include "../Util/Primitives.h"
 #include <vector>
 #include <algorithm>
 namespace x::Navigation

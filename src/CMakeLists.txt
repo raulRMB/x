@@ -1,47 +1,51 @@
 add_executable(${PROJECT_NAME})
 
-set (SOURCES 
-    base/defines.h
-    engine/main.cpp
-    engine/renderer/base/rendererInstance.h engine/renderer/base/rendererInstance.cpp
-    engine/renderer/base/rendererDevice.h engine/renderer/base/rendererDevice.cpp
-    engine/renderer/renderer.h engine/renderer/renderer.cpp
-    engine/window.h Engine/window.cpp
-    engine/engine.h Engine/engine.cpp
-    engine/rutil.h
-    Enums/SceneId.h
-    Scenes/TestScene.h
-    Scenes/TestScene.cpp
-    Components/TransformComponent.h
-    Components/PhysicsComponent.h
-    Scenes/MainScene.cpp
-    Scenes/MainScene.h
-    Components/TargetComponent.h
-    Components/AxesComponent.h
-    Components/ParentComponent.h
-    Components/ChildComponent.h
-    engine/NetworkDriver.cpp
-    engine/NetworkDriver.h
-    Components/NetworkComponent.h
-    Net/NetMsgType.h
-    Net/NetMessage.h
-    Net/NetCompId.h
-    Components/QueuedComponent.h
-    Navigation/Navigation.h
-    Navigation/Navigation.cpp
-    Components/FollowComponent.h
-    Components/SkeletalMeshComponent.h
-    util/file.cpp util/file.h
-    util/primitives.h
-    util/color.h
-    util/Util.cpp
-    util/Util.h
-    core/mesh.h core/mesh.cpp
-    core/Game.h core/Game.cpp
-    core/Scene.h core/Scene.cpp
-    core/Camera.h core/Camera.cpp
-    core/MeshModel.cpp core/MeshModel.h
-    core/SkeletalMesh.cpp core/SkeletalMesh.h
+set (SOURCES
+        Base/Defines.h
+
+        Components/PhysicsComponent.h
+        Components/TransformComponent.h
+        Components/TargetComponent.h
+        Components/AxesComponent.h
+        Components/ParentComponent.h
+        Components/ChildComponent.h
+        Components/NetworkComponent.h
+        Components/QueuedComponent.h
+        Components/FollowComponent.h
+        Components/SkeletalMeshComponent.h
+
+        Core/Mesh.h Core/Mesh.cpp
+        Core/Game.h Core/Game.cpp
+        Core/Scene.h Core/Scene.cpp
+        Core/Camera.h Core/Camera.cpp
+        Core/MeshModel.cpp Core/MeshModel.h
+        Core/SkeletalMesh.cpp Core/SkeletalMesh.h
+
+        Engine/main.cpp
+        Engine/Renderer/Base/RendererInstance.h Engine/Renderer/Base/RendererInstance.cpp
+        Engine/Renderer/Base/RendererDevice.h Engine/Renderer/Base/RendererDevice.cpp
+        Engine/Renderer/Renderer.h Engine/Renderer/Renderer.cpp
+        Engine/Window.h Engine/Window.cpp
+        Engine/Engine.h Engine/Engine.cpp
+        Engine/Renderer/RendererUtil.h
+
+        Enums/SceneId.h
+
+        Navigation/Navigation.h Navigation/Navigation.cpp
+
+        Network/NetMsgType.h
+        Network/NetMessage.h
+        Network/NetCompId.h
+        Network/NetworkDriver.h Network/NetworkDriver.cpp
+
+        Scenes/TestScene.h Scenes/TestScene.cpp
+        Scenes/MainScene.h Scenes/MainScene.cpp
+
+        Util/Primitives.h
+        Util/Color.h
+
+        Util/Util.h Util/Util.cpp
+        Util/File.h Util/File.cpp
 )
 target_sources(${PROJECT_NAME} PRIVATE ${SOURCES})
 target_link_libraries(${PROJECT_NAME} PRIVATE vendor)
