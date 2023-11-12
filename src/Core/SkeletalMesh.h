@@ -1,7 +1,7 @@
 #ifndef X_SKELETAL_MESH_H
 #define X_SKELETAL_MESH_H
 
-#include "..\Engine\Renderer\RendererUtil.h"
+#include "../Engine/Renderer/RendererUtil.h"
 #include "assimp/matrix4x4.h"
 #include "assimp/scene.h"
 #include "assimp/Importer.hpp"

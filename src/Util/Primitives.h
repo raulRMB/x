@@ -4,7 +4,7 @@
 #include <glm/glm.hpp>
 #include <vector>
 #include "../Util/Color.h"
-#include "..\Engine\Renderer\RendererUtil.h"
+#include "../Engine/Renderer/RendererUtil.h"
 
 namespace x::Primitives2D
 {

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vulkan/vulkan.h>
-#include "..\RendererUtil.h"
+#include "../RendererUtil.h"
 
 namespace x {
 
