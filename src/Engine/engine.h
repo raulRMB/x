@@ -1,8 +1,8 @@
 #ifndef R_ENGINE_H
 #define R_ENGINE_H
 
-#include "../base/defines.h"
-#include "Window.h"
+#include "Core/defines.h"
+#include "Core/Window.h"
 #include "Renderer/Renderer.h"
 #include <chrono>
 

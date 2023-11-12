@@ -1,10 +1,10 @@
 #include "Engine.h"
 #include "SDL_events.h"
 
-#include "../Core/Camera.h"
+#include "Core/Camera.h"
 #include <random>
 #include "backends/imgui_impl_sdl2.h"
-#include "../Network/NetworkDriver.h"
+#include "Network/NetworkDriver.h"
 #include <thread>
 
 namespace x

@@ -1,13 +1,13 @@
 #ifndef X_RUTIL_H
 #define X_RUTIL_H
 
-#include "../../base/defines.h"
+#include "../Core/defines.h"
 #include <vector>
 #include <vulkan/vulkan.h>
 #include <glm/glm.hpp>
-#include <../../../vendor/stb_image/stb_image.h>
-#include "../../Core/Camera.h"
-#include "../../Core/Game.h"
+#include <stb_image.h>
+#include "../Core/Camera.h"
+#include "../Core/Game.h"
 
 namespace x::RenderUtil
 {

@@ -1,5 +1,5 @@
-#include "../../../base/defines.h"
-#include "../../Window.h"
+#include "../../Core/defines.h"
+#include "../../Core/Window.h"
 #include <vector>
 #include <vulkan/vulkan.h>
 #include <SDL2/SDL_vulkan.h>
