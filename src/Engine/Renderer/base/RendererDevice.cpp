@@ -17,6 +17,7 @@ namespace x {
 
     void RendererDevice::Clean(VkInstance instance) {
         vkDestroySurfaceKHR(instance, MainDevice.Surface, nullptr);
+        vkDestroyDevice(MainDevice.LogicalDevice, nullptr);
     }
 
     void RendererDevice::GetPhysicalDevice(VkInstance instance) {

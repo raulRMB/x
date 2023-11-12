@@ -19,6 +19,7 @@
 #include "../../Core/SkeletalMesh.h"
 #include "Base/RendererInstance.h"
 #include "Base/RendererDevice.h"
+#include "Base/SwapChain.h"
 
 namespace x
 {
@@ -39,7 +40,8 @@ private:
     int CurrentFrame = 0;
     RendererInstance* RenderInstance = new RendererInstance();
     RendererDevice* RenderDevice = new RendererDevice();
-    Device MainDevice;
+    SwapChain* swapchain = new SwapChain();
+    RenderUtil::Device MainDevice;
     std::vector<xMesh> MeshList;
     std::vector<MeshModel> ModelList;
     std::vector<SkeletalMesh> SkeletalMeshList;
@@ -50,11 +52,6 @@ private:
         glm::mat4 View;
     } UboViewProjection;
 
-    VkSwapchainKHR Swapchain;
-    VkFormat SwapchainImageFormat;
-    VkExtent2D SwapchainExtent;
-    std::vector<x::RenderUtil::SwapChainImage> SwapchainImages;
-    std::vector<VkFramebuffer> SwapchainFramebuffers;
     std::vector<VkCommandBuffer> CommandBuffers;
 
     VkFormat DepthBufferImageFormat;

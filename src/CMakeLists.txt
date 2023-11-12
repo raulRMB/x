@@ -24,6 +24,7 @@ set (SOURCES
         Engine/main.cpp
         Engine/Renderer/Base/RendererInstance.h Engine/Renderer/Base/RendererInstance.cpp
         Engine/Renderer/Base/RendererDevice.h Engine/Renderer/Base/RendererDevice.cpp
+        Engine/Renderer/Base/SwapChain.h Engine/Renderer/Base/SwapChain.cpp
         Engine/Renderer/Renderer.h Engine/Renderer/Renderer.cpp
         Engine/Window.h Engine/Window.cpp
         Engine/Engine.h Engine/Engine.cpp

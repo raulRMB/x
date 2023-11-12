@@ -11,8 +11,19 @@
 
 namespace x::RenderUtil
 {
+
     const int MAX_FRAMES_IN_FLIGHT = 2;
     const int MAX_OBJECTS = 100;
+
+    struct Device
+    {
+        VkPhysicalDevice PhysicalDevice;
+        VkDevice LogicalDevice;
+        VkSurfaceKHR Surface;
+        VkQueue GraphicsQueue;
+        VkQueue PresentationQueue;
+        VkDeviceSize MinUniformBufferOffset;
+    };
 
     struct Vertex
     {
