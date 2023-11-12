@@ -17,6 +17,7 @@
 
 #include <imgui.h>
 #include "../../core/SkeletalMesh.h"
+#include "base/rendererInstance.h"
 
 namespace x
 {
@@ -34,10 +35,8 @@ namespace x
     private:
         friend class Engine;
 
-        VkInstance Instance;
-
         int CurrentFrame = 0;
-
+        rendererInstance* renderInstance = new rendererInstance();
         std::vector<xMesh> MeshList;
         std::vector<MeshModel> ModelList;
         std::vector<SkeletalMesh> SkeletalMeshList;
@@ -126,8 +125,6 @@ namespace x
         const bool EnableValidationLayers = true;
 #endif
 
-        VkDebugUtilsMessengerEXT DebugMessenger;
-
     private:
         Renderer();
         ~Renderer();
@@ -141,10 +138,6 @@ namespace x
         void Clean();
 
     private:
-        void CreateInstance();
-
-        void SetupDebugMessenger();
-
         void CreateSurface();
 
         void GetPhysicalDevice();
@@ -188,11 +181,7 @@ namespace x
 
         void AllocateDynamicBufferTransferSpace();
 
-        static bool CheckInstanceExtensionSupport(std::vector<const char *> *extensions);
-
         static bool CheckDeviceExtensionSupport(VkPhysicalDevice device);
-
-        bool CheckValidationLayerSupport();
 
         bool CheckSuitableDevice(VkPhysicalDevice device);
 
@@ -201,19 +190,6 @@ namespace x
                 VkDebugUtilsMessageTypeFlagsEXT messageType,
                 const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
                 [[maybe_unused]] void *pUserData);
-
-        static void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo);
-
-        static VkResult CreateDebugUtilsMessengerEXT(
-                VkInstance instance,
-                const VkDebugUtilsMessengerCreateInfoEXT *pCreateInfo,
-                const VkAllocationCallbacks *pAllocator,
-                VkDebugUtilsMessengerEXT *pDebugMessenger);
-
-        static void DestroyDebugUtilsMessengerEXT(
-                VkInstance instance,
-                VkDebugUtilsMessengerEXT debugMessenger,
-                const VkAllocationCallbacks *pAllocator);
 
         x::RenderUtil::QueueFamilyIndices GetQueueFamilies(VkPhysicalDevice device);
 

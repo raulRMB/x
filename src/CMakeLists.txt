@@ -3,6 +3,7 @@ add_executable(${PROJECT_NAME})
 set (SOURCES 
     base/defines.h
     engine/main.cpp
+    engine/renderer/base/rendererInstance.h engine/renderer/base/rendererInstance.cpp
     engine/renderer/renderer.h engine/renderer/renderer.cpp
     engine/window.h Engine/window.cpp
     engine/engine.h Engine/engine.cpp
