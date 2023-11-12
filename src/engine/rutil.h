@@ -45,7 +45,7 @@ namespace x::RenderUtil
         }
     };
 
-    struct SwapChainDetails
+    struct SurfaceDetails
     {
         VkSurfaceCapabilitiesKHR SurfaceCapabilities;
         std::vector<VkSurfaceFormatKHR> Formats;

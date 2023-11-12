@@ -36,19 +36,9 @@ namespace x {
 
         std::vector<const char*> instanceExtensions = std::vector<const char*>();
         u32 extensionCount = 0;
-    #ifdef X_WINDOWING_API_GLFW
-        const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&extensionCount);
-        for (u32 i = 0; i < extensionCount; i++)
-        {
-            instanceExtensions.push_back(glfwExtensions[i]);
-        }
-    #endif
-    #ifdef X_WINDOWING_API_SDL
         SDL_Vulkan_GetInstanceExtensions(Window::Get().GetWindow(), &extensionCount, nullptr);
         instanceExtensions.resize(extensionCount);
         SDL_Vulkan_GetInstanceExtensions(Window::Get().GetWindow(), &extensionCount, instanceExtensions.data());
-    #endif
-
         if(!rendererInstance::CheckInstanceExtensionSupport(&instanceExtensions))
         {
             throw std::runtime_error("Required extensions not supported");
@@ -127,34 +117,27 @@ namespace x {
         return true;
     }
 
-    bool rendererInstance::CheckValidationLayerSupport(std::vector<const char *> ValidationLayers)
-    {
+    bool rendererInstance::CheckValidationLayerSupport(std::vector<const char *> ValidationLayers) {
         u32 layerCount;
         vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
-
         std::vector<VkLayerProperties> availableLayers(layerCount);
         vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
-
         for (const char* layerName : ValidationLayers) {
             bool layerFound = false;
-
             for (const auto& layerProperties : availableLayers) {
                 if (strcmp(layerName, layerProperties.layerName) == 0) {
                     layerFound = true;
                     break;
                 }
             }
-
             if (!layerFound) {
                 return false;
             }
         }
-
         return true;
     }
 
-    void rendererInstance::PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo)
-    {
+    void rendererInstance::PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo) {
         createInfo = {};
         createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
         createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
@@ -162,16 +145,12 @@ namespace x {
         createInfo.pfnUserCallback = DebugCallback;
     }
 
-    void rendererInstance::SetupDebugMessenger()
-    {
+    void rendererInstance::SetupDebugMessenger() {
         if(!EnableValidationLayers)
             return;
-
         VkDebugUtilsMessengerCreateInfoEXT debugUtilsMessengerCreateInfoExt;
         PopulateDebugMessengerCreateInfo(debugUtilsMessengerCreateInfoExt);
-
-        if (VkResult result = CreateDebugUtilsMessengerEXT(Instance, &debugUtilsMessengerCreateInfoExt, nullptr, &DebugMessenger); result != VK_SUCCESS)
-        {
+        if (VkResult result = CreateDebugUtilsMessengerEXT(Instance, &debugUtilsMessengerCreateInfoExt, nullptr, &DebugMessenger); result != VK_SUCCESS) {
             printf("failed to set up debug messenger! %d", (int)result);
             throw std::runtime_error("failed to set up debug messenger!");
         }
@@ -179,14 +158,9 @@ namespace x {
 
     VkResult rendererInstance::CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT *pCreateInfo,
                                         const VkAllocationCallbacks *pAllocator,
-                                        VkDebugUtilsMessengerEXT *pDebugMessenger)
-    {
+                                        VkDebugUtilsMessengerEXT *pDebugMessenger) {
         auto pFunction = (PFN_vkCreateDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
-        if (pFunction != nullptr) {
-            return pFunction(instance, pCreateInfo, pAllocator, pDebugMessenger);
-        } else {
-            return VK_ERROR_EXTENSION_NOT_PRESENT;
-        }
+        return pFunction == nullptr ? VK_ERROR_EXTENSION_NOT_PRESENT : pFunction(instance, pCreateInfo, pAllocator, pDebugMessenger);
     }
 
     VkBool32 VKAPI_CALL rendererInstance::DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,

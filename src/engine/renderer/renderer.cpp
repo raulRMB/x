@@ -29,10 +29,8 @@
 namespace x
 {
 Renderer::Renderer() :
-    MainDevice({VK_NULL_HANDLE, VK_NULL_HANDLE}),
     MeshList(std::vector<xMesh>()),
     ModelList(std::vector<MeshModel>()),
-    Surface(VK_NULL_HANDLE),
     Swapchain(VK_NULL_HANDLE),
     SwapchainImageFormat(VK_FORMAT_UNDEFINED),
     SwapchainExtent({0, 0}),
@@ -45,7 +43,6 @@ Renderer::Renderer() :
     SamplerDescriptorPool(VK_NULL_HANDLE),
     BoneUniformAlignment(0),
     BoneTransferSpace(VK_NULL_HANDLE),
-    MinUniformBufferOffset(0),
     DepthBufferImageFormat(VK_FORMAT_UNDEFINED),
     DepthBufferImage(VK_NULL_HANDLE),
     DepthBufferImageMemory(VK_NULL_HANDLE),
@@ -53,8 +50,6 @@ Renderer::Renderer() :
     UboViewProjection({}),
     PushConstantRange({}),
     GraphicsCommandPool(VK_NULL_HANDLE),
-    GraphicsQueue(VK_NULL_HANDLE),
-    PresentationQueue(VK_NULL_HANDLE),
     RenderPass(VK_NULL_HANDLE),
     DescriptorSetLayout(VK_NULL_HANDLE),
     DescriptorPool(VK_NULL_HANDLE),
@@ -69,9 +64,9 @@ i32 Renderer::Init()
     try
     {
         renderInstance->create();
-        CreateSurface();
-        GetPhysicalDevice();
-        CreateLogicalDevice();
+        renderDevice->create(renderInstance->get());
+        MainDevice = renderDevice->MainDevice;
+
         CreateSwapChain();
         CreateRenderPass();
         CreateDescriptorSetLayout();
@@ -103,112 +98,25 @@ i32 Renderer::Init()
     return EXIT_SUCCESS;
 }
 
-void Renderer::GetPhysicalDevice()
-{
-    u32 deviceCount = 0;
-    VkInstance Instance = renderInstance->get();
-    vkEnumeratePhysicalDevices(Instance, &deviceCount, nullptr);
-
-    if(deviceCount == 0)
-    {
-        throw std::runtime_error("Failed to find GPUs with Vulkan support");
-    }
-
-    std::vector<VkPhysicalDevice> devices(deviceCount);
-    vkEnumeratePhysicalDevices(Instance, &deviceCount, devices.data());
-
-    for(const VkPhysicalDevice& device : devices)
-    {
-        if(CheckSuitableDevice(device))
-        {
-            MainDevice.PhysicalDevice = device;
-            break;
-        }
-    }
-
-    if(MainDevice.PhysicalDevice == VK_NULL_HANDLE)
-    {
-        throw std::runtime_error("Failed to find a suitable GPU");
-    }
-
-    VkPhysicalDeviceProperties deviceProperties;
-    vkGetPhysicalDeviceProperties(MainDevice.PhysicalDevice, &deviceProperties);
-
-    printf("Using GPU: %s\n", deviceProperties.deviceName);
-    MinUniformBufferOffset = deviceProperties.limits.minUniformBufferOffsetAlignment;
-}
-
-void Renderer::CreateLogicalDevice()
-{
-    x::RenderUtil::QueueFamilyIndices indices = GetQueueFamilies(MainDevice.PhysicalDevice);
-
-    std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-    std::set<i32> uniqueQueueFamilies = {indices.GraphicsFamily, indices.PresentationFamily};
-
-    for(i32 QueueFamily : uniqueQueueFamilies)
-    {
-        VkDeviceQueueCreateInfo queueCreateInfo = {};
-        queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-        queueCreateInfo.queueFamilyIndex = QueueFamily;
-        queueCreateInfo.queueCount = 1;
-        float QueuePriority = 1.0f;
-        queueCreateInfo.pQueuePriorities = &QueuePriority;
-        queueCreateInfos.push_back(queueCreateInfo);
-    }
-
-    VkDeviceCreateInfo deviceCreateInfo = {};
-    deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-    deviceCreateInfo.queueCreateInfoCount = (u32)queueCreateInfos.size();
-    deviceCreateInfo.pQueueCreateInfos = queueCreateInfos.data();
-    deviceCreateInfo.enabledExtensionCount = (u32)x::RenderUtil::DeviceExtensions.size();
-    
-    #ifdef __APPLE__
-    const char* const* currentExtensions = x::RenderUtil::DeviceExtensions.data();
-    uint32_t currentExtensionCount = static_cast<uint32_t>(x::RenderUtil::DeviceExtensions.size());
-    const char** newExtensions = new const char*[currentExtensionCount + 1];
-    for (uint32_t i = 0; i < currentExtensionCount; ++i) {
-        newExtensions[i] = currentExtensions[i];
-    }
-    newExtensions[currentExtensionCount] = "VK_KHR_portability_subset";
-    deviceCreateInfo.ppEnabledExtensionNames = newExtensions;
-    deviceCreateInfo.enabledExtensionCount = currentExtensionCount + 1;
-    #else
-    deviceCreateInfo.ppEnabledExtensionNames = x::RenderUtil::DeviceExtensions.data();
-    #endif
-
-    VkPhysicalDeviceFeatures deviceFeatures = {};
-    deviceFeatures.samplerAnisotropy = VK_TRUE;
-
-    deviceCreateInfo.pEnabledFeatures = &deviceFeatures;
-
-    if(vkCreateDevice(MainDevice.PhysicalDevice, &deviceCreateInfo, nullptr, &MainDevice.LogicalDevice) != VK_SUCCESS)
-    {
-        throw std::runtime_error("Failed to create logical device");
-    }
-
-    vkGetDeviceQueue(MainDevice.LogicalDevice, indices.GraphicsFamily, 0, &GraphicsQueue);
-    vkGetDeviceQueue(MainDevice.LogicalDevice, indices.PresentationFamily, 0, &PresentationQueue);
-}
-
 void Renderer::CreateSwapChain()
 {
-    x::RenderUtil::SwapChainDetails swapChainDetails = GetSwapChainDetails(MainDevice.PhysicalDevice);
+    x::RenderUtil::SurfaceDetails SurfaceDetails = renderDevice->GetSurfaceDetails(MainDevice.PhysicalDevice);
 
-    VkSurfaceFormatKHR surfaceFormat = ChooseBestSurfaceFormat(swapChainDetails.Formats);
-    VkPresentModeKHR presentMode = ChooseBestPresentationMode(swapChainDetails.PresentationModes);
-    VkExtent2D extent = ChooseSwapExtent(swapChainDetails.SurfaceCapabilities);
+    VkSurfaceFormatKHR surfaceFormat = ChooseBestSurfaceFormat(SurfaceDetails.Formats);
+    VkPresentModeKHR presentMode = ChooseBestPresentationMode(SurfaceDetails.PresentationModes);
+    VkExtent2D extent = ChooseSwapExtent(SurfaceDetails.SurfaceCapabilities);
 
-    u32 imageCount = swapChainDetails.SurfaceCapabilities.minImageCount + 1;
+    u32 imageCount = SurfaceDetails.SurfaceCapabilities.minImageCount + 1;
 
-    if(swapChainDetails.SurfaceCapabilities.maxImageCount > 0
-        && swapChainDetails.SurfaceCapabilities.maxImageCount < imageCount)
+    if(SurfaceDetails.SurfaceCapabilities.maxImageCount > 0
+        && SurfaceDetails.SurfaceCapabilities.maxImageCount < imageCount)
     {
-        imageCount = swapChainDetails.SurfaceCapabilities.maxImageCount;
+        imageCount = SurfaceDetails.SurfaceCapabilities.maxImageCount;
     }
 
     VkSwapchainCreateInfoKHR swapchainCreateInfo = {};
     swapchainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-    swapchainCreateInfo.surface = Surface;
+    swapchainCreateInfo.surface = MainDevice.Surface;
     swapchainCreateInfo.imageFormat = surfaceFormat.format;
     swapchainCreateInfo.imageColorSpace = surfaceFormat.colorSpace;
     swapchainCreateInfo.presentMode = presentMode;
@@ -216,11 +124,11 @@ void Renderer::CreateSwapChain()
     swapchainCreateInfo.minImageCount = imageCount;
     swapchainCreateInfo.imageArrayLayers = 1;
     swapchainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-    swapchainCreateInfo.preTransform = swapChainDetails.SurfaceCapabilities.currentTransform;
+    swapchainCreateInfo.preTransform = SurfaceDetails.SurfaceCapabilities.currentTransform;
     swapchainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
     swapchainCreateInfo.clipped = VK_TRUE;
 
-    x::RenderUtil::QueueFamilyIndices indices = GetQueueFamilies(MainDevice.PhysicalDevice);
+    x::RenderUtil::QueueFamilyIndices indices = renderDevice->GetQueueFamilies(MainDevice.PhysicalDevice);
 
     if(indices.GraphicsFamily != indices.PresentationFamily)
     {
@@ -258,135 +166,6 @@ void Renderer::CreateSwapChain()
 
         SwapchainImages.push_back(swapChainImage);
     }
-}
-
-void Renderer::CreateSurface()
-{
-#ifdef X_WINDOWING_API_GLFW
-        CreateSurfaceGLFW();
-#endif
-#ifdef X_WINDOWING_API_SDL
-        CreateSurfaceSDL();
-#endif
-}
-
-bool Renderer::CheckSuitableDevice(VkPhysicalDevice device)
-{
-/*
-    VkPhysicalDeviceProperties DeviceProperties;
-    vkGetPhysicalDeviceProperties(device, &DeviceProperties);
-*/
-    VkPhysicalDeviceFeatures deviceFeatures;
-    vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
-
-    x::RenderUtil::QueueFamilyIndices indices = GetQueueFamilies(device);
-
-    bool bExtensionsSupported = CheckDeviceExtensionSupport(device);
-
-    bool bSwapChainValid;
-    if(bExtensionsSupported)
-    {
-        x::RenderUtil::SwapChainDetails SwapChainDetails = GetSwapChainDetails(device);
-        bSwapChainValid = !SwapChainDetails.Formats.empty() && !SwapChainDetails.PresentationModes.empty() && deviceFeatures.samplerAnisotropy;
-    }
-
-    return indices.IsValid() && bExtensionsSupported && bSwapChainValid;
-}
-
-x::RenderUtil::QueueFamilyIndices Renderer::GetQueueFamilies(VkPhysicalDevice device)
-{
-    x::RenderUtil::QueueFamilyIndices indices;
-
-    u32 queueFamilyCount = 0;
-    vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
-
-    std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
-    vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
-
-    i32 idx = 0;
-    for(const VkQueueFamilyProperties& queueFamily : queueFamilies)
-    {
-        if(queueFamily.queueCount > 0 && queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
-        {
-            indices.GraphicsFamily = idx;
-        }
-
-        VkBool32 bPresentationSupport = false;
-        vkGetPhysicalDeviceSurfaceSupportKHR(device, idx, Surface, &bPresentationSupport);
-
-        if(queueFamily.queueCount > 0 && bPresentationSupport)
-        {
-            indices.PresentationFamily = idx;
-        }
-
-        if(indices.IsValid())
-        {
-            break;
-        }
-
-        idx++;
-    }
-
-    return indices;
-}
-
-x::RenderUtil::SwapChainDetails Renderer::GetSwapChainDetails(VkPhysicalDevice device)
-{
-    x::RenderUtil::SwapChainDetails swapChainDetails;
-
-    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, Surface, &swapChainDetails.SurfaceCapabilities);
-
-    u32 formatCount;
-    vkGetPhysicalDeviceSurfaceFormatsKHR(device, Surface, &formatCount, nullptr);
-
-    if(formatCount != 0)
-    {
-        swapChainDetails.Formats.resize(formatCount);
-        vkGetPhysicalDeviceSurfaceFormatsKHR(device, Surface, &formatCount, swapChainDetails.Formats.data());
-    }
-
-    u32 presentationModeCount;
-    vkGetPhysicalDeviceSurfacePresentModesKHR(device, Surface, &presentationModeCount, nullptr);
-
-    if(presentationModeCount != 0)
-    {
-        swapChainDetails.PresentationModes.resize(presentationModeCount);
-        vkGetPhysicalDeviceSurfacePresentModesKHR(device, Surface, &presentationModeCount, swapChainDetails.PresentationModes.data());
-    }
-
-    return swapChainDetails;
-}
-
-bool Renderer::CheckDeviceExtensionSupport(VkPhysicalDevice device)
-{
-    u32 extensionCount;
-    vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
-
-    if(extensionCount == 0)
-    {
-        return false;
-    }
-
-    std::vector<VkExtensionProperties> availableExtensions(extensionCount);
-    vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, availableExtensions.data());
-
-    for(const char* deviceExtension : x::RenderUtil::DeviceExtensions)
-    {
-        bool bExtensionFound = false;
-        for(const VkExtensionProperties& availableExtension : availableExtensions)
-        {
-            if(strcmp(deviceExtension, availableExtension.extensionName) == 0)
-            {
-                bExtensionFound = true;
-                break;
-            }
-        }
-
-        if(!bExtensionFound)
-            return false;
-    }
-
-    return true;
 }
 
 VkSurfaceFormatKHR Renderer::ChooseBestSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &formats)
@@ -524,7 +303,6 @@ void Renderer::Clean()
 
     vkDestroySwapchainKHR(MainDevice.LogicalDevice, Swapchain, nullptr);
     VkInstance Instance = renderInstance->get();
-    vkDestroySurfaceKHR(Instance, Surface, nullptr);
 
     vkDestroyDevice(MainDevice.LogicalDevice, nullptr);
     renderInstance->clean();
@@ -959,7 +737,7 @@ void Renderer::CreateFramebuffers()
 
 void Renderer::CreateGraphicsCommandPool()
 {
-    x::RenderUtil::QueueFamilyIndices queueFamilyIndices = GetQueueFamilies(MainDevice.PhysicalDevice);
+    x::RenderUtil::QueueFamilyIndices queueFamilyIndices = renderDevice->GetQueueFamilies(MainDevice.PhysicalDevice);
 
     VkCommandPoolCreateInfo commandPoolCreateInfo = {};
     commandPoolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -1177,7 +955,7 @@ void Renderer::DrawFrame()
     submitInfo.signalSemaphoreCount = (u32)std::size(signalSemaphores);
     submitInfo.pSignalSemaphores = signalSemaphores;
 
-    if(vkQueueSubmit(GraphicsQueue, 1, &submitInfo, DrawFences[CurrentFrame]) != VK_SUCCESS)
+    if(vkQueueSubmit(MainDevice.GraphicsQueue, 1, &submitInfo, DrawFences[CurrentFrame]) != VK_SUCCESS)
     {
         throw std::runtime_error("Failed to submit draw command buffer");
     }
@@ -1192,7 +970,7 @@ void Renderer::DrawFrame()
     presentInfo.pSwapchains = swapchains;
     presentInfo.pImageIndices = &imageIndex;
 
-    if(vkQueuePresentKHR(PresentationQueue, &presentInfo) != VK_SUCCESS)
+    if(vkQueuePresentKHR(MainDevice.PresentationQueue, &presentInfo) != VK_SUCCESS)
     {
         throw std::runtime_error("Failed to present image");
     }
@@ -1222,28 +1000,6 @@ void Renderer::CreateSynchronization()
             throw std::runtime_error("Failed to create synchronization objects for a frame");
         }
     }
-}
-
-void Renderer::CreateSurfaceGLFW()
-{
-#ifdef X_WINDOWING_API_GLFW
-    VkInstance Instance = renderInstance->get();
-    if(glfwCreateWindowSurface(Instance, Window->GetWindow(), nullptr, &Surface) != VK_SUCCESS)
-    {
-        throw std::runtime_error("Failed to create surface");
-    }
-#endif
-}
-
-void Renderer::CreateSurfaceSDL()
-{
-#ifdef X_WINDOWING_API_SDL
-    VkInstance Instance = renderInstance->get();
-    if(SDL_Vulkan_CreateSurface(Window::Get().GetWindow(), Instance, &Surface) != SDL_TRUE)
-    {
-        throw std::runtime_error("Failed to create surface");
-    }
-#endif
 }
 
 void Renderer::CreateDescriptorSetLayout()
@@ -1533,13 +1289,13 @@ i32 Renderer::CreateTextureImage(const std::string& fileName)
                            VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
                            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, texImageMemory, MainDevice.LogicalDevice, MainDevice.PhysicalDevice);
 
-    x::RenderUtil::TransitionImageLayout(MainDevice.LogicalDevice, GraphicsQueue, GraphicsCommandPool, texImage, VK_IMAGE_LAYOUT_UNDEFINED,
+    x::RenderUtil::TransitionImageLayout(MainDevice.LogicalDevice, MainDevice.GraphicsQueue, GraphicsCommandPool, texImage, VK_IMAGE_LAYOUT_UNDEFINED,
                           VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
-    x::RenderUtil::CopyImageBuffer(MainDevice.LogicalDevice, GraphicsQueue, GraphicsCommandPool,
+    x::RenderUtil::CopyImageBuffer(MainDevice.LogicalDevice, MainDevice.GraphicsQueue, GraphicsCommandPool,
                     imageStagingBuffer, texImage, width, height);
 
-    x::RenderUtil::TransitionImageLayout(MainDevice.LogicalDevice, GraphicsQueue, GraphicsCommandPool, texImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+    x::RenderUtil::TransitionImageLayout(MainDevice.LogicalDevice, MainDevice.GraphicsQueue, GraphicsCommandPool, texImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                           VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
     TextureImages.push_back(texImage);
@@ -1656,7 +1412,7 @@ void Renderer::CreateMesh(const std::string& texture, x::Primitives2D::Shape sha
     auto TextureId = CreateTexture(texture);
 
     MeshList.emplace_back(Verts, Indices, TextureId,
-                          GraphicsQueue, GraphicsCommandPool,
+                          MainDevice.GraphicsQueue, GraphicsCommandPool,
                           MainDevice.PhysicalDevice, MainDevice.LogicalDevice);
 }
 
@@ -1690,7 +1446,7 @@ u32 Renderer::CreateMeshModel(const std::string &fileName)
     }
 
     std::vector<xMesh> modelMeshes = MeshModel::LoadNode(MainDevice.PhysicalDevice, MainDevice.LogicalDevice,
-                                                         GraphicsQueue, GraphicsCommandPool, scene->mRootNode,
+                                                         MainDevice.GraphicsQueue, GraphicsCommandPool, scene->mRootNode,
                                                          scene, matToTex);
 
     MeshModel meshModel = MeshModel(modelMeshes);
@@ -1748,7 +1504,7 @@ void Renderer::InitImGui()
     init_info.Instance = Instance;
     init_info.PhysicalDevice = MainDevice.PhysicalDevice;
     init_info.Device = MainDevice.LogicalDevice;
-    init_info.Queue = GraphicsQueue;
+    init_info.Queue = MainDevice.GraphicsQueue;
     init_info.DescriptorPool = ImguiPool;
     init_info.MinImageCount = 3;
     init_info.ImageCount = 3;
@@ -1783,7 +1539,7 @@ void Renderer::InitImGui()
         {
             throw std::runtime_error("Failed to end command buffer");
         }
-        if(vkQueueSubmit(GraphicsQueue, 1, &end_info, VK_NULL_HANDLE) != VK_SUCCESS)
+        if(vkQueueSubmit(MainDevice.GraphicsQueue, 1, &end_info, VK_NULL_HANDLE) != VK_SUCCESS)
         {
             throw std::runtime_error("Failed to submit queue");
         }
@@ -1806,7 +1562,7 @@ u32 Renderer::CreateLine(const v3 &start, const v3 &end, const v4 &color)
     std::vector<u32> indices = {0, 1};
 
     MeshList.emplace(MeshList.end(), verts, indices, 0,
-                     GraphicsQueue, GraphicsCommandPool,
+                     MainDevice.GraphicsQueue, GraphicsCommandPool,
                      MainDevice.PhysicalDevice, MainDevice.LogicalDevice);
 
     return (u32)MeshList.size() - 1;
@@ -1866,7 +1622,7 @@ u32 Renderer::CreateTriangle(v2 vec1, v2 vec2, v2 vec3, glm::vec4 vec4)
     std::vector<u32> indices = {0, 1, 2, 0};
 
     MeshList.emplace(MeshList.end(), verts, indices, 0,
-                     GraphicsQueue, GraphicsCommandPool,
+                     MainDevice.GraphicsQueue, GraphicsCommandPool,
                      MainDevice.PhysicalDevice, MainDevice.LogicalDevice);
 
     return (u32)MeshList.size() - 1;
@@ -1897,7 +1653,7 @@ void Renderer::CreateSkeletalMesh(const std::string &fileName)
     }
 
     SkeletalMesh mesh = SkeletalMesh::LoadMesh(MainDevice.PhysicalDevice, MainDevice.LogicalDevice,
-                                                         GraphicsQueue, GraphicsCommandPool, scene,
+                                                         MainDevice.GraphicsQueue, GraphicsCommandPool, scene,
                                                          scene->mMeshes[0], matToTex[0]);
 
     SkeletalMeshList.emplace_back(mesh);
@@ -1910,11 +1666,11 @@ SkeletalMesh& Renderer::GetSkeletalMesh(u32 id)
 
 void Renderer::AllocateDynamicBufferTransferSpace()
 {
-    BoneUniformAlignment = ((u32)sizeof(BoneTransforms) + MinUniformBufferOffset - 1) & ~(MinUniformBufferOffset - 1);
+    BoneUniformAlignment = ((u32)sizeof(BoneTransforms) + MainDevice.MinUniformBufferOffset - 1) & ~(MainDevice.MinUniformBufferOffset - 1);
 #ifdef WIN32
-    BoneTransferSpace = (BoneTransforms*)_aligned_malloc(BoneUniformAlignment, MinUniformBufferOffset);
+    BoneTransferSpace = (BoneTransforms*)_aligned_malloc(BoneUniformAlignment, MainDevice.MinUniformBufferOffset);
 #else
-    BoneTransferSpace = (BoneTransforms*)aligned_alloc(MinUniformBufferOffset, BoneUniformAlignment);
+    BoneTransferSpace = (BoneTransforms*)aligned_alloc(MainDevice.MinUniformBufferOffset, BoneUniformAlignment);
 #endif
     if(BoneTransferSpace == nullptr) {
         throw std::runtime_error("BoneTransferSpace is null");

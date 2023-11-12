@@ -4,6 +4,7 @@ set (SOURCES
     base/defines.h
     engine/main.cpp
     engine/renderer/base/rendererInstance.h engine/renderer/base/rendererInstance.cpp
+    engine/renderer/base/rendererDevice.h engine/renderer/base/rendererDevice.cpp
     engine/renderer/renderer.h engine/renderer/renderer.cpp
     engine/window.h Engine/window.cpp
     engine/engine.h Engine/engine.cpp

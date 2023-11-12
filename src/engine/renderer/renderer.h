@@ -18,6 +18,7 @@
 #include <imgui.h>
 #include "../../core/SkeletalMesh.h"
 #include "base/rendererInstance.h"
+#include "base/rendererDevice.h"
 
 namespace x
 {
@@ -37,17 +38,11 @@ namespace x
 
         int CurrentFrame = 0;
         rendererInstance* renderInstance = new rendererInstance();
+        rendererDevice* renderDevice = new rendererDevice();
+        Device MainDevice;
         std::vector<xMesh> MeshList;
         std::vector<MeshModel> ModelList;
         std::vector<SkeletalMesh> SkeletalMeshList;
-
-        struct
-        {
-            VkPhysicalDevice PhysicalDevice;
-            VkDevice LogicalDevice;
-        } MainDevice;
-
-        VkSurfaceKHR Surface;
 
         struct UBOViewProjection
         {
@@ -72,9 +67,6 @@ namespace x
         std::vector<VkImageView> TextureImageViews;
         VkSampler TextureSampler;
 
-        VkQueue GraphicsQueue;
-        VkQueue PresentationQueue;
-
         VkDescriptorSetLayout DescriptorSetLayout;
         VkDescriptorSetLayout SamplerSetLayout;
         VkDescriptorSetLayout BoneDescriptorSetLayout;
@@ -91,7 +83,6 @@ namespace x
         std::vector<VkBuffer> VPUniformBuffers;
         std::vector<VkDeviceMemory> VPUniformBuffersMemory;
 
-        VkDeviceSize MinUniformBufferOffset;
         size_t BoneUniformAlignment;
         BoneTransforms* BoneTransferSpace;
 
@@ -190,10 +181,6 @@ namespace x
                 VkDebugUtilsMessageTypeFlagsEXT messageType,
                 const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
                 [[maybe_unused]] void *pUserData);
-
-        x::RenderUtil::QueueFamilyIndices GetQueueFamilies(VkPhysicalDevice device);
-
-        x::RenderUtil::SwapChainDetails GetSwapChainDetails(VkPhysicalDevice device);
 
         static VkSurfaceFormatKHR ChooseBestSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &formats);
 
