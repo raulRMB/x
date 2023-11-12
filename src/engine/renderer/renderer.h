@@ -3,20 +3,20 @@
 
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 
-#include "../base/defines.h"
+#include "../../base/defines.h"
 
 #include <stdexcept>
 #include <vector>
 #include <set>
 
-#include "rutil.h"
-#include "../core/mesh.h"
-#include "../core/MeshModel.h"
+#include "../rutil.h"
+#include "../../core/mesh.h"
+#include "../../core/MeshModel.h"
 
-#include "../util/primitives.h"
+#include "../../util/primitives.h"
 
 #include <imgui.h>
-#include "../core/SkeletalMesh.h"
+#include "../../core/SkeletalMesh.h"
 
 namespace x
 {

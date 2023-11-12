@@ -3,7 +3,7 @@
 
 #include "../base/defines.h"
 #include "window.h"
-#include "renderer.h"
+#include "renderer/renderer.h"
 #include "../core/Game.h"
 #include <chrono>
 
