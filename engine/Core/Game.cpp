@@ -1,4 +1,7 @@
 #include "Game.h"
+
+#include <backends/imgui_impl_sdl2.h>
+
 #include "../../src/Scenes/MainScene.h"
 #include "../Engine.h"
 
@@ -57,5 +60,9 @@ void Game::Load()
 
 void Game::DrawUI()
 {
+    ImGui_ImplSDL2_NewFrame(x::Window::Get().GetWindow());
+    ImGui::NewFrame();
     CurrentScene->DrawUI();
+    ImGui::EndFrame();
+    ImGui::Render();
 }

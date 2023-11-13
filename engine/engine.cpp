@@ -62,8 +62,6 @@ i32 Engine::Run(Scene * startingScene)
         Update(DeltaTime.count());
 
         ImGui_ImplSDL2_ProcessEvent(&event);
-        ImGui_ImplSDL2_NewFrame(Window::Get().GetWindow());
-
 
         Draw();
     }
@@ -116,7 +114,8 @@ void Engine::CalculateFPS()
 {
     FrameCount++;
     auto dt = std::chrono::duration_cast<std::chrono::seconds>(CurrentTime - FrameStartTime).count();
-    if (dt >= 1) {
+    if (dt >= 1)
+    {
         FPS = FrameCount / dt;
         FrameCount = 0;
         FrameStartTime = CurrentTime;

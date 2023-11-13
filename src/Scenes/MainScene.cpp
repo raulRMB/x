@@ -295,11 +295,10 @@ void MainScene::Load()
 
 void MainScene::DrawUI()
 {
-    ImGui::NewFrame();
-
     if(bShowUI)
     {
-        static u32 fps = x::Engine::GetFPS();
+        ImGui::Begin("hasasss", reinterpret_cast<bool*>(&bShowUI));
+        u32 fps = x::Engine::GetFPS();
         ImGui::Text("FPS: %d", fps);
 
         if(ImGui::Button("Save"))
@@ -310,7 +309,22 @@ void MainScene::DrawUI()
         {
             Load();
         }
-    }
 
-    ImGui::EndFrame();
+        ImGui::End();
+
+        ImGui::Begin("hasds", reinterpret_cast<bool*>(&bShowUI));
+
+            ImGui::Text("FPS: %d", fps);
+
+            if(ImGui::Button("Save"))
+            {
+                Save();
+            }
+            if(ImGui::Button("Load"))
+            {
+                Load();
+            }
+
+        ImGui::End();
+    }
 }

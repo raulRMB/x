@@ -13,7 +13,7 @@ protected:
     u32 MeshCount = 0;
     std::vector<entt::entity> Entities;
 
-    u8 bShowUI : 1;
+    bool bShowUI = false;
 
     friend class Game;
     virtual void Start() = 0;
