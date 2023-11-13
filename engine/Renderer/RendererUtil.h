@@ -1,13 +1,17 @@
 #ifndef X_RUTIL_H
 #define X_RUTIL_H
 
+#ifndef STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_IMPLEMENTATION
+#endif
+
 #include "../Core/defines.h"
 #include <vector>
 #include <vulkan/vulkan.h>
 #include <glm/glm.hpp>
-#include <stb_image.h>
 #include "../Core/Camera.h"
 #include "../Core/Game.h"
+#include "stb_image.h"
 
     const int MAX_FRAMES_IN_FLIGHT = 2;
     const int MAX_OBJECTS = 100;

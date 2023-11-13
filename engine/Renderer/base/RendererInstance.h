@@ -1,4 +1,5 @@
-#pragma once
+#ifndef X_RENDERER_INSTANCE_H
+#define X_RENDERER_INSTANCE_H
 
 #include <vector>
 #include <vulkan/vulkan.h>
@@ -38,3 +39,5 @@ private:
     void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger,
                                               const VkAllocationCallbacks *pAllocator);
 };
+
+#endif //X_RENDERER_INSTANCE_H

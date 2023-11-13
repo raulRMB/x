@@ -1,7 +1,9 @@
 #include "File.h"
 #include <fstream>
 
-std::vector<char> xUtil::xFile::Read(const std::string& fileName, const std::ios::openmode& mode)
+namespace x
+{
+std::vector<char> File::Read(const std::string& fileName, const std::ios::openmode& mode)
 {
     std::ifstream file(fileName, mode | std::ios::ate);
 
@@ -19,12 +21,13 @@ std::vector<char> xUtil::xFile::Read(const std::string& fileName, const std::ios
     return buffer;
 }
 
-std::vector<char> xUtil::xFile::ReadAsBin(const std::string &fileName)
+std::vector<char> File::ReadAsBin(const std::string &fileName)
 {
     return Read(fileName, std::ios::binary);
 }
 
-std::vector<char> xUtil::xFile::ReadAsText(const std::string &fileName)
+std::vector<char> File::ReadAsText(const std::string &fileName)
 {
     return Read(fileName, std::ios::in);
+}
 }

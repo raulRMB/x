@@ -6,7 +6,9 @@
 #include <vector>
 #include <algorithm>
 
-void Navigation::FindIncenter(const Triangle2D& triangle, v2& incenter)
+namespace Navigation
+{
+void FindIncenter(const Triangle2D& triangle, v2& incenter)
 {
     float a = glm::distance(triangle.vertices[1], triangle.vertices[2]);
     float b = glm::distance(triangle.vertices[0], triangle.vertices[2]);
@@ -15,7 +17,7 @@ void Navigation::FindIncenter(const Triangle2D& triangle, v2& incenter)
     incenter = (a * triangle.vertices[0] + b * triangle.vertices[1] + c * triangle.vertices[2]) / (a + b + c);
 }
 
-void Navigation::FindCircumcircle(const Triangle2D &triangle, glm::vec2 &circumcenter, float &circumradius)
+void FindCircumcircle(const Triangle2D &triangle, glm::vec2 &circumcenter, float &circumradius)
 {
     v2 A = triangle.vertices[0];
     v2 B = triangle.vertices[1];
@@ -38,19 +40,19 @@ void Navigation::FindCircumcircle(const Triangle2D &triangle, glm::vec2 &circumc
     circumradius = glm::distance(A, circumcenter);
 }
 
-std::vector<Navigation::TriangleNode> Navigation::BowyerWatson(std::vector<v2>& points)
+std::vector<TriangleNode> BowyerWatson(std::vector<v2>& points)
 {
-    Navigation::TriangleNode supraTriangle = Navigation::TriangleNode(Triangle2D({-1000.0f, -1000.0f}, {1000.0f, -1000.0f}, {0.0f, 1000.0f}));
+    TriangleNode supraTriangle = TriangleNode(Triangle2D({-1000.0f, -1000.0f}, {1000.0f, -1000.0f}, {0.0f, 1000.0f}));
 
-    std::vector<Navigation::TriangleNode> graphTriangles = {supraTriangle};
+    std::vector<TriangleNode> graphTriangles = {supraTriangle};
     for (v2& point : points)
     {
-        std::vector<Navigation::TriangleNode> badTriangles = {};
-        for (Navigation::TriangleNode& triangle : graphTriangles)
+        std::vector<TriangleNode> badTriangles = {};
+        for (TriangleNode& triangle : graphTriangles)
         {
             v2 circumCenter;
             f32 circumRadius;
-            Navigation::FindCircumcircle(triangle.GetTriangle(), circumCenter, circumRadius);
+            FindCircumcircle(triangle.GetTriangle(), circumCenter, circumRadius);
             if(glm::distance(point, circumCenter) < circumRadius)
             {
                 badTriangles.push_back(triangle);
@@ -124,7 +126,7 @@ std::vector<Navigation::TriangleNode> Navigation::BowyerWatson(std::vector<v2>& 
     return graphTriangles;
 }
 
-bool Navigation::PointInTriangle(const v2 &p, const Triangle2D &triangle)
+bool PointInTriangle(const v2 &p, const Triangle2D &triangle)
 {
     const v2* v = triangle.vertices;
 
@@ -138,10 +140,10 @@ bool Navigation::PointInTriangle(const v2 &p, const Triangle2D &triangle)
     return d == 0 || (d < 0) == (s + t <= 0);
 }
 
-std::vector<Navigation::TriangleNode*> ReconstructPath(Navigation::TriangleNode* end, Navigation::TriangleNode* start, std::vector<Edge2D>& portals)
+std::vector<TriangleNode*> ReconstructPath(TriangleNode* end, TriangleNode* start, std::vector<Edge2D>& portals)
 {
-    std::vector<Navigation::TriangleNode*> path;
-    Navigation::TriangleNode* current = end;
+    std::vector<TriangleNode*> path;
+    TriangleNode* current = end;
     while(current != start)
     {
         path.push_back(current);
@@ -153,7 +155,7 @@ std::vector<Navigation::TriangleNode*> ReconstructPath(Navigation::TriangleNode*
 
     for(i32 i = 0; i < path.size() - 1; i++)
     {
-        if(const Edge2D* SharedEdge = GetSharedEdge(path[i]->GetTriangle(), path[i + 1]->GetTriangle()); SharedEdge != nullptr)
+        if(const Edge2D* SharedEdge = Navigation::GetSharedEdge(path[i]->GetTriangle(), path[i + 1]->GetTriangle()); SharedEdge != nullptr)
         {
             if(IsOnRight(path[i]->GetCenter(), path[i + 1]->GetCenter(), SharedEdge->vertices[0]))
             {
@@ -169,22 +171,22 @@ std::vector<Navigation::TriangleNode*> ReconstructPath(Navigation::TriangleNode*
     return path;
 }
 
-void Navigation::AStar(const v2 &start, const v2 &end, std::vector<Navigation::TriangleNode*> &path, std::vector<Edge2D>& portals, std::vector<v2>& points)
+void AStar(const v2 &start, const v2 &end, std::vector<TriangleNode*> &path, std::vector<Edge2D>& portals, std::vector<v2>& points)
 {
-    Navigation::TriangleNode* startTriangle = nullptr;
-    Navigation::TriangleNode* endTriangle = nullptr;
-    std::set<Navigation::TriangleNode*> open;
-    std::set<Navigation::TriangleNode*> closed;
+    TriangleNode* startTriangle = nullptr;
+    TriangleNode* endTriangle = nullptr;
+    std::set<TriangleNode*> open;
+    std::set<TriangleNode*> closed;
 
-    std::vector<Navigation::TriangleNode> graphTriangles = BowyerWatson(points);
+    std::vector<TriangleNode> graphTriangles = BowyerWatson(points);
 
-    for(Navigation::TriangleNode& graphTriangle : graphTriangles)
+    for(TriangleNode& graphTriangle : graphTriangles)
     {
-        if(Navigation::PointInTriangle(start, graphTriangle.GetTriangle()))
+        if(PointInTriangle(start, graphTriangle.GetTriangle()))
         {
             startTriangle = &graphTriangle;
         }
-        if(Navigation::PointInTriangle(end, graphTriangle.GetTriangle()))
+        if(PointInTriangle(end, graphTriangle.GetTriangle()))
         {
             endTriangle = &graphTriangle;
         }
@@ -199,9 +201,9 @@ void Navigation::AStar(const v2 &start, const v2 &end, std::vector<Navigation::T
 
     while(!open.empty())
     {
-        Navigation::TriangleNode *current = *open.begin();
+        TriangleNode *current = *open.begin();
 
-        for (Navigation::TriangleNode *node : open)
+        for (TriangleNode *node : open)
         {
             if (node->GetFCost() < current->GetFCost() || node->GetFCost() == current->GetFCost() && node->GetHCost() < current->GetHCost())
             {
@@ -238,20 +240,20 @@ void Navigation::AStar(const v2 &start, const v2 &end, std::vector<Navigation::T
     path = ReconstructPath(endTriangle, startTriangle, portals);
 }
 
-void Navigation::AStar(const v2 &start, const v2 &end, std::vector<Navigation::TriangleNode*> &path, std::vector<Edge2D>& portals, std::vector<Navigation::TriangleNode>& graphTriangles)
+void AStar(const v2 &start, const v2 &end, std::vector<TriangleNode*> &path, std::vector<Edge2D>& portals, std::vector<TriangleNode>& graphTriangles)
 {
-    Navigation::TriangleNode* startTriangle = nullptr;
-    Navigation::TriangleNode* endTriangle = nullptr;
-    std::set<Navigation::TriangleNode*> open;
-    std::set<Navigation::TriangleNode*> closed;
+    TriangleNode* startTriangle = nullptr;
+    TriangleNode* endTriangle = nullptr;
+    std::set<TriangleNode*> open;
+    std::set<TriangleNode*> closed;
 
-    for(Navigation::TriangleNode& graphTriangle : graphTriangles)
+    for(TriangleNode& graphTriangle : graphTriangles)
     {
-        if(Navigation::PointInTriangle(start, graphTriangle.GetTriangle()))
+        if(PointInTriangle(start, graphTriangle.GetTriangle()))
         {
             startTriangle = &graphTriangle;
         }
-        if(Navigation::PointInTriangle(end, graphTriangle.GetTriangle()))
+        if(PointInTriangle(end, graphTriangle.GetTriangle()))
         {
             endTriangle = &graphTriangle;
         }
@@ -266,9 +268,9 @@ void Navigation::AStar(const v2 &start, const v2 &end, std::vector<Navigation::T
 
     while(!open.empty())
     {
-        Navigation::TriangleNode *current = *open.begin();
+        TriangleNode *current = *open.begin();
 
-        for (Navigation::TriangleNode *node : open)
+        for (TriangleNode *node : open)
         {
             if (node->GetFCost() < current->GetFCost() || node->GetFCost() == current->GetFCost() && node->GetHCost() < current->GetHCost())
             {
@@ -284,7 +286,7 @@ void Navigation::AStar(const v2 &start, const v2 &end, std::vector<Navigation::T
             break;
         }
 
-        for(Navigation::TriangleNode* neighbor : current->GetNeighbors())
+        for(TriangleNode* neighbor : current->GetNeighbors())
         {
             if(closed.find(neighbor) != closed.end() || neighbor->IsBlocked())
             {
@@ -305,7 +307,7 @@ void Navigation::AStar(const v2 &start, const v2 &end, std::vector<Navigation::T
     path = ReconstructPath(endTriangle, startTriangle, portals);
 }
 
-f32 Navigation::TriangleArea2(const v2 &A, const v2 &B, const v2 &C)
+f32 TriangleArea2(const v2 &A, const v2 &B, const v2 &C)
 {
     const f32 ax = B.x - A.x;
     const f32 ay = B.y - A.y;
@@ -345,7 +347,7 @@ struct CFunnelApex
 } funnelApex;
 
 
-std::vector<v2> Navigation::StringPull(const std::vector<Edge2D> &portals, const v2 &start, const v2 &end)
+std::vector<v2> StringPull(const std::vector<Edge2D> &portals, const v2 &start, const v2 &end)
 {
     std::vector<v2> path;
 
@@ -424,7 +426,7 @@ std::vector<v2> Navigation::StringPull(const std::vector<Edge2D> &portals, const
 }
 
 
-const Edge2D* Navigation::GetSharedEdge(const Triangle2D &t1, const Triangle2D &t2)
+const Edge2D* GetSharedEdge(const Triangle2D &t1, const Triangle2D &t2)
 {
     for(const Edge2D& edge : t1.edges)
     {
@@ -436,7 +438,7 @@ const Edge2D* Navigation::GetSharedEdge(const Triangle2D &t1, const Triangle2D &
     return nullptr;
 }
 
-bool Navigation::IsOnRight(const v2 &O, const v2 &A, const v2 &B)
+bool IsOnRight(const v2 &O, const v2 &A, const v2 &B)
 {
     v2 a = glm::normalize(A - O);
     v2 b = glm::normalize(B - O);
@@ -444,7 +446,7 @@ bool Navigation::IsOnRight(const v2 &O, const v2 &A, const v2 &B)
     return a.x * -b.y + a.y * b.x > 0;
 }
 
-void Navigation::TriangleNode::AddNeighbor(TriangleNode *neighbor)
+void TriangleNode::AddNeighbor(TriangleNode *neighbor)
 {
     if(std::find(neighbors.begin(), neighbors.end(), neighbor) != neighbors.end() && *neighbors.end() == neighbor)
         return;
@@ -455,31 +457,32 @@ void Navigation::TriangleNode::AddNeighbor(TriangleNode *neighbor)
     neighbors.push_back(neighbor);
 }
 
-void Navigation::TriangleNode::RemoveNeighbor(TriangleNode *neighbor)
+void TriangleNode::RemoveNeighbor(TriangleNode *neighbor)
 {
     neighbors.erase(std::remove(neighbors.begin(), neighbors.end(), neighbor), neighbors.end());
 }
 
-bool Navigation::TriangleNode::operator==(const TriangleNode &other) const
+bool TriangleNode::operator==(const TriangleNode &other) const
 {
     return GetTriangle() == other.GetTriangle();
 }
 
-bool Navigation::TriangleNode::operator!=(const TriangleNode &other) const
+bool TriangleNode::operator!=(const TriangleNode &other) const
 {
     return !(*this == other);
 }
 
-void Navigation::TriangleNode::SetIndex(u32 i)
+void TriangleNode::SetIndex(u32 i)
 {
     Index = i;
 }
 
-Navigation::TriangleNode::TriangleNode(const Triangle2D &triangle, u32 index) :
+TriangleNode::TriangleNode(const Triangle2D &triangle, u32 index) :
     triangle(triangle), Index(index),
     circumcenter(v2(0.f)), circumradius(0.f),
     incenter(v2(0.f)), parent(nullptr), bBlocked(false)
 {
     FindCircumcircle(triangle, circumcenter, circumradius);
     FindIncenter(triangle, incenter);
+}
 }

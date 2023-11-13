@@ -1,13 +1,14 @@
 #ifndef R_ENGINE_H
 #define R_ENGINE_H
-#define STB_IMAGE_IMPLEMENTATION
 
 #include "Core/defines.h"
 #include "Core/Window.h"
 #include "Renderer/Renderer.h"
 #include <chrono>
-#include "core/Scene.h"
+#include "Core/Scene.h"
 
+namespace x
+{
 class Engine
 {
     std::chrono::high_resolution_clock::time_point LastTime;
@@ -49,6 +50,6 @@ private:
 public:
     void CreateMesh(const std::string& path, Shape shape, const v4& color);
 };
-
+}
 
 #endif //R_ENGINE_H

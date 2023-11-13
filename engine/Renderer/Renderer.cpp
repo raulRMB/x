@@ -21,11 +21,13 @@
 #include <backends/imgui_impl_sdl2.h>
 #include "../Core/SkeletalMesh.h"
 #include "../Components/SkeletalMeshComponent.h"
+#include <Core/Window.h>
 
 #ifndef WIN32
 #include <stdlib.h>
 #endif
-
+namespace x
+{
 Renderer::Renderer() :
     MeshList(std::vector<xMesh>()),
     ModelList(std::vector<MeshModel>()),
@@ -169,8 +171,8 @@ Renderer::~Renderer() = default;
 
 void Renderer::CreateSkeletalPipeline()
 {
-    std::vector<char> vertShaderCode = xUtil::xFile::ReadAsBin("../assets/shaders/skeletalVert.spv");
-    std::vector<char> fragShaderCode = xUtil::xFile::ReadAsBin("../assets/shaders/skeletalFrag.spv");
+    std::vector<char> vertShaderCode = File::ReadAsBin("../assets/shaders/skeletalVert.spv");
+    std::vector<char> fragShaderCode = File::ReadAsBin("../assets/shaders/skeletalFrag.spv");
 
     VkShaderModule VertexShaderModule = CreateShaderModule(vertShaderCode);
     VkShaderModule FragmentShaderModule = CreateShaderModule(fragShaderCode);
@@ -322,8 +324,8 @@ void Renderer::CreateSkeletalPipeline()
 
 void Renderer::CreatePipeline(VkPipeline& pipeline, VkBool32 depthTestEnable, VkPrimitiveTopology topology)
 {
-    std::vector<char> vertShaderCode = xUtil::xFile::ReadAsBin("../assets/shaders/vert.spv");
-    std::vector<char> fragShaderCode = xUtil::xFile::ReadAsBin("../assets/shaders/frag.spv");
+    std::vector<char> vertShaderCode = File::ReadAsBin("../assets/shaders/vert.spv");
+    std::vector<char> fragShaderCode = File::ReadAsBin("../assets/shaders/frag.spv");
 
     VkShaderModule VertexShaderModule = CreateShaderModule(vertShaderCode);
     VkShaderModule FragmentShaderModule = CreateShaderModule(fragShaderCode);
@@ -1532,4 +1534,5 @@ void Renderer::AllocateDynamicBufferTransferSpace()
     if(BoneTransferSpace == nullptr) {
         throw std::runtime_error("BoneTransferSpace is null");
     }
+}
 }

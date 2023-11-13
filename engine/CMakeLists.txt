@@ -1,3 +1,5 @@
+project(engine)
+
 set (SOURCES
         Components/PhysicsComponent.h
         Components/TransformComponent.h
@@ -27,7 +29,6 @@ set (SOURCES
 
         Util/Primitives.h
         Util/Color.h
-
         Util/Util.h Util/Util.cpp
         Util/File.h Util/File.cpp
 
@@ -41,6 +42,6 @@ set (SOURCES
         engine.h engine.cpp
 )
 
-add_library(engine INTERFACE ${SOURCES})
-target_include_directories(engine INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(engine INTERFACE vendor)
+add_library(engine ${SOURCES})
+target_include_directories(engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(engine PUBLIC vendor)

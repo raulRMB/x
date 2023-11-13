@@ -1,8 +1,10 @@
 #include "Window.h"
 #include <SDL2/SDL.h>
 
-Window::Window() :
-    SDLWindow(nullptr)
+namespace x
+{
+    Window::Window() :
+        SDLWindow(nullptr)
     {}
 
     Window::~Window() = default;
@@ -71,3 +73,4 @@ Window::Window() :
         static Window instance;
         return instance;
     }
+}

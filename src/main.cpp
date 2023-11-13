@@ -1,9 +1,8 @@
-#include <engine.h>
-#include <Core/Scene.h>
+#include "../engine/engine.h"
 #include "Scenes/MainScene.h"
 
 int main()
 {
     Scene* mainScene = new MainScene();
-    return Engine::Get().Run(mainScene);
+    return x::Engine::Get().Run(mainScene);
 }

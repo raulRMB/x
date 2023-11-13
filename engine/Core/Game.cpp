@@ -1,6 +1,5 @@
 #include "Game.h"
-#include "../../game/Scenes/TestScene.h"
-#include "../../game/Scenes/MainScene.h"
+#include "../../src/Scenes/MainScene.h"
 #include "../Engine.h"
 
 Game &Game::GetInstance()

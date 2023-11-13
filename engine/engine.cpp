@@ -7,6 +7,8 @@
 #include "Network/NetworkDriver.h"
 #include <thread>
 
+namespace x
+{
 Engine &Engine::Get()
 {
     static Engine instance;
@@ -16,7 +18,7 @@ Engine &Engine::Get()
 Engine::Engine() :
     TotalTime(0.f),
     DeltaTime(0.f)
-    {}
+{}
 
 Engine::~Engine() = default;
 
@@ -24,7 +26,7 @@ i32 Engine::Run(Scene * startingScene)
 {
     // NetworkDriver::Get().Init();
 
-    if(Window::Get().Init() != EXIT_SUCCESS || Renderer::Get().Init() != EXIT_SUCCESS)
+    if(x::Window::Get().Init() != EXIT_SUCCESS || x::Renderer::Get().Init() != EXIT_SUCCESS)
     {
         return EXIT_FAILURE;
     }
@@ -47,7 +49,7 @@ i32 Engine::Run(Scene * startingScene)
         Game::GetInstance().HandleInput(event);
 
         CurrentTime = std::chrono::high_resolution_clock::now();
-        
+
         DeltaTime = CurrentTime - LastTime;
         LastTime = CurrentTime;
         TotalTime += DeltaTime;
@@ -119,4 +121,5 @@ void Engine::CalculateFPS()
         FrameCount = 0;
         FrameStartTime = CurrentTime;
     }
+}
 }

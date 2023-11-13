@@ -8,37 +8,39 @@
 #include "../Core/defines.h"
 #include "SDL_events.h"
 
-    class Window
-    {
-    public:
-        static Window &Get();
-    private:
-        friend class Engine;
+namespace x
+{
+class Window
+{
+public:
+    static Window &Get();
+private:
+    friend class Engine;
 
-        class SDL_Window *SDLWindow;
+    class SDL_Window *SDLWindow;
 
-    public:
-        [[nodiscard]] SDL_Window *GetWindow() const
-        { return SDLWindow; }
+public:
+    [[nodiscard]] SDL_Window *GetWindow() const
+    { return SDLWindow; }
 
-    private:
-        Window();
+private:
+    Window();
 
-        ~Window();
+    ~Window();
 
-        i32 Init();
+    i32 Init();
 
-        bool bRunning(SDL_Event &event);
+    bool bRunning(SDL_Event &event);
 
-        void Clean();
+    void Clean();
 
-        i32 InitSDL();
+    i32 InitSDL();
 
-        bool bSDLRunning(SDL_Event &event);
+    bool bSDLRunning(SDL_Event &event);
 
-        void CleanSDL();
+    void CleanSDL();
 
-        void SetFPS(int i);
-    };
-
+    void SetFPS(int i);
+};
+}
 #endif //R_WINDOW_H

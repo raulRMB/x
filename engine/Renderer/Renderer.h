@@ -21,6 +21,8 @@
 #include "Base/RendererDevice.h"
 #include "Base/SwapChain.h"
 
+namespace x
+{
 class Window;
 
 class Renderer
@@ -195,5 +197,6 @@ private:
 
     void CreateSkeletalPipelineLayout();
 };
+}
 
 #endif //X_RENDERER_H

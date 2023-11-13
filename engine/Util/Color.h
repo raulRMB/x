@@ -3,6 +3,8 @@
 
 #include "glm/glm.hpp"
 
+namespace x::Color
+{
 inline glm::vec4 White = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 inline glm::vec4 Black = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 inline glm::vec4 Red = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
@@ -19,5 +21,6 @@ inline glm::vec4 Brown = glm::vec4(0.5f, 0.25f, 0.0f, 1.0f);
 inline glm::vec4 Purple = glm::vec4(0.5f, 0.0f, 0.5f, 1.0f);
 inline glm::vec4 Pink = glm::vec4(1.0f, 0.0f, 0.5f, 1.0f);
 inline glm::vec4 Clear = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
+}
 
 #endif //X_COLOR_H

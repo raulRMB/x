@@ -84,7 +84,7 @@ SkeletalMesh SkeletalMesh::LoadMesh(VkPhysicalDevice physicalDevice, VkDevice de
         vertex.Pos.z = mesh->mVertices[i].z;
         vertex.Tex.x = mesh->mTextureCoords[0][i].x;
         vertex.Tex.y = mesh->mTextureCoords[0][i].y;
-        vertex.Col = Color::White;
+        vertex.Col = x::Color::White;
         vertex.BoneIds = iv4(0);
         vertex.BoneWeights = v4(0.0f);
         vertices.push_back(vertex);

@@ -1,17 +1,14 @@
 #include "MainScene.h"
 #include <Components/TransformComponent.h>
 #include <Components/MeshComponent.h>
-#include <Components/PhysicsComponent.h>
-#include <Components/TargetComponent.h>
-#include <Engine.h>
+#include <engine.h>
 #include <Core/Camera.h>
-#include <Components/ParentComponent.h>
 #include <Util/Util.h>
 #include <Navigation/Navigation.h>
 #include <Components/FollowComponent.h>
 #include <Components/SkeletalMeshComponent.h>
 #include <Renderer/Renderer.h>
-#include <glm/gtc/constants.hpp>
+#include <Core/Window.h>
 #include <thread>
 #include <fstream>
 #include <sstream>
@@ -20,11 +17,11 @@ f32 RandomFloat(f32 min, f32 max);
 
 void MainScene::Start()
 {
-    Renderer::Get().CreateMesh("1x1.png", Shape::Circle, Red);
-    Renderer::Get().CreateMesh("1x1.png", Shape::Circle, Green);
-    Renderer::Get().CreateMesh("1x1.png", Shape::Circle, Blue);
-    Renderer::Get().CreateMesh("1x1.png", Shape::Circle, Yellow);
-    Renderer::Get().CreateMesh("1x1.png", Shape::Circle, Magenta);
+    x::Renderer::Get().CreateMesh("1x1.png", Shape::Circle, x::Color::Red);
+    x::Renderer::Get().CreateMesh("1x1.png", Shape::Circle, x::Color::Green);
+    x::Renderer::Get().CreateMesh("1x1.png", Shape::Circle, x::Color::Blue);
+    x::Renderer::Get().CreateMesh("1x1.png", Shape::Circle, x::Color::Yellow);
+    x::Renderer::Get().CreateMesh("1x1.png", Shape::Circle, x::Color::Magenta);
 
     entt::entity e = CreateEntity();
     CTransform3d transform{};
@@ -32,7 +29,7 @@ void MainScene::Start()
     transform.WorldRotation = {glm::radians(180.f), 0.f, 0.0f};
     transform.WorldScale = v3(.5f);
     AddComponent(e, transform);
-    Renderer::Get().CreateSkeletalMesh("../assets/models/ninja.fbx");
+    x::Renderer::Get().CreateSkeletalMesh("../assets/models/ninja.fbx");
     AddComponent(e, CSkeletalMesh(0));
     Entities.push_back(e);
 
@@ -41,10 +38,10 @@ void MainScene::Start()
     transform.WorldRotation = {glm::radians(180.f), 0.f, 0.0f};
     transform.WorldScale = v3(.1f);
     AddComponent(e, transform);
-    AddComponent(e, CTriangleMesh(Renderer::Get().CreateMeshModel("../assets/models/map.obj")));
+    AddComponent(e, CTriangleMesh(x::Renderer::Get().CreateMeshModel("../assets/models/map.obj")));
     Entities.push_back(e);
 
-    SDL_SetWindowMouseGrab(Window::Get().GetWindow(), SDL_TRUE);
+    SDL_SetWindowMouseGrab(x::Window::Get().GetWindow(), SDL_TRUE);
 
     Load();
 }
@@ -110,7 +107,7 @@ void MainScene::Update(f32 deltaTime)
     {
         CSkeletalMesh& skeletalMeshComp = Registry.get<CSkeletalMesh>(entity);
         CTransform3d& transform = Registry.get<CTransform3d>(entity);
-        SkeletalMesh& skeletalMesh = Renderer::Get().GetSkeletalMesh(skeletalMeshComp.Id);
+        SkeletalMesh& skeletalMesh = x::Renderer::Get().GetSkeletalMesh(skeletalMeshComp.Id);
         m4 m = glm::mat4(1.0f);
         SkeletalMesh::GetPose(skeletalMesh.GetAnimation(), skeletalMesh.GetRootBone(), lifeTime, skeletalMesh.GetCurrentPose(), m, skeletalMesh.GetGlobalInverseTransform());
     }
@@ -195,7 +192,7 @@ void MainScene::HandleInput(const SDL_Event &event)
                     auto e = CreateEntity();
                     CTransform3d transform{};
                     AddComponent(e, transform);
-                    AddComponent(e, CLineMesh(Renderer::Get().CreateTriangle(triangle.vertices[0], triangle.vertices[1], triangle.vertices[2], graphTriangle.IsBlocked() ? Cyan : White)));
+                    AddComponent(e, CLineMesh(x::Renderer::Get().CreateTriangle(triangle.vertices[0], triangle.vertices[1], triangle.vertices[2], graphTriangle.IsBlocked() ? x::Color::Cyan : x::Color::White)));
                     break;
                 }
             }
@@ -223,7 +220,7 @@ void MainScene::HandleInput(const SDL_Event &event)
                 auto e = CreateEntity();
                 AddComponent(e, CTransform3d());
                 const Triangle2D& triangle = graphTriangle.GetTriangle();
-                AddComponent(e, CLineMesh(Renderer::Get().CreateTriangle(triangle.vertices[0], triangle.vertices[1], triangle.vertices[2], graphTriangle.IsBlocked() ? Red : White)));
+                AddComponent(e, CLineMesh(x::Renderer::Get().CreateTriangle(triangle.vertices[0], triangle.vertices[1], triangle.vertices[2], graphTriangle.IsBlocked() ? x::Color::Red : x::Color::White)));
                 CTransform3d transform{};
             }
         }
@@ -289,7 +286,7 @@ void MainScene::Load()
             const Triangle2D& triangle = graphTriangle.GetTriangle();
             if(graphTriangle.IsBlocked())
             {
-                AddComponent(e, CLineMesh(Renderer::Get().CreateTriangle(triangle.vertices[0], triangle.vertices[1], triangle.vertices[2], Red)));
+                AddComponent(e, CLineMesh(x::Renderer::Get().CreateTriangle(triangle.vertices[0], triangle.vertices[1], triangle.vertices[2], x::Color::Red)));
             }
             CTransform3d transform{};
         }
@@ -302,7 +299,7 @@ void MainScene::DrawUI()
 
     if(bShowUI)
     {
-        static u32 fps = Engine::GetFPS();
+        static u32 fps = x::Engine::GetFPS();
         ImGui::Text("FPS: %d", fps);
 
         if(ImGui::Button("Save"))

@@ -35,9 +35,9 @@
 
         std::vector<const char*> instanceExtensions = std::vector<const char*>();
         u32 extensionCount = 0;
-        SDL_Vulkan_GetInstanceExtensions(Window::Get().GetWindow(), &extensionCount, nullptr);
+        SDL_Vulkan_GetInstanceExtensions(x::Window::Get().GetWindow(), &extensionCount, nullptr);
         instanceExtensions.resize(extensionCount);
-        SDL_Vulkan_GetInstanceExtensions(Window::Get().GetWindow(), &extensionCount, instanceExtensions.data());
+        SDL_Vulkan_GetInstanceExtensions(x::Window::Get().GetWindow(), &extensionCount, instanceExtensions.data());
         if(!RendererInstance::CheckInstanceExtensionSupport(&instanceExtensions))
         {
             throw std::runtime_error("Required extensions not supported");

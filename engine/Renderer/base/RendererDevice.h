@@ -1,4 +1,5 @@
-#pragma once
+#ifndef X_RENDERERDEVICE_H
+#define X_RENDERERDEVICE_H
 
 #include <vulkan/vulkan.h>
 #include "../RendererUtil.h"
@@ -20,3 +21,5 @@ private:
     bool CheckDeviceExtensionSupport(VkPhysicalDevice device);
     void CreateLogicalDevice();
 };
+
+#endif //X_RENDERERDEVICE_H

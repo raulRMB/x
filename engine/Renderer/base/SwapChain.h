@@ -1,3 +1,6 @@
+#ifndef X_SWAPCHAIN_H
+#define X_SWAPCHAIN_H
+
 #include "../../Core/defines.h"
 #include <vulkan/vulkan.h>
 #include "../RendererUtil.h"
@@ -20,3 +23,5 @@ private:
     VkPresentModeKHR ChooseBestPresentationMode(const std::vector<VkPresentModeKHR> &presentationModes);
 
 };
+
+#endif //X_SWAPCHAIN_H

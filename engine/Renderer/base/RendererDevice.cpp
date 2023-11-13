@@ -5,7 +5,7 @@
 #include <string.h>
 
     void RendererDevice::Create(VkInstance instance) {
-        if(SDL_Vulkan_CreateSurface(Window::Get().GetWindow(), instance, &MainDevice.Surface) != SDL_TRUE)
+        if(SDL_Vulkan_CreateSurface(x::Window::Get().GetWindow(), instance, &MainDevice.Surface) != SDL_TRUE)
         {
             throw std::runtime_error("Failed to create surface");
         }

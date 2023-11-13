@@ -1,6 +1,7 @@
 #include "MeshModel.h"
 #include "../Util/Primitives.h"
 #include <assimp/scene.h>
+#include <Util/Primitives.h>
 
 MeshModel::MeshModel(): Model(1.0f) {}
 
@@ -97,7 +98,7 @@ xMesh MeshModel::LoadMesh(VkPhysicalDevice physicalDevice, VkDevice device, VkQu
         else
             vertices[i].Tex = {0.0f, 0.0f};
 
-        vertices[i].Col = Color::White;
+        vertices[i].Col = x::Color::White;
     }
 
     for(size_t i = 0; i < mesh->mNumFaces; i++)
