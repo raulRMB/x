@@ -25,7 +25,7 @@ set (SOURCES
         Renderer/Base/RendererDevice.h Renderer/Base/RendererDevice.cpp
         Renderer/Base/SwapChain.h Renderer/Base/SwapChain.cpp
         Renderer/Renderer.h Renderer/Renderer.cpp
-        Renderer/RendererUtil.h
+        Renderer/RendererUtil.h Renderer/RendererUtil.cpp
 
         Util/Primitives.h
         Util/Color.h

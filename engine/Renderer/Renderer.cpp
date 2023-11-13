@@ -1128,7 +1128,7 @@ i32 Renderer::CreateTextureImage(const std::string& fileName)
 {
     i32 width, height;
     VkDeviceSize imageSize;
-    stbi_uc* imageData = LoadTextureFile(fileName, &width, &height, &imageSize);
+    stbi_uc* imageData = xUtil::LoadTextureFile(fileName, &width, &height, &imageSize);
 
     VkBuffer imageStagingBuffer;
     VkDeviceMemory imageStagingBufferMemory;
@@ -1140,7 +1140,7 @@ i32 Renderer::CreateTextureImage(const std::string& fileName)
     vkMapMemory(MainDevice.LogicalDevice, imageStagingBufferMemory, 0, imageSize, 0, &data);
     memcpy(data, imageData, static_cast<size_t>(imageSize));
     vkUnmapMemory(MainDevice.LogicalDevice, imageStagingBufferMemory);
-    stbi_image_free(imageData);
+    xUtil::FreeImage(imageData);
 
     VkImage texImage;
     VkDeviceMemory texImageMemory;

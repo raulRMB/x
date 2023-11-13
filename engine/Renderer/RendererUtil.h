@@ -1,9 +1,7 @@
 #ifndef X_RUTIL_H
 #define X_RUTIL_H
 
-#ifndef STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
-#endif
 
 #include "../Core/defines.h"
 #include <vector>
@@ -11,8 +9,8 @@
 #include <glm/glm.hpp>
 #include "../Core/Camera.h"
 #include "../Core/Game.h"
-#include "stb_image.h"
 
+    typedef unsigned char stbi_uc;
     const int MAX_FRAMES_IN_FLIGHT = 2;
     const int MAX_OBJECTS = 100;
 
@@ -302,22 +300,10 @@
 
         return imageView;
     }
-
-    inline stbi_uc* LoadTextureFile(const std::string& fileName, i32* width, i32* height, VkDeviceSize* imageSize)
-    {
-        i32 channels;
-
-        std::string fileLoc = "../assets/textures/" + fileName;
-        stbi_uc* image;
-        if(image = stbi_load(fileLoc.c_str(), width, height, &channels, STBI_rgb_alpha); !image)
-        {
-            throw std::runtime_error("Failed to load a texture file! (" + fileName + ")");
-        }
-
-        *imageSize = *width * *height * 4;
-
-        return image;
-    }
+namespace xUtil {
+    stbi_uc* LoadTextureFile(const std::string& fileName, i32* width, i32* height, VkDeviceSize* imageSize);
+    void FreeImage(stbi_uc* imageData);
+}
 
     inline v3 GetMouseWorldPosition(bool atZeroZ = false)
     {
@@ -333,5 +319,4 @@
         return world;
     }
 
-
-#endif //X_RUTIL_H
+#endif
