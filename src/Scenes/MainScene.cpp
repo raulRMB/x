@@ -12,11 +12,13 @@
 #include <thread>
 #include <fstream>
 #include <sstream>
+#include "../UI/HotbarSlots.h"
 
 f32 RandomFloat(f32 min, f32 max);
 
 void MainScene::Start()
 {
+    HotbarSlots::Init();
     x::Renderer::Get().CreateMesh("1x1.png", Shape::Circle, x::Color::Red);
     x::Renderer::Get().CreateMesh("1x1.png", Shape::Circle, x::Color::Green);
     x::Renderer::Get().CreateMesh("1x1.png", Shape::Circle, x::Color::Blue);
@@ -295,25 +297,11 @@ void MainScene::Load()
 
 void MainScene::DrawUI()
 {
+    HotbarSlots::Draw();
     if(bShowUI)
     {
-        ImGui::Begin("hasasss", reinterpret_cast<bool*>(&bShowUI));
-        u32 fps = x::Engine::GetFPS();
-        ImGui::Text("FPS: %d", fps);
-
-        if(ImGui::Button("Save"))
-        {
-            Save();
-        }
-        if(ImGui::Button("Load"))
-        {
-            Load();
-        }
-
-        ImGui::End();
-
         ImGui::Begin("hasds", reinterpret_cast<bool*>(&bShowUI));
-
+            u32 fps = x::Engine::GetFPS();
             ImGui::Text("FPS: %d", fps);
 
             if(ImGui::Button("Save"))
@@ -324,7 +312,6 @@ void MainScene::DrawUI()
             {
                 Load();
             }
-
         ImGui::End();
     }
 }
