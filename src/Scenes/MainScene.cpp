@@ -16,6 +16,7 @@
 
 f32 RandomFloat(f32 min, f32 max);
 
+void* Image;
 void MainScene::Start()
 {
     HotbarSlots::Init();
@@ -300,18 +301,36 @@ void MainScene::DrawUI()
     HotbarSlots::Draw();
     if(bShowUI)
     {
-        ImGui::Begin("hasds", reinterpret_cast<bool*>(&bShowUI));
-            u32 fps = x::Engine::GetFPS();
-            ImGui::Text("FPS: %d", fps);
+        ImGui::Begin("hasasss", &bShowUI);
+        u32 fps = x::Engine::GetFPS();
+        ImGui::Text("FPS: %d", fps);
 
-            if(ImGui::Button("Save"))
-            {
-                Save();
-            }
-            if(ImGui::Button("Load"))
-            {
-                Load();
-            }
+        if(ImGui::Button("Save"))
+        {
+            Save();
+        }
+        if(ImGui::Button("Load"))
+        {
+            Load();
+        }
+
+        ImGui::End();
+
+        ImGui::Begin("hasds", &bShowUI);
+
+        // ImGui::Image(x::Renderer::Get().GetImageView(4), ImVec2(100.0f, 100.0f));
+
+        ImGui::Text("FPS: %d", fps);
+
+        if(ImGui::Button("Save"))
+        {
+            Save();
+        }
+        if(ImGui::Button("Load"))
+        {
+            Load();
+        }
+
         ImGui::End();
     }
 }

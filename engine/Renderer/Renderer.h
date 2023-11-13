@@ -34,6 +34,8 @@ public:
 
     SkeletalMesh& GetSkeletalMesh(u32 id);
 
+    VkImageView GetImageView(u32 index) const;
+
 private:
     friend class Engine;
 
@@ -176,9 +178,10 @@ private:
 
     i32 CreateTextureImage(const std::string &fileName);
 
-    i32 CreateTexture(const std::string &fileName);
 
     i32 CreateTextureDescriptor(VkImageView textureImage);
+    i32 CreateTexture(const std::string &fileName);
+
 public:
 
     void CreateMesh(const std::string& texture, Shape shape = Shape::Circle,

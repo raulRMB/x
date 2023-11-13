@@ -1182,6 +1182,89 @@ i32 Renderer::CreateTexture(const std::string &fileName)
     return descriptorLoc;
 }
 
+// VkImageView Renderer::InitTexture(const std::string& texture)
+// {
+//     i32 width, height;
+//     VkDeviceSize imageSize;
+//     stbi_uc* pixels = xUtil::LoadTextureFile(texture, &width, &height, &imageSize);
+//
+//     // Create staging buffer
+//     VkBufferCreateInfo bufferInfo = {
+//         .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+//         .size = imageSize,
+//         .usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+//     };
+//     VkBuffer stagingBuffer;
+//     vkCreateBuffer(MainDevice.LogicalDevice, &bufferInfo, nullptr, &stagingBuffer);
+//
+//     // Allocate memory for staging buffer
+//     VkMemoryRequirements memRequirements;
+//     vkGetBufferMemoryRequirements(MainDevice.LogicalDevice, stagingBuffer, &memRequirements);
+//
+//     VkMemoryAllocateInfo allocInfo = {
+//         .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+//         .allocationSize = memRequirements.size,
+//         .memoryTypeIndex = FindMemoryTypeIndex(MainDevice.PhysicalDevice, memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT),
+//     };
+//     VkDeviceMemory stagingBufferMemory;
+//     vkAllocateMemory(MainDevice.LogicalDevice, &allocInfo, nullptr, &stagingBufferMemory);
+//     vkBindBufferMemory(MainDevice.LogicalDevice, stagingBuffer, stagingBufferMemory, 0);
+//
+//     // Copy data to staging buffer
+//     void* data;
+//     vkMapMemory(MainDevice.LogicalDevice, stagingBufferMemory, 0, imageSize, 0, &data);
+//     memcpy(data, pixels, imageSize);
+//     vkUnmapMemory(MainDevice.LogicalDevice, stagingBufferMemory);
+//
+//     xUtil::FreeImage(pixels);
+//
+//     // Create image
+//     VkImageCreateInfo imageInfo = {
+//         .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+//         .imageType = VK_IMAGE_TYPE_2D,
+//         .format = VK_FORMAT_R8G8B8A8_UNORM,
+//         .extent = {(u32)width, (u32)height, 1},
+//         .mipLevels = 1,
+//         .arrayLayers = 1,
+//         .samples = VK_SAMPLE_COUNT_1_BIT,
+//         .tiling = VK_IMAGE_TILING_OPTIMAL,
+//         .usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+//     };
+//
+//     VkImage textureImage;
+//     vkCreateImage(MainDevice.LogicalDevice, &imageInfo, nullptr, &textureImage);
+//
+//     // Allocate memory for image
+//     VkMemoryRequirements imageMemRequirements;
+//     vkGetImageMemoryRequirements(MainDevice.LogicalDevice, textureImage, &imageMemRequirements);
+//
+//     allocInfo = (VkMemoryAllocateInfo){
+//         .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+//         .allocationSize = imageMemRequirements.size,
+//         .memoryTypeIndex = FindMemoryTypeIndex(MainDevice.PhysicalDevice, imageMemRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT),
+//     };
+//     VkDeviceMemory textureImageMemory;
+//     vkAllocateMemory(MainDevice.LogicalDevice, &allocInfo, nullptr, &textureImageMemory);
+//     vkBindImageMemory(MainDevice.LogicalDevice, textureImage, textureImageMemory, 0);
+//
+//     // Transition image layout
+//     TransitionImageLayout(MainDevice.LogicalDevice, MainDevice.GraphicsQueue, GraphicsCommandPool, textureImage, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+//
+//     // Copy data to image
+//     CopyImageBuffer(MainDevice.LogicalDevice, MainDevice.GraphicsQueue, GraphicsCommandPool, stagingBuffer, textureImage, width, height);
+//
+//     VkImageView imageView = CreateImageView(textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT, MainDevice.LogicalDevice);
+//
+//     // Transition image layout for shader read
+//     TransitionImageLayout(MainDevice.LogicalDevice, MainDevice.GraphicsQueue, GraphicsCommandPool, textureImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+//
+//     // Clean up staging buffer
+//     vkDestroyBuffer(MainDevice.LogicalDevice, stagingBuffer, nullptr);
+//     vkFreeMemory(MainDevice.LogicalDevice, stagingBufferMemory, nullptr);
+//
+//     return imageView;
+// }
+
 void Renderer::CreateTextureSampler()
 {
     VkSamplerCreateInfo samplerCreateInfo = {};
@@ -1521,6 +1604,15 @@ void Renderer::CreateSkeletalMesh(const std::string &fileName)
 SkeletalMesh& Renderer::GetSkeletalMesh(u32 id)
 {
     return SkeletalMeshList[id];
+}
+
+VkImageView Renderer::GetImageView(const u32 index) const
+{
+    if(index >= TextureImageViews.size())
+    {
+        return TextureImageViews[index];
+    }
+    return VK_NULL_HANDLE;
 }
 
 void Renderer::AllocateDynamicBufferTransferSpace()

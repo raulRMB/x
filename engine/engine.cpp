@@ -113,8 +113,7 @@ void Engine::Load()
 void Engine::CalculateFPS()
 {
     FrameCount++;
-    auto dt = std::chrono::duration_cast<std::chrono::seconds>(CurrentTime - FrameStartTime).count();
-    if (dt >= 1)
+    if (const long long dt = std::chrono::duration_cast<std::chrono::seconds>(CurrentTime - FrameStartTime).count(); dt >= 1)
     {
         FPS = FrameCount / dt;
         FrameCount = 0;
