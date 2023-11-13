@@ -8,6 +8,7 @@ add_subdirectory(entt)
 add_subdirectory(stb_image)
 add_subdirectory(imgui)
 add_subdirectory(assimp)
+add_subdirectory(RmlUi)
 
 add_library(vendor INTERFACE)
 

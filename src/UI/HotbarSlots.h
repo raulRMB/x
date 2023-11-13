@@ -38,7 +38,7 @@ namespace HotbarSlots {
             ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
             if (ImGui::BeginDragDropSource(src_flags)) {
                 ImGui::SetDragDropPayload("ITEMN", &i, sizeof(int), ImGuiCond_Once);
-                ImGui::Button((std::to_string(butnum[i])).c_str(), ImVec2(50, 50));
+                ImGui::Button((std::to_string(butnum[i])).c_str(), ImVec2(-50, -50));
                 ImGui::EndDragDropSource();
             }
             ImGui::PopStyleVar();
