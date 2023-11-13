@@ -5,8 +5,6 @@
 #include <glm/gtx/quaternion.hpp>
 #include <glm/glm.hpp>
 
-static CameraSystem instance;
-
 CameraSystem::CameraSystem() : MainCamera(entt::null), bDebugCamera(false)
 {
     pRegistry = &Game::GetInstance().GetScene()->GetRegistry();
