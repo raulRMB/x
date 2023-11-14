@@ -4,6 +4,8 @@
 
 cmake_minimum_required(VERSION 3.5)
 
+set(NO_FONT_INTERFACE_DEFAULT TRUE)
+
 if(APPLE)
 	# This has to be before most other options so CMake properly handles the
 	# compiler variables, it MUST bebefore the project() definition
@@ -389,7 +391,6 @@ if(NOT NO_FONT_INTERFACE_DEFAULT)
 		endif()
 
 		list(APPEND CORE_LINK_LIBS ${FREETYPE_LIBRARIES})
-		list(APPEND CORE_INCLUDE_DIRS ${FREETYPE_INCLUDE_DIRS})
 	endif()
 endif()
 
@@ -632,8 +633,10 @@ endif()
 #===================================
 
 if(NOT BUILD_FRAMEWORK)
+	target_include_directories(RmlCore PUBLIC ../freetype/include)
 	target_include_directories(RmlCore PRIVATE ${CORE_INCLUDE_DIRS})
 	target_include_directories(RmlCore INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Include> $<INSTALL_INTERFACE:include>)
+	target_link_libraries(RmlCore PUBLIC ../freetype/freetype.dll)
 	target_link_libraries(RmlCore PRIVATE ${CORE_LINK_LIBS})
 	target_link_libraries(RmlCore PUBLIC ${CORE_PUBLIC_LINK_LIBS})
 	target_link_libraries(RmlDebugger RmlCore)
