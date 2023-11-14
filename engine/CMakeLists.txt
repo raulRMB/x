@@ -32,6 +32,9 @@ set (SOURCES
         Util/Util.h Util/Util.cpp
         Util/File.h Util/File.cpp
 
+        UI/RmlRenderInterface.h
+        UI/RmlSystemInterface.h
+
         Navigation/Navigation.h Navigation/Navigation.cpp
 
         Network/NetMsgType.h

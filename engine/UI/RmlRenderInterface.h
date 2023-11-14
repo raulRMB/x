@@ -1,4 +1,4 @@
-#include <RmlUi/Core.h>
+#include <SDL>
 
 class RmlRenderInterface : public Rml::RenderInterface
 {

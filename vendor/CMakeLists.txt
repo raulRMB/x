@@ -13,5 +13,5 @@ add_subdirectory(RmlUi)
 
 add_library(vendor INTERFACE)
 
-target_include_directories(vendor INTERFACE SDL2::SDL2 entt  stb_image glm::glm Vulkan::Vulkan enet/include imgui assimp)
-target_link_libraries(vendor INTERFACE SDL2::SDL2 entt stb_image glm::glm Vulkan::Vulkan enet imgui assimp)
+target_include_directories(vendor INTERFACE SDL2::SDL2 entt RmlCore stb_image glm::glm Vulkan::Vulkan enet/include imgui assimp)
+target_link_libraries(vendor INTERFACE SDL2::SDL2 entt RmlCore stb_image glm::glm Vulkan::Vulkan enet imgui assimp)
