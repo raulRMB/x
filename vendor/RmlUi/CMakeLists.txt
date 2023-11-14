@@ -4,7 +4,9 @@
 
 cmake_minimum_required(VERSION 3.5)
 
-set(NO_FONT_INTERFACE_DEFAULT TRUE)
+if(WIN32)
+	set(NO_FONT_INTERFACE_DEFAULT TRUE)
+endif ()
 
 if(APPLE)
 	# This has to be before most other options so CMake properly handles the
